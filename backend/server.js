@@ -157,19 +157,17 @@ const iniciarServidor = async () => {
     }
 
     // Iniciar servidor
-    app.listen(PORT, () => {
-      console.log('');
-      console.log('🏨 ============================================');
-      console.log('   HOTEL LUNA SERENA - BACKEND');
-      console.log('   ============================================');
-      console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
-      console.log(`📍 Ambiente: ${process.env.NODE_ENV || 'development'}`);
-      console.log(`🌐 URL: http://localhost:${PORT}`);
-      console.log(`🏥 Health: http://localhost:${PORT}/health`);
-      console.log(`🔐 Auth Test: http://localhost:${PORT}/api/auth/test`);
-      console.log('============================================');
-      console.log('');
-    });
+    app.listen(PORT, '0.0.0.0', () => {
+  console.log('');
+  console.log('🏨 ============================================');
+  console.log('   HOTEL LUNA SERENA - BACKEND');
+  console.log('   ============================================');
+  console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
+  console.log(`📍 Ambiente: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🏥 Health: /health`);
+  console.log('============================================');
+  console.log('');
+});
   } catch (error) {
     console.error('❌ Error al iniciar el servidor:', error);
     process.exit(1);
