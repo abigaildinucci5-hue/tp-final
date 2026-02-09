@@ -1,0 +1,12 @@
+MYSQLHOST=MySQL.railway.internal
+MYSQLPORT=3306
+MYSQLUSER=root
+MYSQLPASSWORD=mIkMEzFafoFtJwMluNGlmtVdsSflOdcS
+MYSQLDATABASE=railway
+MYSQL_ROOT_PASSWORD=mIkMEzFafoFtJwMluNGlmtVdsSflOdcS
+
+mysql -h shinkansen.proxy.rlwy.net -u root -p -P 16458 railway < hotel_reservas_actualizado.sql
+
+Contraseña de la DB Mysql: TpFinal2026!
+
+dominio: https://tp-final-production-a1f6.up.railway.app

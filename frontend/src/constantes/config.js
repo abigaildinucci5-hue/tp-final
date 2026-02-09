@@ -4,7 +4,7 @@
 
 // Configuración de la API
 export const API_CONFIG = {
-  BASE_URL: process.env.REACT_APP_API_URL || 'http://localhost:3000/api',
+  BASE_URL: 'https://tp-final-production-a1f6.up.railway.app/api',
   TIMEOUT: 30000, // 30 segundos
   RETRY_ATTEMPTS: 3,
   RETRY_DELAY: 1000 // 1 segundo
