@@ -135,40 +135,31 @@ app.use(manejadorErrores);
 // ============================
 
 const iniciarServidor = async () => {
-
-  // 🔹 Intentamos conectar DB pero NO detenemos el server si falla
   try {
-    await verificarConexionDB();
-    console.log('✅ Conexión a la base de datos establecida');
+    // Intentar conexión a DB pero NO crashear si falla
+    try {
+      await verificarConexionDB();
+      console.log('✅ Conexión a la base de datos establecida');
+    } catch (dbError) {
+      console.error('⚠️ No se pudo conectar a la DB al iniciar. El servidor seguirá funcionando.');
+      console.error(dbError.message);
+    }
+
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log('');
+      console.log('🏨 ============================================');
+      console.log('   HOTEL LUNA SERENA - BACKEND');
+      console.log('============================================');
+      console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
+      console.log(`📍 Ambiente: ${process.env.NODE_ENV || 'development'}`);
+      console.log(`🏥 Health: /health`);
+      console.log('============================================');
+      console.log('');
+    });
+
   } catch (error) {
-    console.log('⚠️ No se pudo conectar a la base de datos');
-    console.log('⚠️ El servidor iniciará igualmente (modo sin DB)');
+    console.error('❌ Error crítico al iniciar el servidor:', error);
   }
-
-  // OAuth info
-  if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
-    console.log('✅ Google OAuth configurado');
-  } else {
-    console.log('⚠️ Google OAuth NO configurado');
-  }
-
-  if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
-    console.log('✅ GitHub OAuth configurado');
-  } else {
-    console.log('⚠️ GitHub OAuth NO configurado');
-  }
-
-  // 🔹 Iniciar servidor SIEMPRE
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log('');
-    console.log('🏨 ============================================');
-    console.log('   HOTEL LUNA SERENA - BACKEND');
-    console.log('============================================');
-    console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
-    console.log(`📍 Ambiente: ${process.env.NODE_ENV || 'development'}`);
-    console.log('============================================');
-    console.log('');
-  });
 };
 
 // 🔹 YA NO MATAMOS EL PROCESO
