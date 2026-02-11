@@ -186,7 +186,29 @@ const crearComentario = asyncHandler(async (req, res) => {
     aprobado: false // Los comentarios deben ser aprobados por empleados
   };
 
-  const idComentario = await insertar('comentarios', datosComentario);
+  const [resultado] = await insertar('comentarios', datosComentario);
+  const idComentario = resultado.insertId;
+
+  // ====== AGREGAR PUNTOS POR COMENTARIO ======
+  // El usuario gana 50 puntos por cada reseña publicada
+  try {
+    const controladorPuntos = require('./controladorPuntos');
+    await controladorPuntos.agregarPuntos(
+      id_usuario,
+      50,
+      'Reseña publicada',
+      idReserva
+    );
+
+    // Actualizar contador de reseñas del usuario
+    await ejecutarConsulta(
+      'UPDATE usuarios SET total_reseñas = total_reseñas + 1 WHERE id_usuario = ?',
+      [id_usuario]
+    );
+  } catch (error) {
+    console.error('Error agregando puntos por comentario:', error.message);
+    // Continuar aunque haya error en los puntos
+  }
 
   // Crear notificación para administradores
   const sqlAdmins = `SELECT id_usuario FROM usuarios WHERE rol = 'admin' AND activo = TRUE`;
@@ -206,7 +228,8 @@ const crearComentario = asyncHandler(async (req, res) => {
     exito: true,
     mensaje: 'Comentario creado exitosamente. Será visible una vez aprobado.',
     data: {
-      idComentario
+      idComentario,
+      puntosGanados: 50
     }
   });
 });

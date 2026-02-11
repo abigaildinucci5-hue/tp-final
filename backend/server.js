@@ -16,6 +16,7 @@ const rutasReservas = require('./src/rutas/rutasReservas');
 const rutasComentarios = require('./src/rutas/rutasComentarios');
 const rutasNotificaciones = require('./src/rutas/rutasNotificaciones');
 const rutasEmpleado = require('./src/rutas/rutasEmpleado');
+const rutasPuntos = require('./src/rutas/rutasPuntos');
 
 // Importar middleware de errores
 const { manejadorErrores } = require('./src/middlewares/manejadorErrores');
@@ -110,6 +111,7 @@ app.use('/api/reservas', rutasReservas);
 app.use('/api/comentarios', rutasComentarios);
 app.use('/api/notificaciones', rutasNotificaciones);
 app.use('/api/empleado', rutasEmpleado);
+app.use('/api/puntos', rutasPuntos);
 
 // Ruta para servir imágenes estáticas
 app.use('/uploads', express.static('uploads'));

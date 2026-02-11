@@ -817,6 +817,183 @@ const obtenerPrecioEstimado = asyncHandler(async (req, res) => {
   });
 });
 
+/**
+ * Procesar pago de reserva (simulado)
+ * POST /api/reservas/procesar-pago
+ */
+const procesarPago = asyncHandler(async (req, res) => {
+  const {
+    habitacionId,
+    fechaEntrada,
+    fechaSalida,
+    numeroHuespedes,
+    metodoPago,
+    opcionesAdicionales,
+    puntosAUtilizar
+  } = req.body;
+
+  const usuarioId = req.usuario.id_usuario;
+
+  // Validar inputs
+  if (!habitacionId || !fechaEntrada || !fechaSalida || !numeroHuespedes || !metodoPago) {
+    throw crearError400('Faltan datos requeridos para procesar el pago');
+  }
+
+  // ====== OBTENER DATOS DE LA HABITACIÓN ======
+  const [habitaciones] = await ejecutarConsulta(
+    `SELECT h.*, t.precio_base FROM habitaciones h 
+     INNER JOIN tipos_habitacion t ON h.id_tipo = t.id_tipo 
+     WHERE h.id_habitacion = ?`,
+    [habitacionId]
+  );
+
+  if (habitaciones.length === 0) {
+    throw crearError404('Habitación no encontrada');
+  }
+
+  const habitacion = habitaciones[0];
+
+  // ====== CALCULAR PRECIO ======
+  const entrada = new Date(fechaEntrada);
+  const salida = new Date(fechaSalida);
+  const diasEstancia = Math.ceil((salida - entrada) / (1000 * 60 * 60 * 24));
+
+  if (diasEstancia <= 0) {
+    throw crearError400('Las fechas de entrada y salida no son válidas');
+  }
+
+  let precioBase = habitacion.precio_base * diasEstancia;
+  let precioAdicionales = 0;
+
+  // Calcular opciones adicionales
+  if (opcionesAdicionales) {
+    if (opcionesAdicionales.desayuno) {
+      precioAdicionales += 15 * numeroHuespedes * diasEstancia;
+    }
+    if (opcionesAdicionales.camaExtra) {
+      precioAdicionales += 20 * diasEstancia;
+    }
+    if (opcionesAdicionales.transporte) {
+      precioAdicionales += 25;
+    }
+  }
+
+  // Impuestos (21%)
+  const impuestosBase = (precioBase + precioAdicionales) * 0.21;
+  let precioTotal = precioBase + precioAdicionales + impuestosBase;
+
+  // ====== APLICAR DESCUENTO POR PUNTOS ======
+  let descuentoPuntos = 0;
+  let puntosCanjeados = 0;
+  const controladorPuntos = require('./controladorPuntos');
+
+  if (puntosAUtilizar && puntosAUtilizar > 0) {
+    try {
+      // Canjear puntos
+      const resultadoCanje = await controladorPuntos.canjearPuntos(
+        usuarioId,
+        puntosAUtilizar,
+        'Descuento en reserva'
+      );
+
+      // Calcular descuento (1 punto = 0.05 dólares)
+      descuentoPuntos = puntosAUtilizar * 0.05;
+      puntosCanjeados = puntosAUtilizar;
+
+      precioTotal = Math.max(0, precioTotal - descuentoPuntos);
+    } catch (error) {
+      console.error('Error canjeando puntos:', error.message);
+      // Continuar sin descuento si hay error
+    }
+  }
+
+  // ====== GENERAR NÚMERO DE CONFIRMACIÓN ======
+  const numeroConfirmacion = 'RES' + Date.now().toString().slice(-10);
+
+  // ====== SIMULAR PROCESAMIENTO DE PAGO ======
+  // En una aplicación real, aquí se integraría con un gateway de pago
+  const numeroProceso = 'TRX' + Math.random().toString(36).substring(2, 15).toUpperCase();
+
+  // ====== CREAR RESERVA EN LA BASE DE DATOS ======
+  const [resultado] = await insertar('reservas', {
+    id_usuario: usuarioId,
+    id_habitacion: habitacionId,
+    fecha_entrada: fechaEntrada,
+    fecha_salida: fechaSalida,
+    numero_huespedes: numeroHuespedes,
+    precio_total: precioTotal,
+    descuento_aplicado: descuentoPuntos,
+    metodo_pago: metodoPago,
+    opciones_adicionales: JSON.stringify(opcionesAdicionales || {}),
+    desglose_precio: JSON.stringify({
+      precioBase: precioBase,
+      adiciones: precioAdicionales,
+      impuestos: impuestosBase,
+      descuento_puntos: descuentoPuntos,
+      total: precioTotal
+    }),
+    numero_confirmacion: numeroConfirmacion,
+    puntos_utilizados: puntosCanjeados,
+    estado: 'confirmada',
+    notas_especiales: req.body.notasEspeciales || null
+  });
+
+  // ====== REGISTRAR TRANSACCIÓN DE PAGO ======
+  await insertar('transacciones_pago', {
+    id_reserva: resultado.insertId,
+    id_usuario: usuarioId,
+    monto: precioTotal,
+    metodo_pago: metodoPago,
+    estado: 'procesada',
+    numero_transaccion: numeroProceso,
+    respuesta_pago: JSON.stringify({
+      estatus: 'aprobado',
+      numero_transaccion: numeroProceso,
+      moneda: 'USD',
+      timestamp: new Date().toISOString()
+    })
+  });
+
+  // ====== AGREGAR PUNTOS POR NUEVA RESERVA ======
+  // El usuario gana 100 puntos por cada reserva completada
+  await controladorPuntos.agregarPuntos(
+    usuarioId,
+    100,
+    'Reserva completada',
+    resultado.insertId
+  );
+
+  // ====== RESPUESTA EXITOSA ======
+  res.status(201).json({
+    exito: true,
+    mensaje: 'Pago procesado y reserva confirmada exitosamente',
+    data: {
+      reservaId: resultado.insertId,
+      numeroConfirmacion: numeroConfirmacion,
+      numeroTransaccion: numeroProceso,
+      resumen: {
+        precioBase: precioBase,
+        adiciones: precioAdicionales,
+        impuestos: impuestosBase,
+        descuentoPuntos: descuentoPuntos,
+        puntosUtilizados: puntosCanjeados,
+        puntosGanados: 100,
+        precioFinal: precioTotal
+      },
+      detalles: {
+        habitacionId: habitacionId,
+        fechaEntrada: fechaEntrada,
+        fechaSalida: fechaSalida,
+        diasEstancia: diasEstancia,
+        numeroHuespedes: numeroHuespedes,
+        metodoPago: metodoPago,
+        opcionesAdicionales: opcionesAdicionales
+      },
+      fechaProcesamiento: new Date().toISOString()
+    }
+  });
+});
+
 module.exports = {
   obtenerReservas,
   obtenerReserva,
@@ -827,5 +1004,6 @@ module.exports = {
   obtenerHistorial,
   crearReservaConPuntos,
   verificarDisponibilidad,
-  obtenerPrecioEstimado
+  obtenerPrecioEstimado,
+  procesarPago
 };
