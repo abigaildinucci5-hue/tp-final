@@ -10,6 +10,7 @@ import {
   Modal,
   Alert,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
@@ -267,50 +268,84 @@ const ListaHabitacionesScreen = ({ navigation, route }) => {
     </View>
   );
 
-  const renderHabitacionCard = ({ item }) => (
-    <TouchableOpacity
-      style={estilos.habitacionCard}
-      onPress={() =>
-        navigation.navigate('DetalleHabitacion', {
-          id: item.id,
-          habitacionId: item.id,
-          fechaCheckIn,
-          fechaCheckOut,
-          numHuespedes,
-        })
-      }
-    >
-      <View style={estilos.badgeCapacidad}>
-        <Ionicons name="people" size={16} color="#FFFFFF" />
-        <Text style={estilos.textoBadge}>{item.capacidad}</Text>
-      </View>
+  const renderHabitacionCard = ({ item }) => {
+    const imagenUrl = item.imagen_principal || item.imagen || 'https://via.placeholder.com/300x200?text=Habitaci%C3%B3n';
+    const numeroHab = item.numero_habitacion || item.numero || 'N/A';
+    const tipoHab = item.tipo_nombre || item.tipo || 'Habitación';
+    const descripcion = item.descripcion_detallada || item.descripcion || '';
+    const precio = item.precio_base || item.precio_por_noche || 0;
+    const estado = item.estado || 'disponible';
+    const reseñas = item.total_reseñas || item.total_reservas || 45;
 
-      <View style={estilos.contenidoCard}>
-        <View style={estilos.headerCard}>
-          <Text style={estilos.numeroHabitacion}>Hab. {item.numero}</Text>
-          <Text style={estilos.tipoHabitacion}>{item.tipo}</Text>
+    return (
+      <TouchableOpacity
+        style={estilos.card}
+        onPress={() =>
+          navigation.navigate('DetalleHabitacion', {
+            id: item.id_habitacion || item.id,
+            habitacionId: item.id_habitacion || item.id,
+            fechaCheckIn,
+            fechaCheckOut,
+            numHuespedes,
+          })
+        }
+        activeOpacity={0.9}
+      >
+        {/* Imagen grande */}
+        <View style={estilos.imagenContainer}>
+          <Image
+            source={{ uri: imagenUrl }}
+            style={estilos.imagen}
+            resizeMode="cover"
+          />
+          {/* Badge número habitación */}
+          <View style={estilos.badgeTipo}>
+            <Text style={estilos.textoTipo}>Hab. {numeroHab}</Text>
+          </View>
         </View>
 
-        <Text style={estilos.descripcion}>{item.descripcion}</Text>
-
-        <View style={estilos.footerCard}>
-          <View style={estilos.precio}>
-            <Text style={estilos.precioValor}>${item.precio_por_noche}</Text>
-            <Text style={estilos.precioLabel}>/noche</Text>
+        {/* Contenido info */}
+        <View style={estilos.infoContainer}>
+          {/* Header: tipo y tipo de habitación */}
+          <View style={estilos.headerCard}>
+            <Text style={estilos.tipoHab}>{tipoHab}</Text>
           </View>
 
-          {item.total_reservas > 0 && (
-            <View style={estilos.reservas}>
-              <Ionicons name="star" size={16} color="#FFD700" />
-              <Text style={estilos.textoReservas}>{item.total_reservas} reservas</Text>
-            </View>
-          )}
-        </View>
-      </View>
+          {/* Descripción */}
+          <Text style={estilos.descripcion} numberOfLines={2}>
+            {descripcion}
+          </Text>
 
-      <Ionicons name="chevron-forward" size={24} color="#C9A961" style={estilos.icono} />
-    </TouchableOpacity>
-  );
+          {/* Footer: precio, disponibilidad, estrellas */}
+          <View style={estilos.footerCard}>
+            <View>
+              <Text style={estilos.precio}>${precio}</Text>
+              <Text style={estilos.porNoche}>/noche</Text>
+            </View>
+
+            <View style={estilos.disponibilidadBadge}>
+              <View
+                style={[
+                  estilos.dotDisponibilidad,
+                  estado === 'disponible' && estilos.dotVerde,
+                ]}
+              />
+              <Text style={estilos.textoDisponibilidad}>
+                {estado === 'disponible' ? 'Disponible' : 'Ocupada'}
+              </Text>
+            </View>
+          </View>
+
+          {/* Estrellas y reseñas */}
+          <View style={estilos.estrellas}>
+            <Ionicons name="star" size={16} color="#FFD700" />
+            <Text style={estilos.rating}>4.5</Text>
+            <Text style={estilos.reseñas}>({reseñas} reseñas)</Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <View style={ESTILOS_GLOBALES.container}>
@@ -320,6 +355,51 @@ const ListaHabitacionesScreen = ({ navigation, route }) => {
         navigation={navigation}
         activeRoute="Habitaciones"
       />
+
+      {/* Barra de búsqueda */}
+      <View style={estilos.seccionBusqueda}>
+        <Text style={estilos.tituloBusqueda}>Encuentra tu habitación ideal</Text>
+        
+        <View style={estilos.buscadorContainer}>
+          <TouchableOpacity 
+            style={estilos.inputFecha} 
+          >
+            <Ionicons name="calendar-outline" size={20} color="#C9A961" />
+            <View style={estilos.textoFecha}>
+              <Text style={estilos.labelFecha}>Check-in</Text>
+              <Text style={estilos.valorFecha}>
+                {fechaCheckIn ? format(new Date(fechaCheckIn), 'dd/MM/yyyy') : 'Seleccionar'}
+              </Text>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={estilos.inputFecha} 
+          >
+            <Ionicons name="calendar-outline" size={20} color="#C9A961" />
+            <View style={estilos.textoFecha}>
+              <Text style={estilos.labelFecha}>Check-out</Text>
+              <Text style={estilos.valorFecha}>
+                {fechaCheckOut ? format(new Date(fechaCheckOut), 'dd/MM/yyyy') : 'Seleccionar'}
+              </Text>
+            </View>
+          </TouchableOpacity>
+
+          <View style={estilos.inputHuespedes}>
+            <Ionicons name="people-outline" size={20} color="#C9A961" />
+            <View style={estilos.contadorHuespedes}>
+              <TouchableOpacity onPress={() => setNumHuespedes((numHuespedes || 1) - 1 > 0 ? (numHuespedes || 1) - 1 : 1)}>
+                <Ionicons name="remove-circle-outline" size={24} color="#C9A961" />
+              </TouchableOpacity>
+              <Text style={estilos.numeroHuespedes}>{numHuespedes || 2}</Text>
+              <TouchableOpacity onPress={() => setNumHuespedes((numHuespedes || 1) + 1)}>
+                <Ionicons name="add-circle-outline" size={24} color="#C9A961" />
+              </TouchableOpacity>
+            </View>
+            <Text style={estilos.labelHuespedes}>Huéspedes</Text>
+          </View>
+        </View>
+      </View>
 
       {/* Chips de filtros activos */}
       <ScrollView
@@ -421,6 +501,72 @@ const ListaHabitacionesScreen = ({ navigation, route }) => {
 };
 
 const estilos = StyleSheet.create({
+  seccionBusqueda: {
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+  },
+  tituloBusqueda: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1A1A1A',
+    marginBottom: 15,
+  },
+  buscadorContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  inputFecha: {
+    flex: 1,
+    minWidth: 140,
+    backgroundColor: '#F8F8F8',
+    borderRadius: 8,
+    padding: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  textoFecha: {
+    flex: 1,
+  },
+  labelFecha: {
+    fontSize: 11,
+    color: '#6B6B6B',
+    marginBottom: 2,
+  },
+  valorFecha: {
+    fontSize: 14,
+    color: '#1A1A1A',
+    fontWeight: '600',
+  },
+  inputHuespedes: {
+    flex: 1,
+    minWidth: 140,
+    backgroundColor: '#F8F8F8',
+    borderRadius: 8,
+    padding: 12,
+    alignItems: 'center',
+  },
+  contadorHuespedes: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginVertical: 4,
+  },
+  numeroHuespedes: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1A1A1A',
+    minWidth: 30,
+    textAlign: 'center',
+  },
+  labelHuespedes: {
+    fontSize: 11,
+    color: '#6B6B6B',
+  },
   header: {
     paddingHorizontal: 20,
     paddingVertical: 15,
@@ -476,72 +622,69 @@ const estilos = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 15,
   },
-  habitacionCard: {
-    flexDirection: 'row',
+  card: {
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
-    marginBottom: 15,
-    padding: 15,
-    alignItems: 'center',
+    marginBottom: 20,
+    overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+  },
+  imagenContainer: {
     position: 'relative',
+    width: '100%',
+    height: 200,
   },
-  badgeCapacidad: {
+  imagen: {
+    width: '100%',
+    height: '100%',
+  },
+  badgeTipo: {
     position: 'absolute',
-    top: 10,
-    right: 10,
+    top: 12,
+    right: 12,
     backgroundColor: '#C9A961',
-    borderRadius: 6,
-    paddingHorizontal: 8,
+    paddingHorizontal: 10,
     paddingVertical: 4,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
+    borderRadius: 12,
   },
-  textoBadge: {
+  textoTipo: {
+    fontSize: 11,
     color: '#FFFFFF',
-    fontSize: 12,
     fontWeight: '600',
   },
-  contenidoCard: {
-    flex: 1,
-    marginRight: 10,
+  infoContainer: {
+    padding: 15,
   },
   headerCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     marginBottom: 8,
   },
-  numeroHabitacion: {
-    fontSize: 16,
+  tipoHab: {
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#1A1A1A',
-  },
-  tipoHabitacion: {
-    fontSize: 12,
-    color: '#C9A961',
-    fontWeight: '600',
   },
   descripcion: {
     fontSize: 13,
     color: '#6B6B6B',
-    marginBottom: 10,
+    marginBottom: 12,
     lineHeight: 18,
   },
   footerCard: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 8,
   },
   precio: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: 4,
+    flexDirection: 'column',
+  },
+  porNoche: {
+    fontSize: 12,
+    color: '#6B6B6B',
   },
   precioValor: {
     fontSize: 20,
@@ -552,12 +695,35 @@ const estilos = StyleSheet.create({
     fontSize: 12,
     color: '#6B6B6B',
   },
-  reservas: {
+  disponibilidadBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  dotDisponibilidad: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#EF4444',
+  },
+  dotVerde: {
+    backgroundColor: '#10B981',
+  },
+  textoDisponibilidad: {
+    fontSize: 12,
+    color: '#6B6B6B',
+  },
+  estrellas: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
   },
-  textoReservas: {
+  rating: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1A1A1A',
+  },
+  reseñas: {
     fontSize: 12,
     color: '#6B6B6B',
   },

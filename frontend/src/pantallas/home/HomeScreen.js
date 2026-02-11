@@ -42,7 +42,17 @@ const HomeScreen = ({ navigation }) => {
   const [faqAbierto, setFaqAbierto] = useState(null);
 
   useEffect(() => {
-    cargarPopulares(8);
+    const loadPopulares = async () => {
+      try {
+        const result = await cargarPopulares(8);
+        if (!result.success) {
+          console.warn('Error cargando habitaciones populares:', result.error);
+        }
+      } catch (error) {
+        console.error('Error en cargarPopulares:', error);
+      }
+    };
+    loadPopulares();
   }, []);
 
   const formatearFecha = (fecha) => {
@@ -352,63 +362,7 @@ const HomeScreen = ({ navigation }) => {
           </View>
         </View>
 
-        {/* 4. GALERÍA DE AMENIDADES */}
-        <View style={estilos.seccionAmenidades}>
-          <Text style={estilos.tituloSeccion}>Nuestras Instalaciones</Text>
-
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={estilos.scrollAmenidades}
-          >
-            {/* Amenidad 1 */}
-            <View style={estilos.amenidadCard}>
-              <View style={{ width: '100%', height: '100%', backgroundColor: '#87CEEB' }} />
-              <View style={estilos.overlayAmenidad}>
-                <Text style={estilos.tituloAmenidad}>Piscina Infinity</Text>
-                <Text style={estilos.descripcionAmenidad}>Vista al mar, abierta todo el año</Text>
-              </View>
-            </View>
-
-            {/* Amenidad 2 */}
-            <View style={estilos.amenidadCard}>
-              <View style={{ width: '100%', height: '100%', backgroundColor: '#FFD700' }} />
-              <View style={estilos.overlayAmenidad}>
-                <Text style={estilos.tituloAmenidad}>Restaurante Marea</Text>
-                <Text style={estilos.descripcionAmenidad}>Gastronomía de autor</Text>
-              </View>
-            </View>
-
-            {/* Amenidad 3 */}
-            <View style={estilos.amenidadCard}>
-              <View style={{ width: '100%', height: '100%', backgroundColor: '#90EE90' }} />
-              <View style={estilos.overlayAmenidad}>
-                <Text style={estilos.tituloAmenidad}>Spa Serenity</Text>
-                <Text style={estilos.descripcionAmenidad}>Masajes y tratamientos</Text>
-              </View>
-            </View>
-
-            {/* Amenidad 4 */}
-            <View style={estilos.amenidadCard}>
-              <View style={{ width: '100%', height: '100%', backgroundColor: '#DDA0DD' }} />
-              <View style={estilos.overlayAmenidad}>
-                <Text style={estilos.tituloAmenidad}>Fitness Center</Text>
-                <Text style={estilos.descripcionAmenida}>Equipamiento completo</Text>
-              </View>
-            </View>
-
-            {/* Amenidad 5 */}
-            <View style={estilos.amenidadCard}>
-              <View style={{ width: '100%', height: '100%', backgroundColor: '#FF6347' }} />
-              <View style={estilos.overlayAmenidad}>
-                <Text style={estilos.tituloAmenidad}>Bar Lounge</Text>
-                <Text style={estilos.descripcionAmenida}>Cócteles y vinos selectos</Text>
-              </View>
-            </View>
-          </ScrollView>
-        </View>
-
-        {/* 5. CARRUSEL DE HABITACIONES CON AUTO-SCROLL */}
+        {/* 4. CARRUSEL DE HABITACIONES CON AUTO-SCROLL */}
         <AutoScrollCarousel
           habitaciones={habitacionesPopulares}
           loading={loading}
@@ -418,7 +372,7 @@ const HomeScreen = ({ navigation }) => {
           autoScrollInterval={4000}
         />
 
-        {/* 6. TESTIMONIOS DESTACADOS */}
+        {/* 5. TESTIMONIOS DESTACADOS */}
         <View style={estilos.seccionTestimonios}>
           <Text style={estilos.tituloSeccion}>Lo Que Dicen Nuestros Huéspedes</Text>
 

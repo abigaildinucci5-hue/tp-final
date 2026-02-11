@@ -7,6 +7,7 @@ import {
   Linking,
   StyleSheet,
   Dimensions,
+  Platform,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import COLORES from '../../constantes/colores';
@@ -34,6 +35,22 @@ const Footer = ({ navigation }) => {
 
   const handleTwitter = () => {
     Linking.openURL('https://twitter.com');
+  };
+
+  const handleRecharge = () => {
+    // En React Native recargar simplemente significa navegar a Home
+    // En web sería window.location.reload()
+    if (Platform.OS === 'web') {
+      window.location.reload();
+    } else {
+      // Navegar a Home para "recargar"
+      if (navigation) {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Home' }],
+        });
+      }
+    }
   };
 
   return (
@@ -68,7 +85,9 @@ const Footer = ({ navigation }) => {
               size={18}
               color={COLORES.dorado}
             />
-            <Text style={styles.contactText}>info@hotellunaserena.com</Text>
+            <Text style={styles.contactText} numberOfLines={1} ellipsizeMode="middle" selectable={true}>
+              info@hotellunaserena.com
+            </Text>
           </TouchableOpacity>
           
           <View style={styles.contactItem}>
@@ -192,7 +211,13 @@ const Footer = ({ navigation }) => {
 
         {/* COLUMNA 3: HOTEL LUNA SERENA + ¿POR QUÉ ELEGIRNOS? */}
         <View style={[styles.footerColumn, { width: COLUMN_WIDTH }]}>
-          <Text style={styles.footerTitle}>Hotel Luna Serena</Text>
+          <TouchableOpacity 
+            style={styles.hotelTitleContainer}
+            onPress={handleRecharge}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.footerTitle}>Hotel Luna Serena</Text>
+          </TouchableOpacity>
           
           <Text style={styles.hotelDescription}>
             Experimenta lujo y confort en el corazón de Mar del Plata. Nuestro hotel ofrece habitaciones elegantes y servicios de primera clase.
@@ -220,7 +245,7 @@ const Footer = ({ navigation }) => {
             
             <View style={styles.featureRow}>
               <MaterialCommunityIcons
-                name="headset-outline"
+                name="phone-outline"
                 size={16}
                 color={COLORES.dorado}
               />
@@ -279,6 +304,10 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     textTransform: 'uppercase',
     fontWeight: '700',
+  },
+
+  hotelTitleContainer: {
+    paddingBottom: 10,
   },
   
   // COLUMNA 1: CONTACTO

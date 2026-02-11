@@ -176,19 +176,6 @@
                   <Text style={styles.registerLink}>Regístrate aquí</Text>
                 </TouchableOpacity>
               </View>
-
-              {/* Botón Volver al Home */}
-              <TouchableOpacity
-                style={styles.homeButton}
-                onPress={() => navigation.navigate('MainStack')}
-              >
-                <MaterialCommunityIcons
-                  name="home-outline"
-                  size={20}
-                  color={COLORES.dorado}
-                />
-                <Text style={styles.homeButtonText}>Volver al Home</Text>
-              </TouchableOpacity>
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
@@ -203,6 +190,7 @@
       scrollContent: {
         flexGrow: 1,
         justifyContent: 'center',
+        alignItems: 'center',
         padding: 20,
       },
       header: {
@@ -234,6 +222,8 @@
         color: COLORES.grisTexto,
       },
       form: {
+        width: '100%',
+        maxWidth: 500,
         backgroundColor: COLORES.blanco,
         borderRadius: 20,
         padding: 24,
@@ -275,24 +265,6 @@
         fontSize: 14,
         color: COLORES.dorado,
         fontWeight: 'bold',
-      },
-      homeButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginTop: 20,
-        paddingVertical: 12,
-        paddingHorizontal: 16,
-        borderWidth: 2,
-        borderColor: COLORES.dorado,
-        borderRadius: 12,
-        backgroundColor: 'transparent',
-        gap: 8,
-      },
-      homeButtonText: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: COLORES.dorado,
       },
     });
 

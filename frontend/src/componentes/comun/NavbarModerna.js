@@ -28,12 +28,13 @@ const NavbarModerna = ({
   activeRoute = 'Home' 
 }) => {
   const [mostrarMenuUsuario, setMostrarMenuUsuario] = useState(false);
+  const [mostrarMenuNav, setMostrarMenuNav] = useState(false);
 
   const navigateTo = (screen, params = {}) => {
     if (navigation) {
       // Para los stacks principales, especificar el screen inicial
       if (screen === 'Home') {
-        navigation.navigate('Home', { screen: 'HomeMain', ...params });
+        navigation.navigate('Home', { screen: 'Home', ...params });
       } else if (screen === 'Habitaciones') {
         navigation.navigate('Habitaciones', { screen: 'ListaHabitaciones', ...params });
       } else if (screen === 'Reservas') {
@@ -54,6 +55,7 @@ const NavbarModerna = ({
   };
 
   return (
+
     <>
       {/* NAVBAR PRINCIPAL */}
       <View style={styles.navbar}>
@@ -72,8 +74,8 @@ const NavbarModerna = ({
           </View>
         </View>
 
-        {/* CENTRO: Navegación (mostrar en pantallas grandes) */}
-        {width > 600 && (
+        {/* CENTRO: Navegación (pantallas grandes) o Hamburguesa (pantallas chicas) */}
+        {width > 600 ? (
           <View style={styles.seccionCentro}>
             <NavLink
               label="Home"
@@ -100,6 +102,13 @@ const NavbarModerna = ({
               onPress={() => navigateTo('Contacto')}
             />
           </View>
+        ) : (
+          <TouchableOpacity
+            style={styles.hamburgerButton}
+            onPress={() => setMostrarMenuNav(true)}
+          >
+            <MaterialCommunityIcons name="menu" size={32} color={COLORES.SECUNDARIO} />
+          </TouchableOpacity>
         )}
 
         {/* DERECHA: Usuario o Login */}
@@ -153,6 +162,45 @@ const NavbarModerna = ({
           )}
         </View>
       </View>
+
+      {/* MENÚ HAMBURGUESA (pantallas chicas) */}
+      <Modal
+        visible={mostrarMenuNav}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setMostrarMenuNav(false)}
+      >
+        <TouchableOpacity
+          style={styles.overlay}
+          onPress={() => setMostrarMenuNav(false)}
+          activeOpacity={1}
+        >
+          <View style={styles.menuDropdown}>
+            <ScrollView style={styles.menuItems}>
+              <MenuItem
+                icono="home-outline"
+                label="Home"
+                onPress={() => { setMostrarMenuNav(false); navigateTo('Home'); }}
+              />
+              <MenuItem
+                icono="bed-outline"
+                label="Habitaciones"
+                onPress={() => { setMostrarMenuNav(false); navigateTo('Habitaciones'); }}
+              />
+              <MenuItem
+                icono="calendar-outline"
+                label="Reservas"
+                onPress={() => { setMostrarMenuNav(false); navigateTo('Reservas'); }}
+              />
+              <MenuItem
+                icono="phone-outline"
+                label="Contacto"
+                onPress={() => { setMostrarMenuNav(false); navigateTo('Contacto'); }}
+              />
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
 
       {/* MENÚ DESPLEGABLE */}
       <Modal
@@ -281,6 +329,12 @@ const MenuItem = ({ icono, label, subtext, isRojo, onPress }) => (
 );
 
 const styles = StyleSheet.create({
+    hamburgerButton: {
+      paddingHorizontal: 10,
+      paddingVertical: 8,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
   // ===== NAVBAR PRINCIPAL =====
   navbar: {
     height: 70,
@@ -355,8 +409,7 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: 8,
-    borderBottomWidth: 2,
+    borderBottomWidth: 3,
     borderBottomColor: 'transparent',
   },
 

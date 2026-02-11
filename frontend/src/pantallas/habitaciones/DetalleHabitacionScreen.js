@@ -88,6 +88,11 @@ const DetalleHabitacionScreen = ({ route, navigation }) => {
     imagenes = [habitacion.imagen_principal];
   }
 
+  // Asegurar mínimo 5 imágenes
+  while (imagenes.length < 5) {
+    imagenes.push(habitacion.imagen_principal);
+  }
+
   const handleScrollToImage = (index) => {
     scrollViewRef.current?.scrollTo({
       x: index * SCREEN_WIDTH,

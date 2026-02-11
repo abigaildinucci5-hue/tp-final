@@ -4,6 +4,8 @@
 
 // Configuración de la API
 export const API_CONFIG = {
+  // Para development en web: usar localhost
+  // Para production: usar la URL de railway
   BASE_URL: 'https://tp-final-production-a1f6.up.railway.app/api',
   TIMEOUT: 30000, // 30 segundos
   RETRY_ATTEMPTS: 3,
@@ -186,6 +188,21 @@ export const ALLOWED_FILE_TYPES = {
 };
 
 // Configuración de desarrollo
+// Configuración de OAuth
+export const OAUTH_CONFIG = {
+  GOOGLE_CLIENT_ID: process.env.NODE_ENV === 'production'
+    ? 'TU_GOOGLE_CLIENT_ID_PROD'
+    : 'TU_GOOGLE_CLIENT_ID_LOCAL',
+  GOOGLE_REDIRECT_URI: process.env.NODE_ENV === 'production'
+    ? 'https://tp-final-production-a1f6.up.railway.app/auth/google/callback'
+    : 'http://localhost:3000/auth/google/callback',
+  GITHUB_CLIENT_ID: process.env.NODE_ENV === 'production'
+    ? 'TU_GITHUB_CLIENT_ID_PROD'
+    : 'TU_GITHUB_CLIENT_ID_LOCAL',
+  GITHUB_REDIRECT_URI: process.env.NODE_ENV === 'production'
+    ? 'https://tp-final-production-a1f6.up.railway.app/auth/github/callback'
+    : 'http://localhost:3000/auth/github/callback',
+};
 export const DEV_CONFIG = {
   DEBUG: process.env.NODE_ENV === 'development',
   LOG_LEVEL: process.env.REACT_APP_LOG_LEVEL || 'info',

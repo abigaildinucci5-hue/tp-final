@@ -274,19 +274,6 @@ const RegistroScreen = ({ navigation }) => {
               <Text style={styles.loginLink}>Inicia sesión aquí</Text>
             </TouchableOpacity>
           </View>
-
-          {/* Botón Volver al Home */}
-          <TouchableOpacity
-            style={styles.homeButton}
-            onPress={() => navigation.navigate('MainStack')}
-          >
-            <MaterialCommunityIcons
-              name="home-outline"
-              size={20}
-              color={COLORES.dorado}
-            />
-            <Text style={styles.homeButtonText}>Volver al Home</Text>
-          </TouchableOpacity>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -300,6 +287,8 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     padding: 20,
   },
   header: {
@@ -339,6 +328,8 @@ const styles = StyleSheet.create({
     color: COLORES.grisTexto,
   },
   form: {
+    width: '100%',
+    maxWidth: 500,
     backgroundColor: COLORES.blanco,
     borderRadius: 20,
     padding: 24,
@@ -418,24 +409,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORES.dorado,
     fontWeight: 'bold',
-  },
-  homeButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 20,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderWidth: 2,
-    borderColor: COLORES.dorado,
-    borderRadius: 12,
-    backgroundColor: 'transparent',
-    gap: 8,
-  },
-  homeButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: COLORES.dorado,
   },
 });
 
