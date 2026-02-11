@@ -6,7 +6,7 @@ const helmet = require('helmet');
 const compression = require('compression');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
-const passport = require('./src/config/oauth'); // 🆕 IMPORTANTE: Importar configuración OAuth
+const passport = require('./src/config/oauth');
 
 // Importar rutas
 const rutasAuth = require('./src/rutas/rutasAuth');
@@ -18,20 +18,19 @@ const rutasNotificaciones = require('./src/rutas/rutasNotificaciones');
 const rutasEmpleado = require('./src/rutas/rutasEmpleado');
 const rutasPuntos = require('./src/rutas/rutasPuntos');
 
-// Importar middleware de errores
+// Middleware errores
 const { manejadorErrores } = require('./src/middlewares/manejadorErrores');
+const { verificarConexionDB } = require('./src/config/baseDatos');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // ============================
-// MIDDLEWARES GLOBALES
+// MIDDLEWARES
 // ============================
 
-// Seguridad con Helmet
 app.use(helmet());
 
-// CORS - Permitir peticiones desde el frontend
 app.use(cors({
   origin: process.env.FRONTEND_URL || '*',
   credentials: true,
@@ -39,44 +38,40 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Compresión de respuestas
 app.use(compression());
 
-// Logging de peticiones en desarrollo
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
 
-// Parser de JSON
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// 🆕 INICIALIZAR PASSPORT (OAuth)
 app.use(passport.initialize());
 console.log('✅ Passport OAuth inicializado');
 
-// Rate limiting - Protección contra ataques de fuerza bruta
+// ============================
+// RATE LIMIT
+// ============================
+
 const limitadorGeneral = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 100, // Límite de 100 peticiones por ventana
-  message: 'Demasiadas peticiones desde esta IP, por favor intenta de nuevo más tarde.',
+  windowMs: 15 * 60 * 1000,
+  max: 100,
   standardHeaders: true,
   legacyHeaders: false,
 });
 
 const limitadorAuth = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 5, // Límite de 5 intentos de login por ventana
-  message: 'Demasiados intentos de inicio de sesión, por favor intenta de nuevo más tarde.',
+  windowMs: 15 * 60 * 1000,
+  max: 5,
   skipSuccessfulRequests: true
 });
 
-// Aplicar rate limiting
 app.use('/api/', limitadorGeneral);
 app.use('/api/auth/login', limitadorAuth);
 app.use('/api/auth/registro', limitadorAuth);
 
-// 🆕 MIDDLEWARE ANTI-CACHÉ - Desabilitar caché HTTP para todos los endpoints /api
+// Anti caché
 app.use('/api/', (req, res, next) => {
   res.set({
     'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
@@ -87,13 +82,12 @@ app.use('/api/', (req, res, next) => {
 });
 
 // ============================
-// RUTAS DE LA API
+// HEALTH
 // ============================
 
-// Ruta de health check
 app.get('/health', (req, res) => {
-  res.status(200).json({ 
-    status: 'OK', 
+  res.status(200).json({
+    status: 'OK',
     mensaje: 'Servidor funcionando correctamente',
     oauth_enabled: {
       google: !!process.env.GOOGLE_CLIENT_ID,
@@ -103,7 +97,10 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Rutas principales
+// ============================
+// RUTAS
+// ============================
+
 app.use('/api/auth', rutasAuth);
 app.use('/api/usuarios', rutasUsuarios);
 app.use('/api/habitaciones', rutasHabitaciones);
@@ -113,14 +110,12 @@ app.use('/api/notificaciones', rutasNotificaciones);
 app.use('/api/empleado', rutasEmpleado);
 app.use('/api/puntos', rutasPuntos);
 
-// Ruta para servir imágenes estáticas
 app.use('/uploads', express.static('uploads'));
 
 // ============================
-// MANEJO DE ERRORES
+// 404
 // ============================
 
-// Ruta no encontrada
 app.use((req, res) => {
   res.status(404).json({
     exito: false,
@@ -129,65 +124,58 @@ app.use((req, res) => {
   });
 });
 
-// Middleware de manejo de errores global
 app.use(manejadorErrores);
 
 // ============================
-// INICIAR SERVIDOR
+// INICIAR SERVIDOR (VERSIÓN ANTI-CRASH)
 // ============================
 
-// Verificar conexión a la base de datos antes de iniciar
-const { verificarConexionDB } = require('./src/config/baseDatos');
-
 const iniciarServidor = async () => {
+
+  // 🔹 Intentamos conectar DB pero NO detenemos el server si falla
   try {
-    // Verificar conexión a la base de datos
     await verificarConexionDB();
     console.log('✅ Conexión a la base de datos establecida');
-
-    // Verificar configuración de OAuth
-    if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
-      console.log('✅ Google OAuth configurado');
-    } else {
-      console.log('⚠️  Google OAuth NO configurado (revisa .env)');
-    }
-
-    if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
-      console.log('✅ GitHub OAuth configurado');
-    } else {
-      console.log('⚠️  GitHub OAuth NO configurado (revisa .env)');
-    }
-
-    // Iniciar servidor
-    app.listen(PORT, '0.0.0.0', () => {
-  console.log('');
-  console.log('🏨 ============================================');
-  console.log('   HOTEL LUNA SERENA - BACKEND');
-  console.log('   ============================================');
-  console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
-  console.log(`📍 Ambiente: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🏥 Health: /health`);
-  console.log('============================================');
-  console.log('');
-});
   } catch (error) {
-    console.error('❌ Error al iniciar el servidor:', error);
-    process.exit(1);
+    console.log('⚠️ No se pudo conectar a la base de datos');
+    console.log('⚠️ El servidor iniciará igualmente (modo sin DB)');
   }
+
+  // OAuth info
+  if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+    console.log('✅ Google OAuth configurado');
+  } else {
+    console.log('⚠️ Google OAuth NO configurado');
+  }
+
+  if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
+    console.log('✅ GitHub OAuth configurado');
+  } else {
+    console.log('⚠️ GitHub OAuth NO configurado');
+  }
+
+  // 🔹 Iniciar servidor SIEMPRE
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log('');
+    console.log('🏨 ============================================');
+    console.log('   HOTEL LUNA SERENA - BACKEND');
+    console.log('============================================');
+    console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
+    console.log(`📍 Ambiente: ${process.env.NODE_ENV || 'development'}`);
+    console.log('============================================');
+    console.log('');
+  });
 };
 
-// Manejo de errores no capturados
+// 🔹 YA NO MATAMOS EL PROCESO
 process.on('unhandledRejection', (error) => {
   console.error('❌ Error no manejado:', error);
-  process.exit(1);
 });
 
 process.on('uncaughtException', (error) => {
   console.error('❌ Excepción no capturada:', error);
-  process.exit(1);
 });
 
-// Iniciar el servidor
 iniciarServidor();
 
 module.exports = app;
