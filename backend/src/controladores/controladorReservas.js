@@ -1,7 +1,6 @@
 // src/controladores/controladorReservas.js - Gestión de reservas
 const { ejecutarConsulta, insertar, actualizar, ejecutarTransaccion } = require('../config/baseDatos');
 const { asyncHandler, crearError404, crearError400, crearError403 } = require('../middlewares/manejadorErrores');
-const { enviarEmailConfirmacionReserva, enviarEmailCancelacionReserva } = require('../servicios/servicioEmail');
 
 /**
  * Calcular precio total de reserva
@@ -256,29 +255,6 @@ const crearReserva = asyncHandler(async (req, res) => {
 
   const idReserva = await insertar('reservas', datosReserva);
 
-  // Obtener datos del usuario para el email
-  const sqlUsuario = `
-    SELECT nombre, apellido, email FROM usuarios WHERE id_usuario = ?
-  `;
-  const usuarios = await ejecutarConsulta(sqlUsuario, [id_usuario]);
-  const usuario = usuarios[0];
-
-  // Enviar email de confirmación
-  try {
-    await enviarEmailConfirmacionReserva({
-      destinatario: usuario.email,
-      nombre: usuario.nombre,
-      numeroReserva: idReserva,
-      habitacion: habitacion.nombre,
-      fechaEntrada,
-      fechaSalida,
-      precioTotal,
-      numeroHuespedes
-    });
-  } catch (error) {
-    console.error('Error al enviar email de confirmación:', error);
-  }
-
   // Crear notificación
   await insertar('notificaciones', {
     id_usuario,
@@ -467,20 +443,6 @@ const cancelarReserva = asyncHandler(async (req, res) => {
     estado: 'cancelada',
     fecha_cancelacion: new Date()
   });
-
-  // Enviar email de cancelación
-  try {
-    await enviarEmailCancelacionReserva({
-      destinatario: reserva.email,
-      nombre: reserva.nombre,
-      numeroReserva: idReserva,
-      habitacion: reserva.tipo_habitacion,
-      fechaEntrada: reserva.fecha_entrada,
-      montoReembolso
-    });
-  } catch (error) {
-    console.error('Error al enviar email de cancelación:', error);
-  }
 
   // Crear notificación
   await insertar('notificaciones', {
