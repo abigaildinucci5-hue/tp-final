@@ -16,7 +16,7 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:3000/api/auth/google/callback',
+      callbackURL: process.env.GOOGLE_CALLBACK_URL || 'https://tp-final-production-9e41.up.railway.app/api/auth/google/callback',
       passReqToCallback: true,
     },
     async (req, accessToken, refreshToken, profile, done) => {
@@ -105,7 +105,7 @@ passport.use(
     {
       clientID: process.env.GITHUB_CLIENT_ID,
       clientSecret: process.env.GITHUB_CLIENT_SECRET,
-      callbackURL: process.env.GITHUB_CALLBACK_URL || 'http://localhost:3000/api/auth/github/callback',
+      callbackURL: process.env.GITHUB_CALLBACK_URL || 'https://tp-final-production-9e41.up.railway.app/api/auth/github/callback',
       passReqToCallback: true,
       // 🔥 Usar el username como fallback si no hay email
       userProfileURL: 'https://api.github.com/user',

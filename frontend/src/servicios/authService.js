@@ -16,7 +16,7 @@ const getApiBaseUrl = () => {
     return 'http://192.168.1.100:3000'; // ← CAMBIAR ESTA IP
   }
   // iOS Simulator y Web: localhost funciona
-  return 'http://localhost:3000';
+  return 'https://tp-final-production-9e41.up.railway.app';
 };
 
 const API_URL = `${getApiBaseUrl()}/api/auth`;

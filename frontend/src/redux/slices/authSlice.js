@@ -7,9 +7,10 @@ export const setLogoutHandler = (callback) => {
   onLogoutCallback = callback;
 };
 
-const API_URL = __DEV__
-  ? 'http://localhost:3000'
-  : 'https://tu-backend-production.com';
+const API_URL =
+  __DEV__
+    ? 'http://localhost:3000'
+    : 'https://tp-final-production-9e41.up.railway.app';
 
 const api = axios.create({
   baseURL: API_URL,

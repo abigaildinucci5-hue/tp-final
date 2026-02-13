@@ -54,7 +54,7 @@ const SocialButtons = ({ onSuccess, onError }) => {
 
   const handleGoogleLogin = () => {
     if (Platform.OS === 'web') {
-      window.location.href = 'http://localhost:3000/api/auth/google';
+      window.location.href = 'https://tp-final-production-9e41.up.railway.app/api/auth/google';
     } else {
       setLoadingGoogle(true);
       promptAsyncGoogle();
@@ -122,7 +122,7 @@ const SocialButtons = ({ onSuccess, onError }) => {
 
   const handleGitHubLogin = () => {
     if (Platform.OS === 'web') {
-      window.location.href = 'http://localhost:3000/api/auth/github';
+      window.location.href = 'https://tp-final-production-9e41.up.railway.app/api/auth/github';
     } else {
       setLoadingGitHub(true);
       promptAsyncGitHub();
