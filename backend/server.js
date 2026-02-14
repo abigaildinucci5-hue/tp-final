@@ -35,8 +35,26 @@ app.get('/ping', (req, res) => {
 
 app.use(helmet());
 
+const allowedOrigins = [
+  'http://localhost:8081',
+  'http://localhost:3000',
+  'http://localhost:19006',
+  'https://tp-final-production-a1f6.up.railway.app'
+];
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || '*',
+  origin: function(origin, callback) {
+
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    console.error('❌ CORS bloqueado:', origin);
+    return callback(new Error('CORS no permitido'));
+  },
+
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -44,7 +62,7 @@ app.use(cors({
 
 app.use(compression());
 
-if (process.env.NODE_ENV === 'development') {
+if (process.env.NODE_ENV === 'development') { 
   app.use(morgan('dev'));
 }
 
