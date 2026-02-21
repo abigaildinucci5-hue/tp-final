@@ -138,6 +138,64 @@ app.use('/uploads', express.static('uploads'));
 // 404
 // ============================
 
+// ============================
+// PROXY DE IMÁGENES (para evitar CORB de Unsplash)
+// ============================
+
+app.get('/api/proxy/image', (req, res) => {
+  const { url } = req.query;
+  
+  // Validar que la URL sea de imagen
+  if (!url) {
+    return res.status(400).json({
+      exito: false,
+      mensaje: 'URL es requerida'
+    });
+  }
+
+  // Validar que sea HTTPS
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    return res.status(400).json({
+      exito: false,
+      mensaje: 'URL no válida'
+    });
+  }
+
+  // Usar https.get o http.get según el protocolo
+  const https = require('https');
+  const http = require('http');
+  const protocol = url.startsWith('https') ? https : http;
+
+  try {
+    protocol.get(url, { timeout: 10000 }, (imgRes) => {
+      // Set CORS headers
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD');
+      res.setHeader('Content-Type', imgRes.headers['content-type']);
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+      
+      // Stream la imagen al cliente
+      imgRes.pipe(res);
+    }).on('error', (error) => {
+      console.error('❌ Error al descargar imagen:', error);
+      res.status(500).json({
+        exito: false,
+        mensaje: 'Error al cargar la imagen'
+      });
+    });
+  } catch (error) {
+    console.error('❌ Error en proxy de imágenes:', error);
+    res.status(500).json({
+      exito: false,
+      mensaje: 'Error al cargar la imagen'
+    });
+  }
+});
+
+// ============================
+// 404 - RUT NO ENCONTRADA
+// ============================
+
 app.use((req, res) => {
   res.status(404).json({
     exito: false,
