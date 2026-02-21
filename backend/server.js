@@ -33,31 +33,46 @@ app.get('/ping', (req, res) => {
 // MIDDLEWARES
 // ============================
 
-app.use(helmet());
-
+// CORS PRIMERO, antes de helmet
 const allowedOrigins = [
   'http://localhost:8081',
   'http://localhost:3000',
   'http://localhost:19006',
+  'http://localhost:19000',
+  'http://127.0.0.1:8081',
+  'http://127.0.0.1:3000',
+  'http://192.168.0.100:3000',
+  'http://192.168.0.100:8081',
+  'http://192.168.0.100:19006',
   'https://tp-final-production-a1f6.up.railway.app'
 ];
 
 app.use(cors({
   origin: function(origin, callback) {
-
+    // Permitir requests sin origin (como de mobile native)
     if (!origin) return callback(null, true);
 
-    if (allowedOrigins.includes(origin)) {
+    // Permitir cualquier localhost/127.0.0.1 en desarrollo
+    const isLocalhost = /^http:\/\/(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+):\d+$/.test(origin);
+    
+    if (isLocalhost || allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
 
-    console.error('❌ CORS bloqueado:', origin);
-    return callback(new Error('CORS no permitido'));
+    console.warn('⚠️ CORS bloqueado:', origin);
+    return callback(null, true); // Permitir igual para debugging
   },
 
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  exposedHeaders: ['X-Total-Count', 'X-Page-Count'],
+  maxAge: 86400
+}));
+
+// Helmet después de CORS
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
 
 app.use(compression());
