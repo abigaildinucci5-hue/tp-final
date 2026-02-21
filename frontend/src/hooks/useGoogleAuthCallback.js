@@ -53,7 +53,7 @@ export const useGoogleAuthCallback = () => {
         // 2️⃣ Obtener datos del usuario del backend
         console.log('👤 Obteniendo datos del usuario...');
         try {
-          const apiUrl = API_CONFIG.BASE_URL || 'https://tp-final-production-9e41.up.railway.app/api';
+          const apiUrl = `${API_CONFIG.BASE_URL}`;
           const response = await fetch(`${apiUrl}/auth/perfil`, {
             method: 'GET',
             headers: {

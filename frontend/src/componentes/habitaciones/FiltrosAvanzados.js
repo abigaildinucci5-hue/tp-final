@@ -89,7 +89,7 @@ const FiltrosAvanzados = ({ visible, onClose, onApplyFilters }) => {
           <View style={styles.filterSection}>
             <View style={styles.filterTitleRow}>
               <MaterialCommunityIcons
-                name="users"
+                name="account-multiple"
                 size={22}
                 color={COLORES.dorado}
               />

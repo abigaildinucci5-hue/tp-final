@@ -33,7 +33,7 @@ const AppNavigatorContent = () => {
 
   // Navegación condicional según autenticación
   // Se usa un Stack Navigator para permitir navegar entre Auth y Main
-  // Esto permite que HomeScreen y otros componentes de Main naveguen a Auth cuando sea necesario
+  // Auth siempre está disponible para que usuarios puedan loguearse desde cualquier punto
   return (
     <Stack.Navigator
       screenOptions={{
@@ -52,24 +52,23 @@ const AppNavigatorContent = () => {
         />
       ) : (
         // Usuario no autenticado (guest) ve MainNavigator pero con Auth accesible
-        <>
-          <Stack.Screen
-            name="MainStack"
-            component={MainNavigator}
-            options={{
-              animationEnabled: false,
-            }}
-          />
-          <Stack.Screen
-            name="Auth"
-            component={AuthNavigator}
-            options={{
-              animationAnimation: 'fade_from_bottom',
-              cardStyle: { backgroundColor: 'white' },
-            }}
-          />
-        </>
+        <Stack.Screen
+          name="MainStack"
+          component={MainNavigator}
+          options={{
+            animationEnabled: false,
+          }}
+        />
       )}
+      {/* Auth siempre disponible para login desde cualquier punto */}
+      <Stack.Screen
+        name="Auth"
+        component={AuthNavigator}
+        options={{
+          animationAnimation: 'fade_from_bottom',
+          cardStyle: { backgroundColor: 'white' },
+        }}
+      />
     </Stack.Navigator>
   );
 };

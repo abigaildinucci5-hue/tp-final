@@ -17,12 +17,12 @@ const BotonFavorito = ({ esFavorito, onPress, size = 28, style }) => {
         Animated.timing(scaleValue, {
           toValue: 1.3,
           duration: 100,
-          useNativeDriver: true,
+          useNativeDriver: false,
         }),
         Animated.timing(scaleValue, {
           toValue: 1,
           duration: 100,
-          useNativeDriver: true,
+          useNativeDriver: false,
         }),
       ]).start();
 

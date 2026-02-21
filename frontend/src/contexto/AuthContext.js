@@ -42,7 +42,7 @@ export const AuthProvider = ({ children }) => {
           if (response.exito && response.data) {
             console.log('✅ Token válido, actualizando datos');
             setUsuario(response.data);
-            await AsyncStorage.setItem('usuario', JSON.stringify(response.data));
+            await storage.set('usuario', JSON.stringify(response.data));
           } else {
             console.log('⚠️ Token inválido, limpiando...');
             await limpiarStorage();

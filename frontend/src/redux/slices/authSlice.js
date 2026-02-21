@@ -1,5 +1,6 @@
 import axios from 'axios';
 import storage from '../../utils/storage';
+import { API_CONFIG } from '../../constantes/config';
 
 let onLogoutCallback = null;
 
@@ -7,20 +8,17 @@ export const setLogoutHandler = (callback) => {
   onLogoutCallback = callback;
 };
 
-const API_URL =
-  __DEV__
-    ? 'http://localhost:3000'
-    : 'https://tp-final-production-9e41.up.railway.app';
+const API_URL = API_CONFIG.BASE_URL.replace(/\/$/, '');
 
 const api = axios.create({
   baseURL: API_URL,
-  timeout: 30000,
+  timeout: API_CONFIG.TIMEOUT || 30000,
 });
 
 // REQUEST
 api.interceptors.request.use(
   async (config) => {
-    const token = await storage.getItem('token');
+    const token = await storage.get('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -39,7 +37,7 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const refreshToken = await storage.getItem('refreshToken');
+        const refreshToken = await storage.get('refreshToken');
         if (!refreshToken) throw new Error('No refresh token');
 
         const response = await axios.post(`${API_URL}/auth/refresh`, {
@@ -48,13 +46,13 @@ api.interceptors.response.use(
 
         const { accessToken } = response.data.data;
 
-        await storage.setItem('token', accessToken);
+        await storage.set('token', accessToken);
 
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return api(originalRequest);
       } catch (err) {
-        await storage.removeItem('token');
-        await storage.removeItem('refreshToken');
+        await storage.remove('token');
+        await storage.remove('refreshToken');
 
         if (onLogoutCallback) onLogoutCallback();
 
@@ -63,9 +61,10 @@ api.interceptors.response.use(
     }
 
     return Promise.reject({
-      mensaje: error.response?.data?.mensaje || 'Error de conexión',
-      codigo: error.response?.data?.codigo || 'ERROR_DESCONOCIDO',
+      mensaje: error.response?.data?.mensaje || error.message || 'Error de conexión con el servidor',
+      codigo: error.response?.data?.codigo || (error.message === 'Network Error' ? 'ERROR_RED' : 'ERROR_DESCONOCIDO'),
       status: error.response?.status,
+      detalles: error.message
     });
   }
 );

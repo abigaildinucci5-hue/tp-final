@@ -8,7 +8,6 @@ import { combineReducers } from 'redux';
 import authReducer from './slices/authSlice';
 import habitacionesReducer from './slices/habitacionesSlice';
 import reservasReducer from './slices/reservasSlice';
-import notificacionesReducer from './slices/notificacionesSlice';
 import uiReducer from './slices/uiSlice';
 
 // Configuración de persistencia
@@ -24,7 +23,6 @@ const rootReducer = combineReducers({
   auth: authReducer,
   habitaciones: habitacionesReducer,
   reservas: reservasReducer,
-  notificaciones: notificacionesReducer,
   ui: uiReducer,
 });
 
@@ -37,7 +35,16 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
-        ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE'],
+        // Ignorar tanto las acciones de persistencia como los thunks que pueden tener Promises
+        ignoredActions: [
+          'persist/PERSIST',
+          'persist/REHYDRATE',
+          // Ignorar todos los thunks pending/rejected (que contienen Promises)
+          /.*\/pending$/,
+          /.*\/rejected$/,
+        ],
+        // Ignorar path 'auth' que contiene Promises temporales
+        ignoredPaths: ['auth'],
       },
     }),
 });

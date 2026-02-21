@@ -286,9 +286,9 @@ const styles = StyleSheet.create({
   
   footerContainer: {
     flexDirection: 'row',
-    paddingVertical: 40,
-    paddingHorizontal: 20,
-    gap: 20,
+    paddingVertical: 50,
+    paddingHorizontal: 40,
+    gap: 30,
   },
   
   footerColumn: {
@@ -393,8 +393,8 @@ const styles = StyleSheet.create({
   // BARRA DE COPYRIGHT
   copyrightBar: {
     backgroundColor: COLORES.grisClaro,
-    paddingVertical: 15,
-    paddingHorizontal: 20,
+    paddingVertical: 20,
+    paddingHorizontal: 40,
     borderTopWidth: 1,
     borderTopColor: COLORES.grisBorde,
   },

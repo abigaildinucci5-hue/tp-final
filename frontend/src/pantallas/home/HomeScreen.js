@@ -45,8 +45,9 @@ const HomeScreen = ({ navigation }) => {
     const loadPopulares = async () => {
       try {
         const result = await cargarPopulares(8);
+        // No hacer console.warn aquí, el thunk ya lo maneja
         if (!result.success) {
-          console.warn('Error cargando habitaciones populares:', result.error);
+          console.log('Usando datos de demostración');
         }
       } catch (error) {
         console.error('Error en cargarPopulares:', error);
@@ -372,7 +373,7 @@ const HomeScreen = ({ navigation }) => {
           autoScrollInterval={4000}
         />
 
-        {/* 5. TESTIMONIOS DESTACADOS */}
+        {/* 5. TESTIMONIOS DESTACADOS - VERTICAL CENTERED */}
         <View style={estilos.seccionTestimonios}>
           <Text style={estilos.tituloSeccion}>Lo Que Dicen Nuestros Huéspedes</Text>
 
@@ -382,11 +383,7 @@ const HomeScreen = ({ navigation }) => {
             <Text style={estilos.textoCalificacion}>basado en 1,247 reseñas</Text>
           </View>
 
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={estilos.scrollTestimonios}
-          >
+          <View style={estilos.testimoniosContainer}>
             {/* Testimonio 1 */}
             <View style={estilos.testimonioCard}>
               <View style={estilos.headerTestimonio}>
@@ -462,7 +459,7 @@ const HomeScreen = ({ navigation }) => {
                 <Text style={estilos.habitacionTestimonio}>Habitación Premium</Text>
               </View>
             </View>
-          </ScrollView>
+          </View>
         </View>
 
         {/* 7. CTA PARA REGISTRARSE (solo invitados) */}
@@ -660,7 +657,7 @@ const estilos = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    gap: 15,
+    gap: 12,
   },
   inputFecha: {
     flex: 1,
@@ -754,7 +751,8 @@ const estilos = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    gap: 15,
+    gap: 12,
+    paddingVertical: 10,
   },
   beneficioCard: {
     width: '48%',
@@ -767,6 +765,7 @@ const estilos = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    marginBottom: 8,
   },
   iconoBeneficio: {
     width: 60,
@@ -861,8 +860,15 @@ const estilos = StyleSheet.create({
     paddingHorizontal: 20,
     gap: 15,
   },
+  testimoniosContainer: {
+    width: '100%',
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    gap: 15,
+  },
   testimonioCard: {
-    width: 300,
+    width: '100%',
+    maxWidth: 500,
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 20,

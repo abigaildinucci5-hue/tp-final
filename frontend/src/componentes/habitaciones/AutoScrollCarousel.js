@@ -15,7 +15,7 @@ import COLORES from '../../constantes/colores';
 import { TIPOGRAFIA, DIMENSIONES } from '../../constantes/estilos';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
-const CARD_WIDTH = SCREEN_WIDTH * 0.75;
+const CARD_WIDTH = SCREEN_WIDTH * 0.55; // Tarjetas más estrechas, menos ancho
 
 const AutoScrollCarousel = ({
   habitaciones = [],
@@ -135,20 +135,23 @@ const AutoScrollCarousel = ({
 
       {/* Carousel con flechas */}
       <View style={styles.carouselContainer}>
-        {/* Flecha izquierda */}
-        {currentIndexRef.current > 0 && (
-          <TouchableOpacity
-            style={[styles.arrowButton, styles.arrowButtonLeft]}
-            onPress={goToPrevious}
-            activeOpacity={0.7}
-          >
-            <MaterialCommunityIcons
-              name="chevron-left"
-              size={32}
-              color={COLORES.dorado}
-            />
-          </TouchableOpacity>
-        )}
+        {/* Flecha izquierda - siempre visible */}
+        <TouchableOpacity
+          style={[
+            styles.arrowButton, 
+            styles.arrowButtonLeft,
+            currentIndexRef.current === 0 && styles.arrowButtonDisabled
+          ]}
+          onPress={goToPrevious}
+          activeOpacity={currentIndexRef.current === 0 ? 0.5 : 0.7}
+          disabled={currentIndexRef.current === 0}
+        >
+          <MaterialCommunityIcons
+            name="chevron-left"
+            size={32}
+            color={currentIndexRef.current === 0 ? '#ccc' : COLORES.dorado}
+          />
+        </TouchableOpacity>
 
         {/* ScrollView del Carousel */}
         <ScrollView
@@ -217,7 +220,7 @@ const AutoScrollCarousel = ({
                 <View style={styles.featuresRow}>
                   <View style={styles.feature}>
                     <MaterialCommunityIcons
-                      name="users"
+                      name="account-multiple"
                       size={16}
                       color={COLORES.blanco}
                     />
@@ -248,20 +251,23 @@ const AutoScrollCarousel = ({
         ))}
         </ScrollView>
 
-        {/* Flecha derecha */}
-        {currentIndexRef.current < habitaciones.length - 1 && (
-          <TouchableOpacity
-            style={[styles.arrowButton, styles.arrowButtonRight]}
-            onPress={goToNext}
-            activeOpacity={0.7}
-          >
-            <MaterialCommunityIcons
-              name="chevron-right"
-              size={32}
-              color={COLORES.dorado}
-            />
-          </TouchableOpacity>
-        )}
+        {/* Flecha derecha - siempre visible */}
+        <TouchableOpacity
+          style={[
+            styles.arrowButton, 
+            styles.arrowButtonRight,
+            currentIndexRef.current >= habitaciones.length - 1 && styles.arrowButtonDisabled
+          ]}
+          onPress={goToNext}
+          activeOpacity={currentIndexRef.current >= habitaciones.length - 1 ? 0.5 : 0.7}
+          disabled={currentIndexRef.current >= habitaciones.length - 1}
+        >
+          <MaterialCommunityIcons
+            name="chevron-right"
+            size={32}
+            color={currentIndexRef.current >= habitaciones.length - 1 ? '#ccc' : COLORES.dorado}
+          />
+        </TouchableOpacity>
       </View>
 
       {/* Indicadores de progreso */}
@@ -331,7 +337,7 @@ const styles = StyleSheet.create({
   },
   roomCard: {
     width: CARD_WIDTH,
-    height: 300,
+    height: 340, // Más alto que ancho para mejor proporción
     marginRight: 16,
     borderRadius: 16,
     overflow: 'hidden',
@@ -471,6 +477,9 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 0,
     zIndex: 10,
+  },
+  arrowButtonDisabled: {
+    opacity: 0.5,
   },
 });
 

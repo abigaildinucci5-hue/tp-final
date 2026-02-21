@@ -87,31 +87,41 @@ export const BORDER_RADIUS = {
 };
 
 /**
- * SOMBRAS
+ * SOMBRAS - Compatible con React Native e Expo Web
  */
 export const SOMBRAS = {
   SMALL: {
+    // Para React Native
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
+    shadowRadius: 2,
     elevation: 2,
+    // Para Web (Expo web)
+    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
   },
   MEDIUM: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
+    shadowRadius: 4,
     elevation: 4,
+    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.15)',
   },
   LARGE: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.2,
+    shadowRadius: 8,
     elevation: 8,
+    boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.2)',
   },
   NAVBAR: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.25,
+    shadowRadius: 4,
     elevation: 5,
+    boxShadow: '0px 3px 8px rgba(0, 0, 0, 0.25)',
   },
 };

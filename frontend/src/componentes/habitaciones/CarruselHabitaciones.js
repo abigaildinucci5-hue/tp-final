@@ -216,6 +216,8 @@ const estilos = StyleSheet.create({
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
+    shadowRadius: 4,
+    shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
   },

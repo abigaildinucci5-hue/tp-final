@@ -29,7 +29,7 @@ const AcercaDeScreen = ({ navigation }) => {
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Logo y nombre */}
         <View style={estilos.headerContainer}>
-          <Image source={IMAGENES_LOCALES.logo} style={estilos.logo} />
+          <Image source={IMAGENES_LOCALES.logo} style={estilos.logo} resizeMode="contain" />
           <Text style={estilos.hotelNombre}>{HOTEL_INFO.nombre}</Text>
           <View style={estilos.calificacionContainer}>
             <MaterialCommunityIcons name="star" size={20} color={COLORES.secundario} />
@@ -100,7 +100,7 @@ const estilos = StyleSheet.create({
     width: 100,
     height: 100,
     marginBottom: 16,
-    resizeMode: 'contain',
+    // resizeMode is now a prop
   },
   hotelNombre: {
     fontSize: TIPOGRAFIA.fontSizeHeading,

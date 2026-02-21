@@ -44,6 +44,7 @@ const HeroBannerHome = ({
       source={backgroundImage}
       style={estilos.banner}
       imageStyle={estilos.backgroundImage}
+      resizeMode="cover"
     >
       {/* Overlay oscuro para mejor legibilidad */}
       <View style={estilos.overlay} />
@@ -82,7 +83,7 @@ const estilos = StyleSheet.create({
     marginBottom: 24,
   },
   backgroundImage: {
-    resizeMode: 'cover',
+    // resizeMode is now a prop
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,

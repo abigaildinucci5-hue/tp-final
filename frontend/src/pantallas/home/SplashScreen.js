@@ -19,7 +19,7 @@ const SplashScreen = ({ navigation }) => {
 
   return (
     <View style={estilos.container}>
-      <Image source={IMAGENES_LOCALES.logo} style={estilos.logo} />
+      <Image source={IMAGENES_LOCALES.logo} style={estilos.logo} resizeMode="contain" />
       <Text style={estilos.titulo}>{HOTEL_INFO.nombre}</Text>
       <Text style={estilos.subtitulo}>Tu lugar de descanso perfecto</Text>
       
@@ -42,7 +42,7 @@ const estilos = StyleSheet.create({
   logo: {
     width: 120,
     height: 120,
-    resizeMode: 'contain',
+    // resizeMode is now a prop
     marginBottom: 24,
   },
   titulo: {

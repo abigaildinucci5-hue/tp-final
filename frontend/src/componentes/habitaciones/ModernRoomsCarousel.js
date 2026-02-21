@@ -86,6 +86,7 @@ const ModernRoomsCarousel = ({
                 }}
                 style={styles.roomCardImage}
                 imageStyle={styles.roomCardImageStyle}
+                resizeMode="cover"
               >
                 {/* Badge de disponibilidad */}
                 {habitacion.estado === 'disponible' && (
@@ -234,6 +235,8 @@ const styles = StyleSheet.create({
     elevation: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
     shadowOpacity: 0.15,
     shadowRadius: 8,
   },
@@ -245,7 +248,7 @@ const styles = StyleSheet.create({
     padding: 15,
   },
   roomCardImageStyle: {
-    resizeMode: 'cover',
+    // resizeMode is now a prop, not a style
   },
   availableBadge: {
     backgroundColor: '#10B981',

@@ -16,17 +16,19 @@ import {
   Platform,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { COLORES } from '../../constantes/colores';
 
 const { width } = Dimensions.get('window');
 
 const NavbarModerna = ({ 
-  navigation, 
+  navigation: navigationProp, 
   usuario, 
   isAuthenticated, 
   onLogout,
   activeRoute = 'Home' 
 }) => {
+  const navigation = useNavigation() || navigationProp;
   const [mostrarMenuUsuario, setMostrarMenuUsuario] = useState(false);
   const [mostrarMenuNav, setMostrarMenuNav] = useState(false);
 
@@ -59,56 +61,51 @@ const NavbarModerna = ({
     <>
       {/* NAVBAR PRINCIPAL */}
       <View style={styles.navbar}>
-        {/* IZQUIERDA: Logo */}
-        <View style={styles.seccionIzquierda}>
-          <View style={styles.logoContainer}>
-            <MaterialCommunityIcons 
-              name="moon-waning-crescent" 
-              size={28} 
-              color={COLORES.SECUNDARIO} 
-            />
-          </View>
-          <View>
-            <Text style={styles.hotelNombre}>Hotel Luna Serena</Text>
-            <Text style={styles.hotelSubtitulo}>Lujo & Confort</Text>
-          </View>
-        </View>
-
-        {/* CENTRO: Navegación (pantallas grandes) o Hamburguesa (pantallas chicas) */}
-        {width > 600 ? (
-          <View style={styles.seccionCentro}>
-            <NavLink
-              label="Home"
-              icono="home-outline"
-              activo={activeRoute === 'Home'}
-              onPress={() => navigateTo('Home')}
-            />
-            <NavLink
-              label="Habitaciones"
-              icono="bed-outline"
-              activo={activeRoute === 'Habitaciones'}
-              onPress={() => navigateTo('Habitaciones')}
-            />
-            <NavLink
-              label="Reservas"
-              icono="calendar-outline"
-              activo={activeRoute === 'Reservas'}
-              onPress={() => navigateTo('Reservas')}
-            />
-            <NavLink
-              label="Contacto"
-              icono="phone-outline"
-              activo={activeRoute === 'Contacto'}
-              onPress={() => navigateTo('Contacto')}
-            />
-          </View>
-        ) : (
+        {/* IZQUIERDA: Hamburguesa (solo mobile) o vacío */}
+        {width <= 600 ? (
           <TouchableOpacity
             style={styles.hamburgerButton}
             onPress={() => setMostrarMenuNav(true)}
           >
             <MaterialCommunityIcons name="menu" size={32} color={COLORES.SECUNDARIO} />
           </TouchableOpacity>
+        ) : (
+          <View style={styles.seccionIzquierda} />
+        )}
+
+        {/* CENTRO: Nombre del hotel o menú en desktop */}
+        {width > 600 ? (
+          <View style={styles.seccionCentroDesktop}>
+            <NavLink
+              label="Home"
+              activo={activeRoute === 'Home'}
+              onPress={() => navigateTo('Home')}
+            />
+            <NavLink
+              label="Habitaciones"
+              activo={activeRoute === 'Habitaciones'}
+              onPress={() => navigateTo('Habitaciones')}
+            />
+            <NavLink
+              label="Reservas"
+              activo={activeRoute === 'Reservas'}
+              onPress={() => navigateTo('Reservas')}
+            />
+            <NavLink
+              label="Contacto"
+              activo={activeRoute === 'Contacto'}
+              onPress={() => navigateTo('Contacto')}
+            />
+          </View>
+        ) : (
+          <View style={styles.seccionCentroMobile}>
+            <MaterialCommunityIcons 
+              name="moon-waning-crescent" 
+              size={20} 
+              color={COLORES.SECUNDARIO} 
+            />
+            <Text style={styles.hotelNombreMobile}>Hotel Luna Serena</Text>
+          </View>
         )}
 
         {/* DERECHA: Usuario o Login */}
@@ -283,18 +280,13 @@ const NavbarModerna = ({
 };
 
 /**
- * Componente NavLink - Item de navegación
+ * Componente NavLink - Item de navegación sin iconos para mejor legibilidad en móvil
  */
-const NavLink = ({ label, icono, activo, onPress }) => (
+const NavLink = ({ label, activo, onPress }) => (
   <TouchableOpacity 
     style={[styles.navLink, activo && styles.navLinkActivo]} 
     onPress={onPress}
   >
-    <MaterialCommunityIcons 
-      name={icono} 
-      size={22} 
-      color={activo ? COLORES.SECUNDARIO : COLORES.ACENTO} 
-    />
     <Text style={[styles.navLinkText, activo && styles.navLinkTextActivo]}>
       {label}
     </Text>
@@ -361,7 +353,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    flex: 1,
+    minWidth: 50,
   },
 
   logoContainer: {
@@ -386,7 +378,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 
-  seccionCentro: {
+  seccionCentroDesktop: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
@@ -394,11 +386,25 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
+  seccionCentroMobile: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flex: 1,
+    justifyContent: 'center',
+  },
+
+  hotelNombreMobile: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORES.SECUNDARIO,
+  },
+
   seccionDerecha: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    flex: 1,
+    minWidth: 50,
     justifyContent: 'flex-end',
   },
 

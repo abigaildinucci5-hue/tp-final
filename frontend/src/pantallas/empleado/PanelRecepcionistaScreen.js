@@ -150,7 +150,7 @@ const PanelRecepcionistaScreen = ({ navigation }) => {
           <Text style={styles.textoDetalle}>{reserva.hora_llegada_estimada}</Text>
         </View>
         <View style={styles.detalle}>
-          <MaterialCommunityIcons name="users" size={20} color="#666" />
+          <MaterialCommunityIcons name="account-multiple" size={20} color="#666" />
           <Text style={styles.textoDetalle}>{reserva.noches} noches</Text>
         </View>
       </View>

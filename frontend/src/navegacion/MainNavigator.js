@@ -4,6 +4,8 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useSelector } from 'react-redux';
 import { selectCantidadNoLeidas } from '../redux/slices/notificacionesSlice';
 import { useFocusEffect } from '@react-navigation/native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { TouchableOpacity } from 'react-native';
 
 // Pantallas
 import HomeScreen from '../pantallas/home/HomeScreen';
@@ -24,12 +26,33 @@ import { FUENTES } from '../constantes/estilos';
 
 const Stack = createNativeStackNavigator();
 
+// Configuración común para botones de back
+const backButtonConfig = (navigation) => ({
+  headerShown: false,
+  headerLeft: () => (
+    <TouchableOpacity
+      onPress={() => navigation?.goBack()}
+      style={{ paddingHorizontal: 16 }}
+    >
+      <MaterialCommunityIcons name="chevron-left" size={28} color={COLORES.PRIMARIO} />
+    </TouchableOpacity>
+  ),
+});
+
 // Stack de Home
 const HomeStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="HomeMain" component={HomeScreen} />
-    <Stack.Screen name="DetalleHabitacion" component={DetalleHabitacionScreen} />
-    <Stack.Screen name="NuevaReserva" component={NuevaReservaScreen} />
+    <Stack.Screen 
+      name="DetalleHabitacion" 
+      component={DetalleHabitacionScreen}
+      options={({ navigation }) => backButtonConfig(navigation)}
+    />
+    <Stack.Screen 
+      name="NuevaReserva" 
+      component={NuevaReservaScreen}
+      options={({ navigation }) => backButtonConfig(navigation)}
+    />
   </Stack.Navigator>
 );
 
@@ -37,8 +60,16 @@ const HomeStack = () => (
 const HabitacionesStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="ListaHabitaciones" component={ListaHabitacionesScreen} />
-    <Stack.Screen name="DetalleHabitacion" component={DetalleHabitacionScreen} />
-    <Stack.Screen name="NuevaReserva" component={NuevaReservaScreen} />
+    <Stack.Screen 
+      name="DetalleHabitacion" 
+      component={DetalleHabitacionScreen}
+      options={({ navigation }) => backButtonConfig(navigation)}
+    />
+    <Stack.Screen 
+      name="NuevaReserva" 
+      component={NuevaReservaScreen}
+      options={({ navigation }) => backButtonConfig(navigation)}
+    />
   </Stack.Navigator>
 );
 
@@ -46,7 +77,11 @@ const HabitacionesStack = () => (
 const ReservasStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="MisReservas" component={MisReservasScreen} />
-    <Stack.Screen name="DetalleReserva" component={DetalleReservaScreen} />
+    <Stack.Screen 
+      name="DetalleReserva" 
+      component={DetalleReservaScreen}
+      options={({ navigation }) => backButtonConfig(navigation)}
+    />
   </Stack.Navigator>
 );
 
@@ -54,9 +89,21 @@ const ReservasStack = () => (
 const PerfilStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="PerfilMain" component={PerfilScreen} />
-    <Stack.Screen name="EditarPerfil" component={EditarPerfilScreen} />
-    <Stack.Screen name="Notificaciones" component={NotificacionesScreen} />
-    <Stack.Screen name="Favoritos" component={FavoritosScreen} />
+    <Stack.Screen 
+      name="EditarPerfil" 
+      component={EditarPerfilScreen}
+      options={({ navigation }) => backButtonConfig(navigation)}
+    />
+    <Stack.Screen 
+      name="Notificaciones" 
+      component={NotificacionesScreen}
+      options={({ navigation }) => backButtonConfig(navigation)}
+    />
+    <Stack.Screen 
+      name="Favoritos" 
+      component={FavoritosScreen}
+      options={({ navigation }) => backButtonConfig(navigation)}
+    />
   </Stack.Navigator>
 );
 

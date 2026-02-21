@@ -3,23 +3,16 @@
 
 import axios from 'axios';
 import { Platform } from 'react-native';
+import { API_CONFIG } from '../constantes/config';
 
 /**
  * ========================================
  * CONFIGURACIÓN DE LA API
  * ========================================
  */
-const getApiBaseUrl = () => {
-  if (Platform.OS === 'android') {
-    // 🔥 IMPORTANTE: Cambiar esta IP por la IP de tu PC
-    // Para obtener tu IP: ipconfig (Windows) o ifconfig (Linux/Mac)
-    return 'http://192.168.1.100:3000'; // ← CAMBIAR ESTA IP
-  }
-  // iOS Simulator y Web: localhost funciona
-  return 'https://tp-final-production-9e41.up.railway.app';
-};
-
-const API_URL = `${getApiBaseUrl()}/api/auth`;
+// Usar la URL central del proyecto (configurable en `src/constantes/config.js`)
+const API_BASE = API_CONFIG.BASE_URL.replace(/\/$/, '');
+const API_URL = `${API_BASE}/auth`;
 
 /**
  * ========================================
