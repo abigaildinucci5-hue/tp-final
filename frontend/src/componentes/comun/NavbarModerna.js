@@ -33,20 +33,27 @@ const NavbarModerna = ({
   const [mostrarMenuNav, setMostrarMenuNav] = useState(false);
 
   const navigateTo = (screen, params = {}) => {
-    if (navigation) {
-      // Para los stacks principales, especificar el screen inicial
+    if (!navigation) return;
+    
+    try {
+      // Navegar a los tabs usando nombres actualizados
       if (screen === 'Home') {
-        navigation.navigate('Home', { screen: 'Home', ...params });
+        navigation.navigate('HomeTab', { screen: 'HomeMain', ...params });
       } else if (screen === 'Habitaciones') {
-        navigation.navigate('Habitaciones', { screen: 'ListaHabitaciones', ...params });
+        navigation.navigate('HabitacionesTab', { screen: 'ListaHabitacionList', ...params });
       } else if (screen === 'Reservas') {
-        navigation.navigate('Reservas', { screen: 'MisReservas', ...params });
+        navigation.navigate('ReservasTab', { screen: 'MisReservasList', ...params });
       } else if (screen === 'Perfil') {
-        navigation.navigate('Perfil', { screen: 'PerfilMain', ...params });
+        navigation.navigate('PerfilTab', { screen: 'PerfilMain', ...params });
+      } else if (screen === 'Contacto') {
+        navigation.navigate('ContactoUnique', params);
+      } else if (screen === 'Mapa') {
+        navigation.navigate('MapaUnique', params);
       } else {
-        // Para otras pantallas, navegar directamente
         navigation.navigate(screen, params);
       }
+    } catch (error) {
+      console.warn('Navigation error:', error);
     }
     setMostrarMenuUsuario(false);
   };

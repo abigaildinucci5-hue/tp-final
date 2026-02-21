@@ -2,11 +2,23 @@
  * Constantes de configuración de la aplicación
  */
 
-// Configuración de la API
+// Detectar si estamos en development o production
+const isDevelopment = __DEV__ || process.env.NODE_ENV === 'development';
+
+// Detectar si estamos en web (expo web) o mobile
+const isWeb = typeof window !== 'undefined';
+const isExpoWeb = isWeb && window.location?.hostname === 'localhost';
+
+// Configuración dinámica de la API
+let API_BASE_URL = 'https://tp-final-production-a1f6.up.railway.app/api';
+
+if (isDevelopment || isExpoWeb) {
+  // En desarrollo en web, usar localhost
+  API_BASE_URL = `http://${isExpoWeb ? 'localhost' : '192.168.0.100'}:3000/api`;
+}
+
 export const API_CONFIG = {
-  // Para development en web: usar localhost
-  // Para production: usar la URL de railway
-  BASE_URL: 'https://tp-final-production-a1f6.up.railway.app/api',
+  BASE_URL: API_BASE_URL,
   TIMEOUT: 30000, // 30 segundos
   RETRY_ATTEMPTS: 3,
   RETRY_DELAY: 1000 // 1 segundo

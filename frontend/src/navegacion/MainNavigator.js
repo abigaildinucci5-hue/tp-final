@@ -1,8 +1,7 @@
 // src/navegacion/MainNavigator.js
 import React, { useState, useEffect } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { useSelector } from 'react-redux';
-import { selectCantidadNoLeidas } from '../redux/slices/notificacionesSlice';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useFocusEffect } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { TouchableOpacity } from 'react-native';
@@ -26,112 +25,124 @@ import { FUENTES } from '../constantes/estilos';
 
 const Stack = createNativeStackNavigator();
 
-// Configuración común para botones de back
-const backButtonConfig = (navigation) => ({
-  headerShown: false,
-  headerLeft: () => (
-    <TouchableOpacity
-      onPress={() => navigation?.goBack()}
-      style={{ paddingHorizontal: 16 }}
-    >
-      <MaterialCommunityIcons name="chevron-left" size={28} color={COLORES.PRIMARIO} />
-    </TouchableOpacity>
-  ),
-});
-
 // Stack de Home
 const HomeStack = () => (
-  <Stack.Navigator screenOptions={{ headerShown: false }}>
+  <Stack.Navigator
+    screenOptions={{
+      headerShown: false,
+      animationEnabled: true,
+    }}
+  >
     <Stack.Screen name="HomeMain" component={HomeScreen} />
     <Stack.Screen 
       name="DetalleHabitacion" 
       component={DetalleHabitacionScreen}
-      options={({ navigation }) => backButtonConfig(navigation)}
+      options={{
+        animationEnabled: true,
+      }}
     />
     <Stack.Screen 
       name="NuevaReserva" 
       component={NuevaReservaScreen}
-      options={({ navigation }) => backButtonConfig(navigation)}
+      options={{
+        animationEnabled: true,
+      }}
     />
   </Stack.Navigator>
 );
 
 // Stack de Habitaciones
 const HabitacionesStack = () => (
-  <Stack.Navigator screenOptions={{ headerShown: false }}>
-    <Stack.Screen name="ListaHabitaciones" component={ListaHabitacionesScreen} />
+  <Stack.Navigator
+    screenOptions={{
+      headerShown: false,
+      animationEnabled: true,
+    }}
+  >
+    <Stack.Screen name="ListaHabitacionList" component={ListaHabitacionesScreen} />
     <Stack.Screen 
       name="DetalleHabitacion" 
       component={DetalleHabitacionScreen}
-      options={({ navigation }) => backButtonConfig(navigation)}
+      options={{
+        animationEnabled: true,
+      }}
     />
     <Stack.Screen 
       name="NuevaReserva" 
       component={NuevaReservaScreen}
-      options={({ navigation }) => backButtonConfig(navigation)}
+      options={{
+        animationEnabled: true,
+      }}
     />
   </Stack.Navigator>
 );
 
 // Stack de Reservas
 const ReservasStack = () => (
-  <Stack.Navigator screenOptions={{ headerShown: false }}>
-    <Stack.Screen name="MisReservas" component={MisReservasScreen} />
+  <Stack.Navigator
+    screenOptions={{
+      headerShown: false,
+      animationEnabled: true,
+    }}
+  >
+    <Stack.Screen name="MisReservasList" component={MisReservasScreen} />
     <Stack.Screen 
       name="DetalleReserva" 
       component={DetalleReservaScreen}
-      options={({ navigation }) => backButtonConfig(navigation)}
+      options={{
+        animationEnabled: true,
+      }}
     />
   </Stack.Navigator>
 );
 
 // Stack de Perfil
 const PerfilStack = () => (
-  <Stack.Navigator screenOptions={{ headerShown: false }}>
+  <Stack.Navigator
+    screenOptions={{
+      headerShown: false,
+      animationEnabled: true,
+    }}
+  >
     <Stack.Screen name="PerfilMain" component={PerfilScreen} />
     <Stack.Screen 
       name="EditarPerfil" 
       component={EditarPerfilScreen}
-      options={({ navigation }) => backButtonConfig(navigation)}
+      options={{
+        animationEnabled: true,
+      }}
     />
     <Stack.Screen 
       name="Notificaciones" 
       component={NotificacionesScreen}
-      options={({ navigation }) => backButtonConfig(navigation)}
+      options={{
+        animationEnabled: true,
+      }}
     />
     <Stack.Screen 
       name="Favoritos" 
       component={FavoritosScreen}
-      options={({ navigation }) => backButtonConfig(navigation)}
+      options={{
+        animationEnabled: true,
+      }}
     />
   </Stack.Navigator>
 );
 
-// Stack de Contacto
-const ContactoStack = () => (
-  <Stack.Navigator screenOptions={{ headerShown: false }}>
-    <Stack.Screen name="ContactoMain" component={ContactoScreen} />
-  </Stack.Navigator>
-);
-
-// Stack de Mapa
-const MapaStack = () => (
-  <Stack.Navigator screenOptions={{ headerShown: false }}>
-    <Stack.Screen name="MapaMain" component={MapaScreen} />
-  </Stack.Navigator>
-);
-
 const MainNavigator = ({ navigation }) => {
-  const cantidadNoLeidas = useSelector(selectCantidadNoLeidas);
-
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Home" component={HomeStack} />
-      <Stack.Screen name="Habitaciones" component={HabitacionesStack} />
-      <Stack.Screen name="Reservas" component={ReservasStack} />
-      <Stack.Screen name="Perfil" component={PerfilStack} />
-      <Stack.Screen name="Contacto" component={ContactoStack} />
-      <Stack.Screen name="Mapa" component={MapaStack} />
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        animationEnabled: true,
+      }}
+    >
+      <Stack.Screen name="HomeTab" component={HomeStack} />
+      <Stack.Screen name="HabitacionesTab" component={HabitacionesStack} />
+      <Stack.Screen name="ReservasTab" component={ReservasStack} />
+      <Stack.Screen name="PerfilTab" component={PerfilStack} />
+      <Stack.Screen name="ContactoUnique" component={ContactoScreen} />
+      <Stack.Screen name="MapaUnique" component={MapaScreen} />
     </Stack.Navigator>
   );
 };

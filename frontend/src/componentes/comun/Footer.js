@@ -14,7 +14,6 @@ import COLORES from '../../constantes/colores';
 import { TIPOGRAFIA, DIMENSIONES } from '../../constantes/estilos';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
-const COLUMN_WIDTH = (SCREEN_WIDTH - 60) / 3; // 3 columnas con padding
 
 const Footer = ({ navigation }) => {
   const handlePhoneCall = () => {
@@ -282,6 +281,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORES.blanco,
     borderTopWidth: 1,
     borderTopColor: COLORES.grisBorde,
+    width: '100%',
   },
   
   footerContainer: {
@@ -289,10 +289,14 @@ const styles = StyleSheet.create({
     paddingVertical: 50,
     paddingHorizontal: 40,
     gap: 30,
+    width: '100%',
+    maxWidth: '100%',
+    overflow: 'hidden',
   },
   
   footerColumn: {
     justifyContent: 'flex-start',
+    flex: 1,
   },
   
   // TÍTULOS DE COLUMNAS
@@ -324,6 +328,7 @@ const styles = StyleSheet.create({
     color: COLORES.grisOscuro,
     lineHeight: 20,
     fontWeight: '400',
+    flex: 1,
   },
   
   socialIconsRow: {
@@ -397,12 +402,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
     borderTopWidth: 1,
     borderTopColor: COLORES.grisBorde,
+    width: '100%',
   },
   
   copyrightContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    width: '100%',
   },
   
   copyrightText: {
@@ -410,6 +417,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: COLORES.textoMedio,
     fontWeight: '300',
+    flex: 1,
   },
   
   copyrightLinks: {
