@@ -25,6 +25,12 @@ const { verificarConexionDB } = require('./src/config/baseDatos');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// ============================
+// ✅ TRUST PROXY - CRÍTICO PARA RAILWAY
+// ============================
+// DEBE SER ANTES que rate limiting
+app.set('trust proxy', 1);
+
 app.get('/ping', (req, res) => {
   res.status(200).send('pong');
 });
