@@ -203,11 +203,24 @@ const googleCallback = asyncHandler(async (req, res) => {
 
     console.log('🔑 Tokens generados correctamente');
 
-    // Redirigir al frontend con los tokens
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:8081';
-    const redirectUrl = `${frontendUrl}?token=${accessToken}&refresh=${refreshToken}`;
+    // ✅ NUEVO: Recuperar platform desde session
+    // (fue guardado en GET /api/auth/google ANTES del redirect de OAuth)
+    const isMobile = req.session?.oauthPlatform === 'mobile';
+    console.log(`📱 Tipo de cliente: ${isMobile ? 'MOBILE' : 'WEB'}`);
 
-    console.log('🔗 Redirigiendo a frontend');
+    let redirectUrl;
+
+    if (isMobile) {
+      // Deep link para Expo/APK
+      redirectUrl = `hotelunaserenamobile://auth?token=${accessToken}&refresh=${refreshToken}`;
+      console.log('🔗 Redirigiendo a APP MOBILE');
+    } else {
+      // URL web normal
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:8081';
+      redirectUrl = `${frontendUrl}?token=${accessToken}&refresh=${refreshToken}`;
+      console.log('🔗 Redirigiendo a WEB');
+    }
+
     res.redirect(redirectUrl);
 
   } catch (error) {
@@ -259,11 +272,24 @@ const githubCallback = asyncHandler(async (req, res) => {
 
     console.log('🔑 Tokens generados correctamente');
 
-    // Redirigir al frontend con los tokens
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:8081';
-    const redirectUrl = `${frontendUrl}?token=${accessToken}&refresh=${refreshToken}`;
+    // ✅ NUEVO: Recuperar platform desde session
+    // (fue guardado en GET /api/auth/github ANTES del redirect de OAuth)
+    const isMobile = req.session?.oauthPlatform === 'mobile';
+    console.log(`📱 Tipo de cliente: ${isMobile ? 'MOBILE' : 'WEB'}`);
 
-    console.log('🔗 Redirigiendo a frontend');
+    let redirectUrl;
+
+    if (isMobile) {
+      // Deep link para Expo/APK
+      redirectUrl = `hotelunaserenamobile://auth?token=${accessToken}&refresh=${refreshToken}`;
+      console.log('🔗 Redirigiendo a APP MOBILE');
+    } else {
+      // URL web normal
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:8081';
+      redirectUrl = `${frontendUrl}?token=${accessToken}&refresh=${refreshToken}`;
+      console.log('🔗 Redirigiendo a WEB');
+    }
+
     res.redirect(redirectUrl);
 
   } catch (error) {

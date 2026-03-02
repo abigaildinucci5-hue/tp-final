@@ -79,16 +79,29 @@ router.post('/cambiar-password', verificarAutenticacion, cambiarPassword); // 鉁
 
 /**
  * GET /api/auth/google
- * Iniciar flujo de autenticaci贸n con Google (WEB)
+ * Iniciar flujo de autenticaci贸n con Google (WEB + MOBILE)
+ * 
+ * Query params:
+ *   - platform=mobile (opcional, para Expo/APK)
+ * 
  * Redirige al usuario a la p谩gina de login de Google
  */
-router.get(
-  '/google',
+router.get('/google', (req, res, next) => {
+  // Guardar platform en session ANTES de OAuth
+  // Porque Google no devuelve este param en el callback
+  const platform = req.query.platform || 'web';
+  
+  if (req.session) {
+    req.session.oauthPlatform = platform;
+    console.log(`馃摫 Guardado en session: oauthPlatform = ${platform}`);
+  }
+  
+  // Continuar con Passport OAuth
   passport.authenticate('google', {
     scope: ['profile', 'email'],
     session: false
-  })
-);
+  })(req, res, next);
+});
 
 /**
  * GET /api/auth/google/callback
@@ -119,16 +132,29 @@ router.post('/google/mobile', googleMobileAuth);
 
 /**
  * GET /api/auth/github
- * Iniciar flujo de autenticaci贸n con GitHub (WEB)
+ * Iniciar flujo de autenticaci贸n con GitHub (WEB + MOBILE)
+ * 
+ * Query params:
+ *   - platform=mobile (opcional, para Expo/APK)
+ * 
  * Redirige al usuario a la p谩gina de login de GitHub
  */
-router.get(
-  '/github',
+router.get('/github', (req, res, next) => {
+  // Guardar platform en session ANTES de OAuth
+  // Porque GitHub no devuelve este param en el callback
+  const platform = req.query.platform || 'web';
+  
+  if (req.session) {
+    req.session.oauthPlatform = platform;
+    console.log(`馃摫 Guardado en session: oauthPlatform = ${platform}`);
+  }
+  
+  // Continuar con Passport OAuth
   passport.authenticate('github', {
     scope: ['user:email'],
     session: false
-  })
-);
+  })(req, res, next);
+});
 
 /**
  * GET /api/auth/github/callback

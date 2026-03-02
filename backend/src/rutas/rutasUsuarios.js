@@ -6,6 +6,32 @@ const { verificarAutenticacion, verificarAdmin, verificarPropietarioOAdmin } = r
 const { verificarRol } = require('../middlewares/middlewareVerificarRol');
 
 // ============================================================
+// RUTAS ESPECÍFICAS - DEBEN IR ANTES DE :idUsuario
+// ============================================================
+
+/**
+ * @route   GET /api/usuarios/buscar
+ * @desc    Buscar usuarios por término
+ * @access  Privado
+ * @query   {String} query - Término de búsqueda
+ */
+router.get('/buscar',
+  verificarAutenticacion,
+  controladorUsuarios.buscarUsuarios
+);
+
+/**
+ * @route   GET /api/usuarios/admin/estadisticas
+ * @desc    Obtener estadísticas generales de usuarios
+ * @access  Privado (Admin)
+ */
+router.get('/admin/estadisticas',
+  verificarAutenticacion,
+  verificarRol(['admin']),
+  controladorUsuarios.obtenerEstadisticasUsuarios
+);
+
+// ============================================================
 // RUTAS BÁSICAS DE USUARIO
 // ============================================================
 
@@ -23,17 +49,6 @@ router.get('/',
   verificarAutenticacion, 
   verificarRol(['admin']),
   controladorUsuarios.obtenerUsuarios
-);
-
-/**
- * @route   GET /api/usuarios/buscar
- * @desc    Buscar usuarios por término
- * @access  Privado
- * @query   {String} query - Término de búsqueda
- */
-router.get('/buscar',
-  verificarAutenticacion,
-  controladorUsuarios.buscarUsuarios
 );
 
 /**
@@ -112,21 +127,6 @@ router.put('/:idUsuario/toggle-activo',
   verificarAutenticacion,
   verificarRol(['admin']),
   controladorUsuarios.toggleActivo
-);
-
-// ============================================================
-// RUTAS ADMIN - ESTADÍSTICAS Y REPORTES
-// ============================================================
-
-/**
- * @route   GET /api/usuarios/admin/estadisticas
- * @desc    Obtener estadísticas generales de usuarios
- * @access  Privado (Admin)
- */
-router.get('/admin/estadisticas',
-  verificarAutenticacion,
-  verificarRol(['admin']),
-  controladorUsuarios.obtenerEstadisticasUsuarios
 );
 
 // ============================================================

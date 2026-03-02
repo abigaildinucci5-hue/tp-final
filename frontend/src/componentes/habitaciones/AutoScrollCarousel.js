@@ -7,15 +7,13 @@ import {
   ScrollView,
   ImageBackground,
   TouchableOpacity,
-  Dimensions,
+  useWindowDimensions,
   ActivityIndicator,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import COLORES from '../../constantes/colores';
 import { TIPOGRAFIA, DIMENSIONES } from '../../constantes/estilos';
-
-const SCREEN_WIDTH = Dimensions.get('window').width;
-const CARD_WIDTH = SCREEN_WIDTH * 0.55; // Tarjetas más estrechas, menos ancho
+import { obtenerImagenHabitacion } from '../../constantes/imagenes';
 
 const AutoScrollCarousel = ({
   habitaciones = [],
@@ -25,9 +23,30 @@ const AutoScrollCarousel = ({
   title = 'HABITACIONES DESTACADAS',
   autoScrollInterval = 4000, // 4 segundos por defecto
 }) => {
+  const { width } = useWindowDimensions();
+  
+  // ✅ RESPONSIVE: Mobile vs Web
+  const isMobile = width < 768;
+  const MAX_CARD_WIDTH = 350;
+  const horizontalPadding = 16;
+  
+  // Ancho de card
+  // En mobile: 85% del ancho para no cortarse + centrado
+  // En web: máximo 350px
+  const MOBILE_CARD_RATIO = 0.85; // 85% del ancho en mobile
+  const cardWidth = isMobile ? width * MOBILE_CARD_RATIO : MAX_CARD_WIDTH;
+  
+  // Altura basada en proporción
+  const cardHeight = cardWidth * 1.3; // Proporción 5:6.5
+  
+  // Spacing entre cards
+  const cardSpacing = isMobile ? 0 : 16; // No hay espacio en mobile (pagingEnabled), 16px en web
+
   const scrollViewRef = useRef(null);
   const currentIndexRef = useRef(0);
   const scrollIntervalRef = useRef(null);
+  const scrollTimeoutRef = useRef(null);
+  const isScrollingRef = useRef(false);
 
   // Iniciar auto-scroll
   useEffect(() => {
@@ -40,13 +59,20 @@ const AutoScrollCarousel = ({
         clearInterval(scrollIntervalRef.current);
       }
     };
-  }, [habitaciones.length]);
+  }, [habitaciones.length, cardWidth, cardSpacing, isMobile]);
 
   const startAutoScroll = () => {
     scrollIntervalRef.current = setInterval(() => {
       if (scrollViewRef.current && habitaciones.length > 0) {
         currentIndexRef.current = (currentIndexRef.current + 1) % habitaciones.length;
-        const offset = currentIndexRef.current * (CARD_WIDTH + 16);
+        
+        // Calcular offset diferente según dispositivo
+        let offset;
+        if (isMobile) {
+          offset = currentIndexRef.current * cardWidth;
+        } else {
+          offset = currentIndexRef.current * (cardWidth + cardSpacing);
+        }
 
         scrollViewRef.current.scrollTo({
           x: offset,
@@ -58,14 +84,31 @@ const AutoScrollCarousel = ({
   };
 
   const pauseAutoScroll = () => {
+    isScrollingRef.current = true;
     if (scrollIntervalRef.current) {
       clearInterval(scrollIntervalRef.current);
     }
+    
+    // Reanudar autoscroll después de 2 segundos sin scroll
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+    }
+    scrollTimeoutRef.current = setTimeout(() => {
+      isScrollingRef.current = false;
+      startAutoScroll();
+    }, 2000);
   };
 
   const handleScroll = (event) => {
+    pauseAutoScroll();
     const contentOffsetX = event.nativeEvent.contentOffset.x;
-    currentIndexRef.current = Math.round(contentOffsetX / (CARD_WIDTH + 16));
+    if (isMobile) {
+      // Calcular índice considerando centrado en mobile
+      const centerOffset = (width - cardWidth) / 2;
+      currentIndexRef.current = Math.round((contentOffsetX - centerOffset) / cardWidth);
+    } else {
+      currentIndexRef.current = Math.round(contentOffsetX / (cardWidth + cardSpacing));
+    }
   };
 
   const handleNavigateToDetail = (habitacion) => {
@@ -78,7 +121,12 @@ const AutoScrollCarousel = ({
   const goToPrevious = () => {
     if (scrollViewRef.current) {
       currentIndexRef.current = Math.max(0, currentIndexRef.current - 1);
-      const offset = currentIndexRef.current * (CARD_WIDTH + 16);
+      let offset;
+      if (isMobile) {
+        offset = currentIndexRef.current * cardWidth;
+      } else {
+        offset = currentIndexRef.current * (cardWidth + cardSpacing);
+      }
       scrollViewRef.current.scrollTo({
         x: offset,
         y: 0,
@@ -93,7 +141,12 @@ const AutoScrollCarousel = ({
         habitaciones.length - 1,
         currentIndexRef.current + 1
       );
-      const offset = currentIndexRef.current * (CARD_WIDTH + 16);
+      let offset;
+      if (isMobile) {
+        offset = currentIndexRef.current * cardWidth;
+      } else {
+        offset = currentIndexRef.current * (cardWidth + cardSpacing);
+      }
       scrollViewRef.current.scrollTo({
         x: offset,
         y: 0,
@@ -133,14 +186,15 @@ const AutoScrollCarousel = ({
         </TouchableOpacity>
       </View>
 
-      {/* Carousel con flechas */}
+      {/* Carousel - Visible en todos los dispositivos */}
       <View style={styles.carouselContainer}>
-        {/* Flecha izquierda - siempre visible */}
+        {/* Flecha izquierda - solo web */}
         <TouchableOpacity
           style={[
             styles.arrowButton, 
             styles.arrowButtonLeft,
-            currentIndexRef.current === 0 && styles.arrowButtonDisabled
+            currentIndexRef.current === 0 && styles.arrowButtonDisabled,
+            isMobile && { display: 'none' }
           ]}
           onPress={goToPrevious}
           activeOpacity={currentIndexRef.current === 0 ? 0.5 : 0.7}
@@ -157,34 +211,60 @@ const AutoScrollCarousel = ({
         <ScrollView
           ref={scrollViewRef}
           horizontal
-          pagingEnabled={false}
+          pagingEnabled={isMobile}
           showsHorizontalScrollIndicator={false}
           scrollEventThrottle={16}
           onScroll={handleScroll}
           onTouchBegin={pauseAutoScroll}
-          onTouchEnd={startAutoScroll}
           style={styles.carouselScroll}
-          contentContainerStyle={styles.carouselContent}
+          contentContainerStyle={[
+            styles.carouselContent,
+            isMobile && {
+              paddingHorizontal: (width - cardWidth) / 2,
+            },
+            !isMobile && {
+              paddingHorizontal: horizontalPadding,
+            }
+          ]}
           decelerationRate="fast"
-          snapToInterval={CARD_WIDTH + 16}
+          snapToInterval={!isMobile ? cardWidth + cardSpacing : undefined}
           snapToAlignment="start"
         >
-        {habitaciones.map((habitacion) => (
-          <TouchableOpacity
-            key={habitacion.id_habitacion || habitacion.id}
-            onPress={() => handleNavigateToDetail(habitacion)}
-            activeOpacity={0.8}
-            style={styles.roomCard}
-          >
-            <ImageBackground
-              source={{
-                uri:
-                  habitacion.imagen_principal ||
-                  'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800&h=600&fit=crop',
-              }}
-              style={styles.roomCardImage}
-              imageStyle={{ borderRadius: 16 }}
+        {habitaciones.map((habitacion, index) => {
+          // Array de imágenes de respaldo variadas
+          const imagenesFallback = [
+            'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800&h=600&fit=crop',
+            'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=600&fit=crop',
+            'https://images.unsplash.com/photo-1567521464027-f127ff144326?w=800&h=600&fit=crop',
+            'https://images.unsplash.com/photo-1611003228941-98852ba62227?w=800&h=600&fit=crop',
+            'https://images.unsplash.com/photo-1532900298318-6b8da08a0c1b?w=800&h=600&fit=crop',
+            'https://images.unsplash.com/photo-1520631778298-1b434c919eba?w=800&h=600&fit=crop',
+          ];
+          
+          const imagenFallback = imagenesFallback[index % imagenesFallback.length];
+
+          return (
+            <TouchableOpacity
+              key={habitacion.id_habitacion || habitacion.id}
+              onPress={() => handleNavigateToDetail(habitacion)}
+              activeOpacity={0.8}
+              style={[
+                styles.roomCard, 
+                { 
+                  width: cardWidth, 
+                  height: cardHeight, 
+                  marginRight: cardSpacing,
+                }
+              ]}
             >
+              <ImageBackground
+                source={{
+                  uri:
+                    obtenerImagenHabitacion(habitacion.imagen_principal) || imagenFallback,
+                }}
+                style={styles.roomCardImage}
+                imageStyle={{ borderRadius: 16, resizeMode: 'cover' }}
+              >
               {/* Overlay degradado */}
               <View style={styles.overlay} />
 
@@ -247,16 +327,18 @@ const AutoScrollCarousel = ({
                 </View>
               </View>
             </ImageBackground>
-          </TouchableOpacity>
-        ))}
+            </TouchableOpacity>
+          );
+        })}
         </ScrollView>
 
-        {/* Flecha derecha - siempre visible */}
+        {/* Flecha derecha - solo web */}
         <TouchableOpacity
           style={[
             styles.arrowButton, 
             styles.arrowButtonRight,
-            currentIndexRef.current >= habitaciones.length - 1 && styles.arrowButtonDisabled
+            currentIndexRef.current >= habitaciones.length - 1 && styles.arrowButtonDisabled,
+            isMobile && { display: 'none' }
           ]}
           onPress={goToNext}
           activeOpacity={currentIndexRef.current >= habitaciones.length - 1 ? 0.5 : 0.7}
@@ -331,14 +413,12 @@ const styles = StyleSheet.create({
   },
   carouselScroll: {
     marginBottom: 16,
+    flex: 1,
   },
   carouselContent: {
     paddingRight: DIMENSIONES.padding,
   },
   roomCard: {
-    width: CARD_WIDTH,
-    height: 340, // Más alto que ancho para mejor proporción
-    marginRight: 16,
     borderRadius: 16,
     overflow: 'hidden',
     backgroundColor: COLORES.blanco,

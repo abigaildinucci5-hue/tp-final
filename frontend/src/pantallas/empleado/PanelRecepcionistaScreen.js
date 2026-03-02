@@ -11,6 +11,8 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  Modal,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -26,7 +28,7 @@ import { useAuth } from '../../hooks/useAuth';
  * - Calendario de disponibilidad
  */
 const PanelRecepcionistaScreen = ({ navigation }) => {
-  const { usuario } = useAuth();
+  const { usuario, logout } = useAuth();
   const {
     reservasHoy,
     estadoHabitaciones,
@@ -42,6 +44,7 @@ const PanelRecepcionistaScreen = ({ navigation }) => {
   } = useEmpleado();
 
   const [seccionActiva, setSeccionActiva] = useState('reservas'); // 'reservas', 'habitaciones', 'solicitudes'
+  const [mostrarMenuUsuario, setMostrarMenuUsuario] = useState(false); // Menu del perfil
 
   // Estadísticas
   const checkInsCompletados = reservasHoy.filter((r) => r.tieneCheckin)?.length || 0;
@@ -119,6 +122,35 @@ const PanelRecepcionistaScreen = ({ navigation }) => {
     );
   };
 
+  // Manejo de logout
+  const handleLogout = () => {
+    console.log('🔴 handleLogout llamado');
+    Alert.alert(
+      'Cerrar Sesión',
+      '¿Deseas cerrar sesión?',
+      [
+        {
+          text: 'Cancelar',
+          onPress: () => {
+            console.log('❌ Usuario canceló logout');
+          },
+          style: 'cancel',
+        },
+        {
+          text: 'Sí, cerrar sesión',
+          onPress: () => {
+            console.log('✅ Usuario confirmó logout - Ejecutando logout()');
+            setMostrarMenuUsuario(false);
+            logout();
+            console.log('✅ logout() fue llamada');
+          },
+          style: 'destructive',
+        },
+      ]
+    );
+  };
+
+  // 
   // Tarjeta de reserva para hoy
   const CardReserva = ({ reserva }) => (
     <View style={styles.cardReserva}>
@@ -274,13 +306,22 @@ const PanelRecepcionistaScreen = ({ navigation }) => {
       >
         {/* Encabezado */}
         <View style={styles.encabezado}>
-          <View>
+          <View style={{ flex: 1 }}>
             <Text style={styles.tituloEncabezado}>Panel de Recepción</Text>
             <Text style={styles.subtituloEncabezado}>Hoy - {new Date().toLocaleDateString()}</Text>
           </View>
-          <View style={styles.avatarUsuario}>
+          <TouchableOpacity 
+            style={styles.btnLogoutRapido}
+            onPress={handleLogout}
+          >
+            <MaterialCommunityIcons name="logout" size={20} color="#FF6B6B" />
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.avatarUsuario}
+            onPress={() => setMostrarMenuUsuario(true)}
+          >
             <Text style={styles.iniciales}>{usuario?.nombre?.[0]}{usuario?.apellido?.[0]}</Text>
-          </View>
+          </TouchableOpacity>
         </View>
 
         {/* Tarjetas de estadísticas rápidas */}
@@ -439,6 +480,62 @@ const PanelRecepcionistaScreen = ({ navigation }) => {
 
         <View style={{ height: 40 }} />
       </ScrollView>
+
+      {/* MENÚ DESPLEGABLE DE USUARIO */}
+      <Modal
+        visible={mostrarMenuUsuario}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setMostrarMenuUsuario(false)}
+      >
+        <TouchableOpacity
+          style={styles.menuOverlay}
+          onPress={() => setMostrarMenuUsuario(false)}
+          activeOpacity={1}
+        >
+          <View style={styles.menuDropdown}>
+            {/* Header menú */}
+            <View style={styles.menuHeader}>
+              <View style={styles.menuAvatar}>
+                <Text style={styles.menuAvatarText}>
+                  {usuario?.nombre?.[0]}{usuario?.apellido?.[0]}
+                </Text>
+              </View>
+              <View style={styles.menuHeaderInfo}>
+                <Text style={styles.menuNombre}>
+                  {usuario?.nombre || 'Usuario'}
+                </Text>
+                <Text style={styles.menuEmail}>
+                  {usuario?.email || 'correo@example.com'}
+                </Text>
+                <Text style={styles.menuRol}>
+                  {usuario?.rol || 'Recepcionista'}
+                </Text>
+              </View>
+            </View>
+
+            {/* Items del menú */}
+            <TouchableOpacity
+              style={[styles.menuItem, styles.menuItemRojo]}
+              onPress={handleLogout}
+            >
+              <MaterialCommunityIcons
+                name="logout"
+                size={20}
+                color="#FF6B6B"
+              />
+              <Text style={[styles.menuItemLabel, { color: '#FF6B6B' }]}>
+                Cerrar Sesión
+              </Text>
+              <MaterialCommunityIcons
+                name="chevron-right"
+                size={20}
+                color="#FF6B6B"
+              />
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -475,6 +572,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#007AFF',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  btnLogoutRapido: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#FFE8E8',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
   },
   iniciales: {
     color: '#fff',
@@ -742,6 +848,94 @@ const styles = StyleSheet.create({
   textoSinDatos: {
     fontSize: 14,
     color: '#999',
+  },
+  // Estilos del menú de usuario
+  menuOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    justifyContent: 'flex-start',
+  },
+  menuDropdown: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    marginTop: 70,
+    marginRight: 16,
+    marginLeft: 'auto',
+    width: '85%',
+    maxWidth: 280,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
+  },
+  menuHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  menuAvatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#007AFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  menuAvatarText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  menuHeaderInfo: {
+    flex: 1,
+  },
+  menuNombre: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#000',
+  },
+  menuEmail: {
+    fontSize: 12,
+    color: '#999',
+    marginTop: 2,
+  },
+  menuRol: {
+    fontSize: 11,
+    color: '#007AFF',
+    fontWeight: '500',
+    marginTop: 4,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 13,
+  },
+  menuItemLabel: {
+    fontSize: 14,
+    color: '#000',
+    fontWeight: '500',
+    flex: 1,
+  },
+  menuItemRojo: {
+    backgroundColor: 'rgba(255, 107, 107, 0.05)',
+  },
+  menuDivisor: {
+    height: 1,
+    backgroundColor: '#f0f0f0',
+    marginVertical: 8,
   },
 });
 

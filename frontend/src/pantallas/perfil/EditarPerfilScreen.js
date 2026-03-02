@@ -3,8 +3,6 @@ import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { ESTILOS_GLOBALES } from '../../constantes/estilos';
 import { useAuth } from '../../hooks/useAuth';
-import usuariosService from '../../servicios/usuariosService';
-import HeaderApp from '../../componentes/comun/HeaderApp';
 import EditarPerfil from '../../componentes/perfil/EditarPerfil';
 import { showSuccessToast, showErrorToast } from '../../redux/slices/uiSlice';
 import { useDispatch } from 'react-redux';
@@ -34,12 +32,6 @@ const EditarPerfilScreen = ({ navigation }) => {
 
   return (
     <View style={ESTILOS_GLOBALES.container}>
-      <HeaderApp
-        title="Editar Perfil"
-        leftIcon="chevron-left"
-        onLeftPress={() => navigation.goBack()}
-      />
-
       <EditarPerfil
         usuario={usuario}
         onGuardar={handleGuardar}

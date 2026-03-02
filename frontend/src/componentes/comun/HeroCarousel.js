@@ -1,23 +1,50 @@
 // frontend/src/componentes/comun/HeroCarousel.js
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   ImageBackground,
-  Dimensions,
+  useWindowDimensions,
   TouchableOpacity,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import COLORES from '../../constantes/colores';
 import { TIPOGRAFIA, DIMENSIONES } from '../../constantes/estilos';
 
-const SCREEN_WIDTH = Dimensions.get('window').width;
-
 const HeroCarousel = ({ slides = [], onSlidePress = () => {} }) => {
+  const { width: screenWidth } = useWindowDimensions();
   const [currentSlide, setCurrentSlide] = useState(0);
   const scrollViewRef = useRef(null);
+  const autoScrollIntervalRef = useRef(null);
+
+  // Altura proporcional: 16:9 ratio
+  const carouselHeight = screenWidth * 0.5625; // 16:9
+
+  // Auto-scroll cada 5 segundos
+  useEffect(() => {
+    const startAutoScroll = () => {
+      autoScrollIntervalRef.current = setInterval(() => {
+        setCurrentSlide((prev) => {
+          const nextSlide = (prev + 1) % (slides && slides.length > 0 ? slides.length : 3);
+          scrollViewRef.current?.scrollTo({
+            x: nextSlide * screenWidth,
+            animated: true,
+          });
+          return nextSlide;
+        });
+      }, 5000);
+    };
+
+    startAutoScroll();
+
+    return () => {
+      if (autoScrollIntervalRef.current) {
+        clearInterval(autoScrollIntervalRef.current);
+      }
+    };
+  }, [slides, screenWidth]);
 
   const defaultSlides = [
     {
@@ -44,19 +71,19 @@ const HeroCarousel = ({ slides = [], onSlidePress = () => {} }) => {
 
   const handleScroll = (event) => {
     const contentOffsetX = event.nativeEvent.contentOffset.x;
-    const currentIndex = Math.round(contentOffsetX / SCREEN_WIDTH);
+    const currentIndex = Math.round(contentOffsetX / screenWidth);
     setCurrentSlide(currentIndex);
   };
 
   const goToSlide = (index) => {
     scrollViewRef.current?.scrollTo({
-      x: index * SCREEN_WIDTH,
+      x: index * screenWidth,
       animated: true,
     });
   };
 
   return (
-    <View style={styles.heroCarouselContainer}>
+    <View style={[styles.heroCarouselContainer, { height: carouselHeight }]}>
       <ScrollView
         ref={scrollViewRef}
         horizontal
@@ -66,7 +93,7 @@ const HeroCarousel = ({ slides = [], onSlidePress = () => {} }) => {
         scrollEventThrottle={16}
       >
         {dataSlides.map((slide, index) => (
-          <View key={index} style={styles.slideContainer}>
+          <View key={index} style={[styles.slideContainer, { width: screenWidth, height: carouselHeight }]}>
             <ImageBackground
               source={typeof slide.image === 'string' ? { uri: slide.image } : slide.image}
               style={styles.slideImage}
@@ -108,13 +135,13 @@ const HeroCarousel = ({ slides = [], onSlidePress = () => {} }) => {
 
 const styles = StyleSheet.create({
   heroCarouselContainer: {
-    height: 420,
     backgroundColor: COLORES.negroElegante,
     position: 'relative',
+    overflow: 'hidden',
   },
   slideContainer: {
-    width: SCREEN_WIDTH,
-    height: 420,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   slideImage: {
     width: '100%',

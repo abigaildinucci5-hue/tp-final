@@ -3,10 +3,12 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import COLORES from '../../constantes/colores';
 import { TIPOGRAFIA, DIMENSIONES, ESTILOS_GLOBALES } from '../../constantes/estilos';
+import { useAuth } from '../../contexto/AuthContext';
 import HeaderApp from '../../componentes/comun/HeaderApp';
 import Card from '../../componentes/comun/Card';
 
 const DashboardScreen = ({ navigation }) => {
+  const { logout } = useAuth();
   const estadisticas = [
     { id: 'reservas', titulo: 'Reservas Hoy', valor: '12' },
     { id: 'habitaciones', titulo: 'Habitaciones', valor: '24' },
@@ -23,7 +25,7 @@ const DashboardScreen = ({ navigation }) => {
 
   return (
     <View style={ESTILOS_GLOBALES.container}>
-      <HeaderApp title="Dashboard Admin" />
+      <HeaderApp title="Dashboard Admin" onLogoutPress={logout} />
 
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Estadísticas */}

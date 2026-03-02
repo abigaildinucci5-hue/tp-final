@@ -24,12 +24,18 @@ const ConfirmarReservaScreen = ({ navigation, route }) => {
       return;
     }
 
+    // ✅ Validar que todos los datos requeridos estén presentes
+    if (!habitacion || (!habitacion.id && !habitacion.id_habitacion)) {
+      setError('Error: Habitación no válida');
+      return;
+    }
+
     const reservaData = {
-      habitacion_id: habitacion.id,
-      fecha_inicio: fechaInicio,
-      fecha_fin: fechaFin,
-      cantidad_personas: cantidadPersonas,
-      metodo_pago: metodoPago,
+      idHabitacion: habitacion.id || habitacion.id_habitacion,
+      fechaEntrada: fechaInicio,
+      fechaSalida: fechaFin,
+      numeroHuespedes: cantidadPersonas,
+      metodoPago: metodoPago,
     };
 
     const result = await crearReserva(reservaData);
@@ -37,7 +43,7 @@ const ConfirmarReservaScreen = ({ navigation, route }) => {
     if (result.success) {
       navigation.navigate('ReservaExitosa', { reserva: result.data });
     } else {
-      setError(result.error);
+      setError(result.error || 'Error al crear la reserva');
     }
   };
 

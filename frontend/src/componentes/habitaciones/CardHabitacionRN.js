@@ -11,6 +11,7 @@ import {
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import COLORES from '../../constantes/colores';
 import { TIPOGRAFIA, DIMENSIONES } from '../../constantes/estilos';
+import { obtenerImagenHabitacion } from '../../constantes/imagenes';
 
 const CardHabitacionRN = ({
   habitacion,
@@ -46,7 +47,7 @@ const CardHabitacionRN = ({
       <View style={estilos.imageContainer}>
         <Image
           source={{
-            uri: imagen_principal || 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400&h=300&fit=crop',
+            uri: obtenerImagenHabitacion(imagen_principal) || 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400&h=300&fit=crop',
           }}
           style={estilos.image}
           resizeMode="cover"

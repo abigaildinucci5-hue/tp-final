@@ -7,6 +7,7 @@ import React, { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
+import * as Linking from 'expo-linking';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 import * as SplashScreen from 'expo-splash-screen';
@@ -28,6 +29,26 @@ import { PantallaCarga } from './src/componentes/comun/Loading';
 SplashScreen.preventAutoHideAsync();
 
 /**
+ * ========================================
+ * CONFIGURACIÓN DE DEEP LINKING (Expo SDK 54)
+ * ========================================
+ */
+const prefix = Linking.createURL('/');
+const linking = {
+  prefixes: ['hotelunaserenamobile://', prefix],
+  config: {
+    screens: {
+      // Mapear deep link "hotelunaserenamobile://auth" a la pantalla Login
+      Auth: {
+        screens: {
+          Login: 'auth',
+        },
+      },
+    },
+  },
+};
+
+/**
  * Componente interno que usa el hook de Google Auth
  */
 const AppContent = ({ appIsReady, onLayoutRootView }) => {
@@ -46,7 +67,10 @@ const AppContent = ({ appIsReady, onLayoutRootView }) => {
           {/* 🆕 NavigationProvider para manejar el modal de login */}
           <NavigationProvider>
             <SafeAreaProvider>
-              <NavigationContainer onReady={onLayoutRootView}>
+              <NavigationContainer 
+                linking={linking}
+                onReady={onLayoutRootView}
+              >
                 <AppNavigator />
                 {/* 🆕 LoginModalContainer DENTRO del NavigationContainer */}
                 <LoginModalContainer />

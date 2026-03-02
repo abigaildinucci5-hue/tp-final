@@ -3,7 +3,7 @@
     // frontend/src/pantallas/auth/LoginScreen.js
     // ============================================
 
-    import React, { useState } from 'react';
+    import React, { useState, useEffect } from 'react';
     import {
       View,
       Text,
@@ -16,18 +16,39 @@
     } from 'react-native';
     import { MaterialCommunityIcons } from '@expo/vector-icons';
     import { useAuth } from '../../contexto/AuthContext';
-    import HeaderApp from '../../componentes/comun/HeaderApp';
+    import { useMobileAuthCallback } from '../../hooks/useMobileAuthCallback';
+    import NavbarModerna from '../../componentes/comun/NavbarModerna';
     import Input from '../../componentes/comun/Input';
     import Boton from '../../componentes/comun/Boton';
     import SocialButtons from '../../componentes/auth/SocialButtons';
     import { COLORES } from '../../constantes/colores';
 
     const LoginScreen = ({ navigation }) => {
-      const { login } = useAuth();
+      // 📱 Capturar OAuth tokens desde deep link (mobile)
+      useMobileAuthCallback();
+
+      const { login, loginConGoogle, loginConGitHub, isAuthenticated, usuario } = useAuth();
       const [email, setEmail] = useState('');
       const [password, setPassword] = useState('');
       const [loading, setLoading] = useState(false);
       const [error, setError] = useState('');
+
+      // ✅ Navegar al home cuando el usuario se autentica
+      useEffect(() => {
+        if (isAuthenticated && usuario) {
+          console.log('✅ Usuario autenticado:', usuario.nombre);
+          // Mostrar bienvenida
+          Alert.alert(
+            `¡Bienvenido, ${usuario.nombre}!`,
+            'Tu sesión se ha iniciado correctamente.',
+            [{ text: 'OK', onPress: () => {
+              // Cerrar el modal de login
+              // El AppNavigator detectará isAuthenticated=true y mostrará Home
+              navigation.goBack();
+            }}]
+          );
+        }
+      }, [isAuthenticated, usuario, navigation]);
 
       const handleLogin = async () => {
         setError('');
@@ -48,6 +69,7 @@
           if (!result.exito) {
             setError(result.mensaje || 'Error al iniciar sesión');
           }
+          // Si result.exito es true, el useEffect de arriba se encargará de la navegación
         } catch (err) {
           setError('No se pudo conectar con el servidor');
         } finally {
@@ -64,15 +86,15 @@
           let result;
           if (provider === 'google') {
             // Google en móvil retorna access_token
-            result = await auth.loginConGoogle(tokenOrCode);
+            result = await loginConGoogle(tokenOrCode);
           } else if (provider === 'github') {
             // GitHub en móvil puede retornar token o código
-            result = await auth.loginConGitHub(tokenOrCode);
+            result = await loginConGitHub(tokenOrCode);
           }
           
           if (result.exito) {
             console.log(`✅ Autenticación con ${provider} exitosa`);
-            // AuthContext se actualiza automáticamente
+            // AuthContext se actualiza automáticamente y el useEffect navega
           } else {
             Alert.alert('Error', result.mensaje || `Error al autenticar con ${provider}`);
           }
@@ -94,12 +116,11 @@
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.container}
         >
-          {/* Header con navegación */}
-          <HeaderApp
-            title="Hotel Luna Serena"
-            showNavigation={true}
-            navigation={navigation}
-            activeRoute="Auth"
+          {/* Navbar moderna - igual que en el Home */}
+          <NavbarModerna 
+            usuario={null}
+            isAuthenticated={false}
+            onLogout={null}
           />
 
           <ScrollView

@@ -5,7 +5,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { combineReducers } from 'redux';
 
 // Importar slices
-import authReducer from './slices/authSlice';
 import habitacionesReducer from './slices/habitacionesSlice';
 import reservasReducer from './slices/reservasSlice';
 import uiReducer from './slices/uiSlice';
@@ -14,13 +13,12 @@ import uiReducer from './slices/uiSlice';
 const persistConfig = {
   key: 'root',
   storage: AsyncStorage,
-  whitelist: ['auth'], // Solo persistir auth
-  blacklist: ['ui'], // No persistir UI
+  whitelist: [], // No persistir nada de Redux (AuthContext maneja autenticación)
+  blacklist: [], // No ignorar nada específicamente
 };
 
 // Combinar reducers
 const rootReducer = combineReducers({
-  auth: authReducer,
   habitaciones: habitacionesReducer,
   reservas: reservasReducer,
   ui: uiReducer,

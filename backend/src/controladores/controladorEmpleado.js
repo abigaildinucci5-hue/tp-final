@@ -40,7 +40,7 @@ exports.obtenerReservasHoy = asyncHandler(async (req, res) => {
     ORDER BY r.hora_llegada_estimada ASC, r.fecha_entrada ASC
   `;
 
-  const [reservas] = await ejecutarConsulta(sql, [hoy]);
+  const reservas = await ejecutarConsulta(sql, [hoy]);
 
   res.json({
     exito: true,
@@ -67,7 +67,7 @@ exports.hacerCheckIn = asyncHandler(async (req, res) => {
   }
 
   // Verificar que la reserva existe
-  const [reservas] = await ejecutarConsulta(
+  const reservas = await ejecutarConsulta(
     'SELECT * FROM reservas WHERE id_reserva = ?',
     [reservaId]
   );
@@ -144,7 +144,7 @@ exports.hacerCheckOut = asyncHandler(async (req, res) => {
   }
 
   // Verificar que la reserva existe y está en curso
-  const [reservas] = await ejecutarConsulta(
+  const reservas = await ejecutarConsulta(
     'SELECT * FROM reservas WHERE id_reserva = ? AND estado = "en_curso"',
     [reservaId]
   );
@@ -245,7 +245,7 @@ exports.cambiarEstadoHabitacion = asyncHandler(async (req, res) => {
   }
 
   // Verificar que la habitación existe
-  const [habitaciones] = await ejecutarConsulta(
+  const habitaciones = await ejecutarConsulta(
     'SELECT * FROM habitaciones WHERE id_habitacion = ?',
     [habitacionId]
   );
@@ -255,7 +255,7 @@ exports.cambiarEstadoHabitacion = asyncHandler(async (req, res) => {
   }
 
   // Actualizar o crear estado
-  const [estadoExistente] = await ejecutarConsulta(
+  const estadoExistente = await ejecutarConsulta(
     'SELECT id FROM estados_habitaciones WHERE id_habitacion = ?',
     [habitacionId]
   );
@@ -337,7 +337,7 @@ exports.obtenerSolicitudesPendientes = asyncHandler(async (req, res) => {
 
   sql += ' ORDER BY sh.prioridad DESC, sh.fecha_creacion ASC';
 
-  const [solicitudes] = await ejecutarConsulta(sql, parametros);
+  const solicitudes = await ejecutarConsulta(sql, parametros);
 
   res.json({
     exito: true,
@@ -359,7 +359,7 @@ exports.resolverSolicitud = asyncHandler(async (req, res) => {
   }
 
   // Verificar que la solicitud existe
-  const [solicitudes] = await ejecutarConsulta(
+  const solicitudes = await ejecutarConsulta(
     'SELECT * FROM solicitudes_huespedes WHERE id = ?',
     [solicitudId]
   );
@@ -424,7 +424,7 @@ exports.obtenerEstadoHabitaciones = asyncHandler(async (req, res) => {
     ORDER BY h.numero_habitacion ASC
   `;
 
-  const [habitaciones] = await ejecutarConsulta(sql);
+  const habitaciones = await ejecutarConsulta(sql);
 
   // Agrupar por estado
   const habitacionesPorEstado = {
@@ -466,7 +466,7 @@ exports.crearSolicitud = asyncHandler(async (req, res) => {
   }
 
   // Verificar que la reserva existe
-  const [reservas] = await ejecutarConsulta(
+  const reservas = await ejecutarConsulta(
     'SELECT * FROM reservas WHERE id_reserva = ? AND estado IN ("confirmada", "en_curso")',
     [idReserva]
   );
@@ -530,7 +530,7 @@ exports.obtenerReporteHuespedes = asyncHandler(async (req, res) => {
 
   sql += ' GROUP BY u.id_usuario ORDER BY gasto_total DESC';
 
-  const [huespedes] = await ejecutarConsulta(sql, parametros);
+  const huespedes = await ejecutarConsulta(sql, parametros);
 
   res.json({
     exito: true,
@@ -566,7 +566,7 @@ exports.obtenerHistorialHuesped = asyncHandler(async (req, res) => {
     ORDER BY r.fecha_entrada DESC
   `;
 
-  const [historial] = await ejecutarConsulta(sql, [usuarioId]);
+  const historial = await ejecutarConsulta(sql, [usuarioId]);
 
   res.json({
     exito: true,

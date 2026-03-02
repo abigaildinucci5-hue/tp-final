@@ -13,6 +13,7 @@ import {
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import COLORES from '../../constantes/colores';
 import { TIPOGRAFIA, DIMENSIONES } from '../../constantes/estilos';
+import { obtenerImagenHabitacion } from '../../constantes/imagenes';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const CARD_WIDTH = SCREEN_WIDTH * 0.75;
@@ -81,7 +82,7 @@ const ModernRoomsCarousel = ({
               <ImageBackground
                 source={{
                   uri:
-                    habitacion.imagen_principal ||
+                    obtenerImagenHabitacion(habitacion.imagen_principal) ||
                     'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800&h=600&fit=crop',
                 }}
                 style={styles.roomCardImage}

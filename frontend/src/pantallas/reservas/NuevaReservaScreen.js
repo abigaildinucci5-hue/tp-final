@@ -301,12 +301,8 @@ const NuevaReservaScreen = ({ route, navigation }) => {
 
       {/* Botón confirmar */}
       <TouchableOpacity
-        style={[
-          styles.botonConfirmar,
-          (!fechaCheckIn || !fechaCheckOut || !metodoPago) && styles.botonDeshabilitado,
-        ]}
+        style={styles.botonConfirmar}
         onPress={handleConfirmarReserva}
-        disabled={!fechaCheckIn || !fechaCheckOut || !metodoPago}
       >
         <Text style={styles.textoBoton}>Confirmar Reserva</Text>
       </TouchableOpacity>
@@ -452,9 +448,6 @@ const styles = StyleSheet.create({
     padding: 18,
     borderRadius: 8,
     alignItems: 'center',
-  },
-  botonDeshabilitado: {
-    backgroundColor: '#E0E0E0',
   },
   textoBoton: {
     color: '#FFFFFF',

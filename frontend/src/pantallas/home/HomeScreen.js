@@ -23,7 +23,6 @@ import {
 } from '../../constantes/estilos';
 import { useAuth } from '../../contexto/AuthContext';
 import { useHabitaciones } from '../../hooks/useHabitaciones';
-import HeaderApp from '../../componentes/comun/HeaderApp';
 import HeroCarousel from '../../componentes/comun/HeroCarousel';
 import AutoScrollCarousel from '../../componentes/habitaciones/AutoScrollCarousel';
 import Footer from '../../componentes/comun/Footer';
@@ -182,7 +181,7 @@ const HomeScreen = ({ navigation }) => {
 
   const handleHabitacionPress = (habitacion) => {
     const habitacionId = habitacion.id_habitacion || habitacion.id;
-    navigation.navigate('Home', {
+    navigation.navigate('Habitaciones', {
       screen: 'DetalleHabitacion',
       params: { habitacionId },
     });
@@ -202,7 +201,7 @@ const HomeScreen = ({ navigation }) => {
 
   const handleViewAllHabitaciones = () => {
     navigation.navigate('Habitaciones', {
-      screen: 'ListaHabitaciones',
+      screen: 'ListaHabitacionList',
     });
   };
 
@@ -210,19 +209,7 @@ const HomeScreen = ({ navigation }) => {
     <View style={ESTILOS_GLOBALES.container}>
       {renderModalCalendario()}
       
-      {/* Header con navegación integrada */}
-      <HeaderApp
-        title="Hotel Luna Serena"
-        subtitle="Bienvenido a nuestro hotel"
-        showLogo={false}
-        showNavigation={true}
-        navigation={navigation}
-        activeRoute="Home"
-        onProfilePress={handleProfilePress}
-        onLoginPress={handleLoginPress}
-        onRegisterPress={handleRegisterPress}
-        onLogoutPress={handleLogout}
-      />
+      {/* ✅ NavbarModerna renderizada por MainNavigator, no aquí */}
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -232,19 +219,19 @@ const HomeScreen = ({ navigation }) => {
         <HeroCarousel
           slides={[
             {
-              image: require('../../assets/images/banner-hero.jpg'),
+              image: 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=1200&h=600&fit=crop',
               smallText: 'BIENVENIDO A',
               title: 'Hotel Luna Serena',
               description: 'Experimenta lujo, confort y elegancia en cada detalle',
             },
             {
-              image: require('../../assets/images/placeholder-habitacion.png'),
+              image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200&h=600&fit=crop',
               smallText: 'DESCUBRE',
               title: 'Habitaciones Premium',
               description: 'Espacios diseñados para tu máximo confort y descanso',
             },
             {
-              image: require('../../assets/images/placeholder-habitacion.png'),
+              image: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=1200&h=600&fit=crop',
               smallText: 'EXPERIMENTA',
               title: 'Servicios de Lujo',
               description: 'Atención personalizada y servicios exclusivos para ti',

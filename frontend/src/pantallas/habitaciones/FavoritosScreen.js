@@ -5,9 +5,6 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import COLORES from '../../constantes/colores';
 import { TIPOGRAFIA, ESTILOS_GLOBALES } from '../../constantes/estilos';
 import { useAuth } from '../../contexto/AuthContext';
-import { obtenerFavoritos } from '../../utils/storage';
-import ListaHabitaciones from '../../componentes/habitaciones/ListaHabitaciones';
-import HeaderApp from '../../componentes/comun/HeaderApp';
 import Loading from '../../componentes/comun/Loading';
 
 const FavoritosScreen = ({ navigation }) => {
@@ -37,7 +34,10 @@ const FavoritosScreen = ({ navigation }) => {
   };
 
   const handleHabitacionPress = (habitacion) => {
-    navigation.navigate('DetalleHabitacion', { habitacionId: habitacion.id });
+    navigation.navigate('Habitaciones', {
+      screen: 'DetalleHabitacion',
+      params: { habitacionId: habitacion.id }
+    });
   };
 
   const renderEmpty = () => (
@@ -56,12 +56,6 @@ const FavoritosScreen = ({ navigation }) => {
 
   return (
     <View style={ESTILOS_GLOBALES.container}>
-      <HeaderApp
-        title="Mis Favoritos"
-        leftIcon="arrow-left"
-        onLeftPress={() => navigation.goBack()}
-      />
-
       <ListaHabitaciones
         habitaciones={favoritos}
         loading={loading}

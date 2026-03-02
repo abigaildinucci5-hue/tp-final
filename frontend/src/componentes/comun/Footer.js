@@ -58,7 +58,7 @@ const Footer = ({ navigation }) => {
       <View style={styles.footerContainer}>
         
         {/* COLUMNA 1: RESERVA AHORA */}
-        <View style={[styles.footerColumn, { width: COLUMN_WIDTH }]}>
+        <View style={styles.footerColumn}>
           <Text style={styles.footerTitle}>Reserva Ahora</Text>
           
           <TouchableOpacity 
@@ -139,7 +139,7 @@ const Footer = ({ navigation }) => {
         </View>
 
         {/* COLUMNA 2: ENLACES RÁPIDOS */}
-        <View style={[styles.footerColumn, { width: COLUMN_WIDTH }]}>
+        <View style={styles.footerColumn}>
           <Text style={styles.footerTitle}>Enlaces Rápidos</Text>
           
           <TouchableOpacity 
@@ -209,7 +209,7 @@ const Footer = ({ navigation }) => {
         </View>
 
         {/* COLUMNA 3: HOTEL LUNA SERENA + ¿POR QUÉ ELEGIRNOS? */}
-        <View style={[styles.footerColumn, { width: COLUMN_WIDTH }]}>
+        <View style={styles.footerColumn}>
           <TouchableOpacity 
             style={styles.hotelTitleContainer}
             onPress={handleRecharge}

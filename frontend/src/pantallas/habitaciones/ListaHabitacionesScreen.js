@@ -18,7 +18,6 @@ import Slider from '@react-native-community/slider';
 import { format } from 'date-fns';
 import COLORES from '../../constantes/colores';
 import { ESTILOS_GLOBALES } from '../../constantes/estilos';
-import HeaderApp from '../../componentes/comun/HeaderApp';
 
 const ListaHabitacionesScreen = ({ navigation, route }) => {
   // Parámetros del Home
@@ -349,13 +348,6 @@ const ListaHabitacionesScreen = ({ navigation, route }) => {
 
   return (
     <View style={ESTILOS_GLOBALES.container}>
-      <HeaderApp
-        title="Habitaciones"
-        showNavigation={true}
-        navigation={navigation}
-        activeRoute="Habitaciones"
-      />
-
       {/* Barra de búsqueda */}
       <View style={estilos.seccionBusqueda}>
         <Text style={estilos.tituloBusqueda}>Encuentra tu habitación ideal</Text>

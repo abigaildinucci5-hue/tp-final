@@ -153,6 +153,7 @@ const crearReserva = asyncHandler(async (req, res) => {
     fechaEntrada,
     fechaSalida,
     numeroHuespedes,
+    metodoPago,
     notasEspeciales
   } = req.body;
 
@@ -161,6 +162,10 @@ const crearReserva = asyncHandler(async (req, res) => {
   // Validaciones
   if (!idHabitacion || !fechaEntrada || !fechaSalida || !numeroHuespedes) {
     throw crearError400('Todos los campos son requeridos');
+  }
+
+  if (!metodoPago) {
+    throw crearError400('El método de pago es requerido');
   }
 
   // Validar fechas
@@ -249,6 +254,7 @@ const crearReserva = asyncHandler(async (req, res) => {
     numero_huespedes: numeroHuespedes,
     precio_total: precioTotal,
     descuento_aplicado: descuento,
+    metodo_pago: metodoPago,
     estado: 'pendiente',
     notas_especiales: notasEspeciales || null
   };

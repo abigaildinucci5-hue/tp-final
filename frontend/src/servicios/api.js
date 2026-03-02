@@ -16,9 +16,12 @@ const api = axios.create({
 api.interceptors.request.use(
   async (config) => {
     try {
-      const token = await AsyncStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
+      const token = await AsyncStorage.getItem(STORAGE_KEYS.TOKEN);
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
+        console.log('✅ Token añadido a la solicitud');
+      } else {
+        console.log('⚠️ No hay token disponible');
       }
     } catch (error) {
       console.error('Error al obtener token:', error);
@@ -53,22 +56,35 @@ api.interceptors.response.use(
           );
 
           const { token } = response.data;
-          await AsyncStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, token);
+          await AsyncStorage.setItem(STORAGE_KEYS.TOKEN, token);
 
           // Reintentar la petición original con el nuevo token
           originalRequest.headers.Authorization = `Bearer ${token}`;
           return api(originalRequest);
+        } else {
+          // No hay refresh token, usuario debe volver a loguearse
+          return Promise.reject({
+            message: 'Sesión expirada. Por favor, vuelve a loguearte.',
+            status: 401,
+            data: error.response?.data,
+          });
         }
       } catch (refreshError) {
-        // Si falla el refresh, cerrar sesión
-        await AsyncStorage.multiRemove([
-          STORAGE_KEYS.AUTH_TOKEN,
-          STORAGE_KEYS.USER_DATA,
-          STORAGE_KEYS.REFRESH_TOKEN
-        ]);
+        // El refresh falló - solo entonces borramos el token
+        // Esto indica que el token es realmente inválido
+        if (refreshError.response?.status === 401) {
+          await AsyncStorage.multiRemove([
+            STORAGE_KEYS.TOKEN,
+            STORAGE_KEYS.USER,
+            STORAGE_KEYS.REFRESH_TOKEN
+          ]);
+        }
         
-        // Redirigir al login (esto debería manejarse desde Redux)
-        return Promise.reject(refreshError);
+        return Promise.reject({
+          message: 'Sesión expirada. Por favor, vuelve a loguearte.',
+          status: 401,
+          data: refreshError.response?.data,
+        });
       }
     }
 

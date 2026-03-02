@@ -26,6 +26,7 @@ const BuscarScreen = ({ navigation }) => {
   const handleHabitacionPress = (habitacion) => {
     navigation.navigate('DetalleHabitacion', {
       id: habitacion.id,
+      habitacionId: habitacion.id,
       fechaInicio,
       fechaFin,
       cantidadPersonas,

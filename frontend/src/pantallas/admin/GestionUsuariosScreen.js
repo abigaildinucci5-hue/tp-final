@@ -1,17 +1,20 @@
 // frontend/src/pantallas/admin/GestionUsuariosScreen.js
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, RefreshControl } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import COLORES from '../../constantes/colores';
 import { TIPOGRAFIA, DIMENSIONES, ESTILOS_GLOBALES } from '../../constantes/estilos';
 import usuariosService from '../../servicios/usuariosService';
 import HeaderApp from '../../componentes/comun/HeaderApp';
 import Loading from '../../componentes/comun/Loading';
+import ErrorMensaje from '../../componentes/comun/ErrorMensaje';
 import { formatearRol, obtenerIniciales } from '../../utils/formatters';
 
 const GestionUsuariosScreen = ({ navigation }) => {
   const [usuarios, setUsuarios] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     cargarUsuarios();
@@ -19,13 +22,31 @@ const GestionUsuariosScreen = ({ navigation }) => {
 
   const cargarUsuarios = async () => {
     setLoading(true);
+    setError(null);
     try {
       const response = await usuariosService.getAll();
-      setUsuarios(response.usuarios || response);
+      // El response puede tener formato { usuarios: [...] } o directamente array
+      const usuariosData = response.data || response.usuarios || response;
+      setUsuarios(Array.isArray(usuariosData) ? usuariosData : []);
     } catch (error) {
       console.error('Error al cargar usuarios:', error);
+      setError(error.message || 'Error al cargar usuarios');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      const response = await usuariosService.getAll();
+      const usuariosData = response.data || response.usuarios || response;
+      setUsuarios(Array.isArray(usuariosData) ? usuariosData : []);
+    } catch (error) {
+      console.error('Error al cargar usuarios:', error);
+      setError(error.message || 'Error al cargar usuarios');
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -35,12 +56,12 @@ const GestionUsuariosScreen = ({ navigation }) => {
       onPress={() => navigation.navigate('DetalleUsuario', { usuario: item })}
     >
       <View style={estilos.avatar}>
-        <Text style={estilos.avatarTexto}>{obtenerIniciales(item.nombre)}</Text>
+        <Text style={estilos.avatarTexto}>{obtenerIniciales(item.nombre || '')}</Text>
       </View>
       
       <View style={estilos.usuarioInfo}>
-        <Text style={estilos.usuarioNombre}>{item.nombre}</Text>
-        <Text style={estilos.usuarioEmail}>{item.email}</Text>
+        <Text style={estilos.usuarioNombre}>{item.nombre || 'Sin nombre'}</Text>
+        <Text style={estilos.usuarioEmail}>{item.email || 'Sin email'}</Text>
         <View style={estilos.rolBadge}>
           <Text style={estilos.rolTexto}>{formatearRol(item.rol)}</Text>
         </View>
@@ -50,7 +71,7 @@ const GestionUsuariosScreen = ({ navigation }) => {
     </TouchableOpacity>
   );
 
-  if (loading) {
+  if (loading && !refreshing) {
     return <Loading />;
   }
 
@@ -62,13 +83,28 @@ const GestionUsuariosScreen = ({ navigation }) => {
         onLeftPress={() => navigation.goBack()}
       />
 
+      {error && (
+        <View style={estilos.errorContainer}>
+          <ErrorMensaje mensaje={error} tipo="error" />
+        </View>
+      )}
+
       <FlatList
         data={usuarios}
         renderItem={renderUsuario}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) => (item.id_usuario || item.id || Math.random()).toString()}
         contentContainerStyle={estilos.listContent}
-        onRefresh={cargarUsuarios}
-        refreshing={loading}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+        ListEmptyComponent={
+          !loading ? (
+            <View style={estilos.emptyContainer}>
+              <MaterialCommunityIcons name="account-multiple" size={48} color={COLORES.textoMedio} />
+              <Text style={estilos.emptyTexto}>No hay usuarios</Text>
+            </View>
+          ) : null
+        }
       />
     </View>
   );
@@ -76,6 +112,9 @@ const GestionUsuariosScreen = ({ navigation }) => {
 
 const estilos = StyleSheet.create({
   listContent: {
+    padding: DIMENSIONES.padding,
+  },
+  errorContainer: {
     padding: DIMENSIONES.padding,
   },
   usuarioCard: {
@@ -96,7 +135,7 @@ const estilos = StyleSheet.create({
     alignItems: 'center',
   },
   avatarTexto: {
-    color: COLORES.textoBlanco,
+    color: COLORES.fondoBlanco,
     fontSize: TIPOGRAFIA.fontSizeLarge,
     fontWeight: TIPOGRAFIA.fontWeightBold,
   },
@@ -107,24 +146,35 @@ const estilos = StyleSheet.create({
     fontSize: TIPOGRAFIA.fontSizeMedium,
     fontWeight: TIPOGRAFIA.fontWeightBold,
     color: COLORES.textoOscuro,
-    marginBottom: 2,
   },
   usuarioEmail: {
     fontSize: TIPOGRAFIA.fontSizeSmall,
     color: COLORES.textoMedio,
-    marginBottom: 6,
+    marginVertical: 4,
   },
   rolBadge: {
-    backgroundColor: COLORES.primario + '20',
-    paddingVertical: 2,
+    backgroundColor: COLORES.primario,
     paddingHorizontal: 8,
-    borderRadius: 12,
+    paddingVertical: 4,
+    borderRadius: 4,
     alignSelf: 'flex-start',
   },
   rolTexto: {
-    fontSize: TIPOGRAFIA.fontSizeExtraSmall,
-    fontWeight: TIPOGRAFIA.fontWeightSemiBold,
-    color: COLORES.primario,
+    color: COLORES.fondoBlanco,
+    fontSize: 10,
+    fontWeight: TIPOGRAFIA.fontWeightBold,
+    textTransform: 'capitalize',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 60,
+  },
+  emptyTexto: {
+    marginTop: 12,
+    fontSize: TIPOGRAFIA.fontSizeMedium,
+    color: COLORES.textoMedio,
   },
 });
 

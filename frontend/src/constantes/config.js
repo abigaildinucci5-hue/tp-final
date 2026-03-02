@@ -9,13 +9,17 @@ const isDevelopment = __DEV__ || process.env.NODE_ENV === 'development';
 const isWeb = typeof window !== 'undefined';
 const isExpoWeb = isWeb && window.location?.hostname === 'localhost';
 
-// Configuración dinámica de la API
-let API_BASE_URL = 'https://tp-final-production-a1f6.up.railway.app/api';
+// ✅ URL BASE - SIEMPRE USAR RAILWAY EN PRODUCCIÓN
+// Solo en desarrollo local se puede cambiar
+const RAILWAY_URL = 'https://tp-final-production-9e41.up.railway.app/api';
+const LOCALHOST_URL = 'http://localhost:3000/api';
 
-if (isDevelopment || isExpoWeb) {
-  // En desarrollo en web, usar localhost
-  API_BASE_URL = `http://${isExpoWeb ? 'localhost' : '192.168.0.100'}:3000/api`;
-}
+let API_BASE_URL = RAILWAY_URL; // Por defecto, siempre Railway
+
+// ⚠️  SOLO en desarrollo web local Y si el servidor local está disponible
+// if (isDevelopment && isExpoWeb) {
+//   API_BASE_URL = LOCALHOST_URL;
+// }
 
 export const API_CONFIG = {
   BASE_URL: API_BASE_URL,
@@ -220,6 +224,15 @@ export const DEV_CONFIG = {
   LOG_LEVEL: process.env.REACT_APP_LOG_LEVEL || 'info',
   MOCK_API: process.env.REACT_APP_MOCK_API === 'true'
 };
+
+// Métodos de pago disponibles
+export const METODOS_PAGO = [
+  { id: 'tarjeta_credito', nombre: 'Tarjeta de Crédito', icono: 'credit-card' },
+  { id: 'tarjeta_debito', nombre: 'Tarjeta de Débito', icono: 'credit-card' },
+  { id: 'transferencia', nombre: 'Transferencia Bancaria', icono: 'bank-transfer' },
+  { id: 'mercadopago', nombre: 'Mercado Pago', icono: 'wallet' },
+  { id: 'efectivo', nombre: 'Efectivo', icono: 'cash' },
+];
 
 // Rutas de navegación
 export const ROUTES = {

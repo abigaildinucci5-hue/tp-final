@@ -1,0 +1,339 @@
+## 🔄 FLUJO DE AUTENTICACIÓN OAUTH
+
+### **Google OAuth:**
+```
+1. Usuario click en "Continuar con Google"
+2. Se abre navegador/modal con login de Google
+3. Usuario autoriza la aplicación
+4. Google redirige con código de autorización
+5. Backend intercambia código por access_token
+6. Backend busca/crea usuario en la BD
+7. Backend genera JWT propio
+8. Frontend guarda JWT y redirige
+```
+
+### **GitHub OAuth:**
+```
+1. Usuario click en "Continuar con GitHub"
+2. Se abre navegador/modal con login de GitHub
+3. Usuario autoriza la aplicación
+4. GitHub redirige con código de autorización
+5. Backend intercambia código por access_token
+6. Backend busca/crea usuario en la BD
+7. Backend genera JWT propio
+8. Frontend guarda JWT y redirige
+
+📊 RESUMEN DE CAMBIOS
+TipoCantidadDescripción🆕 CREAR11 archivosNuevos archivos OAuth + Context🔄 ACTUALIZAR15 archivosModificar para OAuth + paleta✅ MANTENER80+ archivosSin cambios (toda la lógica del hotel)
+
+acá mas claro:
+
+hotel-luna-serena/
+│
+├── 📁 backend/
+│   ├── 📁 src/
+│   │   ├── 📁 config/
+│   │   │   ├── 📄 baseDatos.js              ✅ MANTENER (sin cambios)
+│   │   │   ├── 📄 jwt.js                    ✅ MANTENER (sin cambios)
+│   │   │   └── 📄 oauth.js                  🆕 CREAR (Passport Google + GitHub)
+│   │   │
+│   │   ├── 📁 modelos/
+│   │   │   └── 📄 modeloUsuario.js          🆕 CREAR (modelo con OAuth)
+│   │   │
+│   │   ├── 📁 controladores/
+│   │   │   ├── 📄 controladorAuth.js        🔄 REEMPLAZAR (añadir OAuth)
+│   │   │   ├── 📄 controladorUsuarios.js    ✅ MANTENER
+│   │   │   ├── 📄 controladorHabitaciones.js ✅ MANTENER
+│   │   │   ├── 📄 controladorReservas.js    ✅ MANTENER
+│   │   │   ├── 📄 controladorComentarios.js ✅ MANTENER
+│   │   │   └── 📄 controladorNotificaciones.js ✅ MANTENER
+│   │   │
+│   │   ├── 📁 rutas/
+│   │   │   ├── 📄 rutasAuth.js              🔄 REEMPLAZAR (endpoints OAuth)
+│   │   │   ├── 📄 rutasUsuarios.js          ✅ MANTENER
+│   │   │   ├── 📄 rutasHabitaciones.js      ✅ MANTENER
+│   │   │   ├── 📄 rutasReservas.js          ✅ MANTENER
+│   │   │   ├── 📄 rutasComentarios.js       ✅ MANTENER
+│   │   │   └── 📄 rutasNotificaciones.js    ✅ MANTENER
+│   │   │
+│   │   ├── 📁 middlewares/
+│   │   │   ├── 📄 middlewareAuth.js         ✅ MANTENER
+│   │   │   └── 📄 manejadorErrores.js       ✅ MANTENER
+│   │   │
+│   │   ├── 📁 servicios/
+│   │   │   ├── 📄 servicioNotificaciones.js ✅ MANTENER
+│   │   │   └── 📄 servicioUpload.js         ✅ MANTENER
+│   │   │
+│   │   └── 📁 utils/
+│   │       ├── 📄 constantes.js             ✅ MANTENER
+│   │       ├── 📄 helpers.js                ✅ MANTENER
+│   │       └── 📄 validadores.js            ✅ MANTENER
+│   │
+│   ├── 📄 .env                              🔄 ACTUALIZAR (OAuth keys)
+│   ├── 📄 .env.example                      🆕 CREAR (template)
+│   ├── 📄 .gitignore                        ✅ MANTENER
+│   ├── 📄 package.json                      🔄 ACTUALIZAR (deps OAuth)
+│   ├── 📄 package-lock.json                 🔄 AUTO-GENERADO
+│   └── 📄 server.js                         🔄 ACTUALIZAR (Passport init)
+│
+├── 📁 frontend/
+│   ├── 📁 app/
+│   │   ├── 📁 (tabs)/
+│   │   │   ├── 📄 _layout.tsx               ✅ MANTENER
+│   │   │   ├── 📄 explore.tsx               ✅ MANTENER
+│   │   │   └── 📄 index.tsx                 ✅ MANTENER
+│   │   │
+│   │   ├── 📄 _layout.tsx                   ✅ MANTENER
+│   │   └── 📄 modal.tsx                     ✅ MANTENER
+│   │
+│   ├── 📁 constants/
+│   │   └── 📄 theme.ts                      ✅ MANTENER
+│   │
+│   ├── 📁 hooks/
+│   │   ├── 📄 use-color-scheme.ts           ✅ MANTENER
+│   │   ├── 📄 use-color-scheme.web.ts       ✅ MANTENER
+│   │   └── 📄 use-theme-color.ts            ✅ MANTENER
+│   │
+│   ├── 📁 scripts/
+│   │   └── 📄 reset-project.js              ✅ MANTENER
+│   │
+│   ├── 📁 src/
+│   │   ├── 📁 assets/
+│   │   │   └── 📁 images/
+│   │   │       ├── 🖼️ android-icon-background.png ✅ MANTENER
+│   │   │       ├── 🖼️ android-icon-foreground.png ✅ MANTENER
+│   │   │       ├── 🖼️ android-icon-monochrome.png ✅ MANTENER
+│   │   │       ├── 🖼️ icon.png              ✅ MANTENER
+│   │   │       ├── 🖼️ logo-blanco.png       ✅ MANTENER
+│   │   │       ├── 🖼️ logo.png              ✅ MANTENER
+│   │   │       ├── 🖼️ placeholder-habitacion.png ✅ MANTENER
+│   │   │       ├── 🖼️ splash-icon.png       ✅ MANTENER
+│   │   │       └── 🖼️ splash.png            ✅ MANTENER
+│   │   │
+│   │   ├── 📁 componentes/
+│   │   │   ├── 📁 auth/                     🆕 CARPETA NUEVA
+│   │   │   │   ├── 📄 GoogleButton.js       🆕 CREAR (estilo dorado)
+│   │   │   │   ├── 📄 GitHubButton.js       🆕 CREAR (estilo dorado)
+│   │   │   │   └── 📄 SocialButtons.js      🆕 CREAR (contenedor)
+│   │   │   │
+│   │   │   ├── 📁 comentarios/
+│   │   │   │   ├── 📄 CardComentario.js     ✅ MANTENER
+│   │   │   │   ├── 📄 EstrellaCalificacion.js ✅ MANTENER
+│   │   │   │   ├── 📄 FormComentario.js     ✅ MANTENER
+│   │   │   │   └── 📄 ListaComentarios.js   ✅ MANTENER
+│   │   │   │
+│   │   │   ├── 📁 comun/
+│   │   │   │   ├── 📄 Boton.js              ✅ MANTENER
+│   │   │   │   ├── 📄 Card.js               ✅ MANTENER
+│   │   │   │   ├── 📄 ErrorMensaje.js       ✅ MANTENER
+│   │   │   │   ├── 📄 HeaderApp.js          ✅ MANTENER
+│   │   │   │   ├── 📄 Input.js              ✅ MANTENER
+│   │   │   │   ├── 📄 Loading.js            ✅ MANTENER
+│   │   │   │   ├── 📄 Modal.js              ✅ MANTENER
+│   │   │   │   └── 📄 TabBar.js             ✅ MANTENER
+│   │   │   │
+│   │   │   ├── 📁 habitaciones/
+│   │   │   │   ├── 📄 BotonFavorito.js      ✅ MANTENER
+│   │   │   │   ├── 📄 CardHabitacion.js     ✅ MANTENER
+│   │   │   │   ├── 📄 CardHabitacion.styles.js ✅ MANTENER
+│   │   │   │   ├── 📄 DetalleHabitacion.js  ✅ MANTENER
+│   │   │   │   ├── 📄 FiltrosHabitaciones.js ✅ MANTENER
+│   │   │   │   ├── 📄 GaleriaImagenes.js    ✅ MANTENER
+│   │   │   │   └── 📄 ListaHabitaciones.js  ✅ MANTENER
+│   │   │   │
+│   │   │   ├── 📁 perfil/
+│   │   │   │   ├── 📄 CambiarPassword.js    ✅ MANTENER
+│   │   │   │   ├── 📄 EditarPerfil.js       ✅ MANTENER
+│   │   │   │   ├── 📄 FotoPerfil.js         ✅ MANTENER
+│   │   │   │   └── 📄 InfoPerfil.js         ✅ MANTENER
+│   │   │   │
+│   │   │   └── 📁 reservas/
+│   │   │       ├── 📄 CalendarioReserva.js  ✅ MANTENER
+│   │   │       ├── 📄 CardReserva.js        ✅ MANTENER
+│   │   │       ├── 📄 FormularioReserva.js  ✅ MANTENER
+│   │   │       ├── 📄 HistorialReservas.js  ✅ MANTENER
+│   │   │       └── 📄 ResumenReserva.js     ✅ MANTENER
+│   │   │
+│   │   ├── 📁 constantes/
+│   │   │   ├── 📄 colores.js                🔄 ACTUALIZAR (paleta dorada)
+│   │   │   ├── 📄 config.js                 🔄 ACTUALIZAR (OAuth IDs)
+│   │   │   ├── 📄 estilos.js                ✅ MANTENER
+│   │   │   ├── 📄 imagenes.js               ✅ MANTENER
+│   │   │   └── 📄 rutas.js                  ✅ MANTENER
+│   │   │
+│   │   ├── 📁 contexto/                     🆕 CARPETA NUEVA
+│   │   │   └── 📄 AuthContext.js            🆕 CREAR (context global)
+│   │   │
+│   │   ├── 📁 hooks/
+│   │   │   ├── 📄 useAuth.js                🔄 ACTUALIZAR (usar context)
+│   │   │   ├── 📄 useForm.js                ✅ MANTENER
+│   │   │   ├── 📄 useHabitaciones.js        ✅ MANTENER
+│   │   │   ├── 📄 useLocation.js            ✅ MANTENER
+│   │   │   ├── 📄 useNotificaciones.js      ✅ MANTENER
+│   │   │   └── 📄 useReservas.js            ✅ MANTENER
+│   │   │
+│   │   ├── 📁 navegacion/
+│   │   │   ├── 📄 AdminNavigator.js         ✅ MANTENER
+│   │   │   ├── 📄 AppNavigator.js           🔄 ACTUALIZAR (AuthContext)
+│   │   │   ├── 📄 AuthNavigator.js          🔄 ACTUALIZAR (stack auth)
+│   │   │   ├── 📄 MainNavigator.js          ✅ MANTENER
+│   │   │   └── 📄 NavigationRef.js          ✅ MANTENER
+│   │   │
+│   │   ├── 📁 pantallas/
+│   │   │   ├── 📁 admin/
+│   │   │   │   ├── 📄 DashBoardScreen.js    ✅ MANTENER
+│   │   │   │   ├── 📄 EstadisticasScreen.js ✅ MANTENER
+│   │   │   │   ├── 📄 GestionReservasScreen.js ✅ MANTENER
+│   │   │   │   ├── 📄 GestionUsuariosScreen.js ✅ MANTENER
+│   │   │   │   └── 📄 GestionhabitacionesHotel.js ✅ MANTENER
+│   │   │   │
+│   │   │   ├── 📁 auth/
+│   │   │   │   ├── 📄 LoginScreen.js        🔄 REEMPLAZAR (con OAuth dorado)
+│   │   │   │   ├── 📄 RecuperarPasswordScreen.js ✅ MANTENER
+│   │   │   │   ├── 📄 RegistroScreen.js     🔄 REEMPLAZAR (con OAuth dorado)
+│   │   │   │   └── 📄 VerficarEmailScreen.js ✅ MANTENER
+│   │   │   │
+│   │   │   ├── 📁 habitaciones/
+│   │   │   │   ├── 📄 DetalleHabitacionScreen.js ✅ MANTENER
+│   │   │   │   ├── 📄 FavoritosScreen.js    ✅ MANTENER
+│   │   │   │   └── 📄 ListaHabitacionesScreen.js ✅ MANTENER
+│   │   │   │
+│   │   │   ├── 📁 home/
+│   │   │   │   ├── 📄 BuscarScreen.js       ✅ MANTENER
+│   │   │   │   ├── 📄 HomeScreen.js         ✅ MANTENER
+│   │   │   │   └── 📄 SplashScreen.js       ✅ MANTENER
+│   │   │   │
+│   │   │   ├── 📁 otros/
+│   │   │   │   ├── 📄 AcercaDeScreen.js     ✅ MANTENER
+│   │   │   │   ├── 📄 ContactoScreen.js     ✅ MANTENER
+│   │   │   │   ├── 📄 MapaScreen.js         ✅ MANTENER
+│   │   │   │   └── 📄 OnboardingScreen.js   ✅ MANTENER
+│   │   │   │
+│   │   │   ├── 📁 perfil/
+│   │   │   │   ├── 📄 ConfiguracionScreen.js ✅ MANTENER
+│   │   │   │   ├── 📄 EditarPerfilScreen.js ✅ MANTENER
+│   │   │   │   ├── 📄 NotificacionesScreen.js ✅ MANTENER
+│   │   │   │   └── 📄 PerfilScreen.js       ✅ MANTENER
+│   │   │   │
+│   │   │   └── 📁 reservas/
+│   │   │       ├── 📄 ConfirmarReservaScreen.js ✅ MANTENER
+│   │   │       ├── 📄 DetalleReservaScreen.js ✅ MANTENER
+│   │   │       ├── 📄 HistorialScreen.js    ✅ MANTENER
+│   │   │       ├── 📄 MisReservasScreen.js  ✅ MANTENER
+│   │   │       └── 📄 NuevaReservaScreen.js ✅ MANTENER
+│   │   │
+│   │   ├── 📁 redux/
+│   │   │   ├── 📁 slices/
+│   │   │   │   ├── 📄 authSlice.js          ✅ MANTENER (compatibilidad)
+│   │   │   │   ├── 📄 habitacionesSlice.js  ✅ MANTENER
+│   │   │   │   ├── 📄 notificacionesSlice.js ✅ MANTENER
+│   │   │   │   ├── 📄 reservasSlice.js      ✅ MANTENER
+│   │   │   │   └── 📄 uiSlice.js            ✅ MANTENER
+│   │   │   │
+│   │   │   ├── 📁 thunks/
+│   │   │   │   ├── 📄 habitacionesThunks.js ✅ MANTENER
+│   │   │   │   └── 📄 reservasThunks.js     ✅ MANTENER
+│   │   │   │
+│   │   │   └── 📄 store.js                  ✅ MANTENER
+│   │   │
+│   │   ├── 📁 servicios/
+│   │   │   ├── 📄 api.js                    ✅ MANTENER
+│   │   │   ├── 📄 authService.js            🔄 ACTUALIZAR (métodos OAuth)
+│   │   │   ├── 📄 comentariosService.js     ✅ MANTENER
+│   │   │   ├── 📄 habitacionesService.js    ✅ MANTENER
+│   │   │   ├── 📄 notificacionesService.js  ✅ MANTENER
+│   │   │   ├── 📄 reservasService.js        ✅ MANTENER
+│   │   │   └── 📄 usuariosService.js        ✅ MANTENER
+│   │   │
+│   │   └── 📁 utils/
+│   │       ├── 📄 fechas.js                 ✅ MANTENER
+│   │       ├── 📄 formatters.js             ✅ MANTENER
+│   │       ├── 📄 permisos.js               ✅ MANTENER
+│   │       ├── 📄 storage.js                ✅ MANTENER
+│   │       └── 📄 validaciones.js           ✅ MANTENER
+│   │
+│   ├── 📄 .gitignore                        ✅ MANTENER
+│   ├── 📄 App.js                            🔄 ACTUALIZAR (AuthProvider)
+│   ├── 📄 README.md                         ✅ MANTENER
+│   ├── 📄 app.json                          🔄 ACTUALIZAR (scheme OAuth)
+│   ├── 📄 babel.config.js                   ✅ MANTENER
+│   ├── 📄 eslint.config.js                  ✅ MANTENER
+│   ├── 📄 metro.config.js                   ✅ MANTENER
+│   ├── 📄 package.json                      🔄 ACTUALIZAR (deps OAuth)
+│   ├── 📄 package-lock.json                 🔄 AUTO-GENERADO
+│   └── 📄 tsconfig.json                     ✅ MANTENER
+│
+├── 📄 Estructura.txt                        ✅ MANTENER
+├── 📄 Prompt COMPLETO + imagenes.txt        ✅ MANTENER
+├── 🖼️ Screenshot_20251021-162111_ChatGPT.jpg ✅ MANTENER
+├── 🖼️ Screenshot_20251021-162115_ChatGPT.jpg ✅ MANTENER
+├── 🖼️ Screenshot_20251021-162118_ChatGPT.jpg ✅ MANTENER
+├── 🖼️ Screenshot_20251021-162132_ChatGPT.jpg ✅ MANTENER
+├── 📄 hotel_reservas.sql                    ✅ MANTENER (backup)
+├── 📄 hotel_reservas_oauth.sql              🆕 CREAR (nueva estructura)
+└── 📄 usuarios de prueba.txt                ✅ MANTENER
+
+RUTAS:
+
+📋 Rutas incluidas:
+Autenticación Local:
+
+POST /api/auth/registro
+POST /api/auth/login
+POST /api/auth/logout
+POST /api/auth/logout-all
+POST /api/auth/refresh
+GET /api/auth/perfil
+POST /api/auth/cambiar-password
+
+Google OAuth:
+
+GET /api/auth/google (web)
+GET /api/auth/google/callback (web)
+POST /api/auth/google/mobile (React Native)
+
+GitHub OAuth:
+
+GET /api/auth/github (web)
+GET /api/auth/github/callback (web)
+POST /api/auth/github/mobile (React Native)
+
+cambiar ip en // frontend/src/servicios/authService.js
+// Servicio de autenticación con soporte OAuth (Google + GitHub)
+
+const getApiBaseUrl = () => {
+  if (Platform.OS === 'android') {
+    // 🔥 IMPORTANTE: Cambiar esta IP por la IP de tu PC
+    // Para obtener tu IP: ipconfig (Windows) o ifconfig (Linux/Mac)
+    return 'http://192.168.1.100:3000'; // ← CAMBIAR ESTA IP
+  }
+  // iOS Simulator y Web: localhost funciona
+  return 'http://localhost:3000';
+
+  [{
+	"resource": "/d:/TP-final/frontend/src/componentes/auth/SocialButtons.js",
+	"owner": "typescript",
+	"code": "1149",
+	"severity": 8,
+	"message": "File name 'd:/TP-final/frontend/src/componentes/auth/GitHubButton.js' differs from already included file name 'd:/TP-final/frontend/src/componentes/auth/GithubButton.js' only in casing.\n  The file is in the program because:\n    Matched by default include pattern '**/*'\n    Imported via './GitHubButton' from file 'd:/TP-final/frontend/src/componentes/auth/SocialButtons.js'",
+	"source": "ts",
+	"startLineNumber": 12,
+	"startColumn": 26,
+	"endLineNumber": 12,
+	"endColumn": 42,
+	"modelVersionId": 4,
+	"origin": "extHost1"
+}]
+
+📂 Ubicación:
+frontend/src/componentes/auth/ (CREAR CARPETA)
+├── GoogleButton.js
+├── GitHubButton.js
+└── SocialButtons.js
+⚠️ IMPORTANTE - Configurar:
+
+Línea 108: GITHUB_CLIENT_ID - Reemplazar con tu Client ID de GitHub
+
+AuthNavigator (Login, Registro)
+        ↓
+AppNavigator / MainNavigator (Home, Tabs, etc)

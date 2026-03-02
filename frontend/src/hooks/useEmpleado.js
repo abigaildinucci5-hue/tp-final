@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from './useAuth';
-import { api } from '../servicios/api';
+import api from '../servicios/api';
 
 /**
  * Hook para manejar funcionalidades del panel de empleado
@@ -212,11 +212,21 @@ export const useEmpleado = () => {
   const refrescaRTodos = async () => {
     try {
       setRefreshing(true);
-      await Promise.all([
+      setError(null);
+      
+      // Ejecutar en paralelo pero capturar errores individuales
+      const resultados = await Promise.allSettled([
         cargarReservasHoy(),
         cargarEstadoHabitaciones(),
         cargarSolicitudesPendientes(),
       ]);
+      
+      // Verificar si al menos uno falló
+      const algunoFallo = resultados.some(r => r.status === 'rejected');
+      if (algunoFallo) {
+        console.warn('⚠️ Algunos datos no pudieron ser cargados. Mostrando vista parcial.');
+        setError('Algunos datos no están disponibles (verificar conexión al servidor)');
+      }
     } catch (err) {
       console.error('Error refrescando datos:', err);
       setError('Error refrescando datos');

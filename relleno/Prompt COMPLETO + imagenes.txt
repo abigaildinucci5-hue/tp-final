@@ -1,0 +1,145 @@
+Hola Claude, debo realizar este proyecto final super extenso utilizando React Native, con todos los requisitos que ahora te voy a enviar, el proyecto se trata de: 
+
+Sistema de Reservas (Salón, Hotel, Consultorio) Una plataforma donde se reservan espacios/servicios. Roles: Admin (gestiona disponibilidad), Empleado (confirma reservas), Cliente (realiza reservas). Excelente para practicar autenticación, gestión de calendarios y diferentes niveles de acceso.
+
+En este proyecto el alumno deberá tener en cuenta los siguientes puntos 
+para realizar el desarrollo solicitado:
+
+1. Requisitos Funcionales
+
+• Registro e Inicio de Sesión:
+• Implementar autenticación con opciones de registro e inicio de sesión 
+• Autenticación mediante redes sociales (Google, Facebook).
+
+Roles de Usuario:
+
+• Múltiples tipos de usuarios con distintos permisos 
+• Comportamiento y accesos específicos dependiendo del rol.
+
+Interfaz de Usuario (UI):
+
+• Una interfaz amigable y fácil de navegar que se adapte a dispositivos móviles.
+• Navegación entre diferentes pantallas y componentes de React Native bien estructurados.
+
+Consumo de API:
+
+• Llamadas al backend usando una API RESTful que devuelva datos y permita crear, leer, actualizar y eliminar registros (CRUD).
+• La aplicación debe manejar correctamente los errores y mostrar mensajes adecuados a los usuarios.
+
+Requisitos Técnicos de Frontend (React Native)
+• Navegación:
+• Usar un sistema de navegación adecuado, que permita mover entre pantallas de forma fluida.
+
+Estado y Contexto:
+
+• Usar Redux o el Context API para gestionar el estado global, especialmente para gestionar el login y los datos del usuario.
+
+Autenticación Persistente:
+
+• Implementar persistencia de la sesión del usuario, para que el usuario siga conectado tras cerrar y volver a abrir la app.
+
+Componentes Responsivos:
+
+• Diseñar componentes que se adapten a diferentes tamaños de pantalla y orientación del dispositivo.
+
+Manejo de Errores:
+
+• Implementar manejo de errores en formularios y en la conexión con el backend.
+
+Requisitos Técnicos de Backend El backend puede  ser  Node.js con Express o Django en Python, PHP o el que mejor maneje. Debería incluir:
+• API REST:
+• Implementación
+ de una API RESTful que permita la comunicación con la app. La API 
+debería incluir endpoints para login, registro, obtención y 
+actualización de datos.
+• Autenticación basada en tokens (JWT), con tokens de acceso y renovación.
+
+Base de Datos:
+
+• Una base de datos MySQL, bien estructurada con colecciones o tablas para los usuarios y cualquier otra entidad necesaria.
+
+Gestión de Roles:
+
+• Implementar
+ lógica para determinar permisos de acuerdo al rol del usuario, 
+protegiendo endpoints que no deberían ser accesibles para todos.
+
+Documentación del API:
+
+• Documentación de los endpoints de la API, que incluya los métodos HTTP usados, parámetros, respuestas y códigos de error.
+• Usar un archivo README para la documentación de la API.
+
+Buenas Prácticas de Código
+• Limpieza y Estructura:
+• Código bien organizado y fácil de leer, con documentación donde sea necesario.
+
+Organización del Proyecto:
+
+• Estructura de carpetas lógica tanto en el frontend como en el backend.
+
+Control de Versiones:
+
+• Uso
+ de Git y GitHub (o similar) para el control de versiones, con commits 
+claros y un README que explique cómo instalar y ejecutar el proyecto.
+
+Entregables y Evaluación
+• Código Fuente Completo:
+• El código fuente completo de la aplicación frontend y el backend en un repositorio de Git.
+
+Manual de Usuario:
+
+• Un documento con instrucciones sobre cómo usar la aplicación (iniciar sesión, navegar entre pantallas, etc.).
+
+Guía de Instalación y Configuración:
+
+• Instrucciones
+ claras para instalar y configurar el entorno de desarrollo, tanto para 
+el frontend como para el backend (instalación de dependencias, variables
+ de entorno, ejecución de la base de datos, etc.).
+
+Documentación de la API:
+
+• Documentación de los endpoints y cualquier otro detalle técnico necesario para entender cómo interactuar con el backend.
+
+Video de Demostración (opcional):
+
+• Un
+ breve video mostrando la aplicación en uso, en el que se vea la 
+funcionalidad de inicio de sesión, navegación, distintos roles de 
+usuario y consumo de API.
+
+APK 
+
+• Deberá contar con un Archivo APK(android) para poder descargar, instalar y probar.
+
+• Archivos
+
+TODOS los archivos deberan estar en español, igual que las funciones, a excepcion de la logica
+
+Aclaraciones extras:
+
+IMPORTANTE: NO USAR REACT ROUTER YA QUE AL CONVERTRLA EN AOK GENERARA PROBLEMAS.
+
+Utilizaremos REACT NATIVE, NODE JS, MYSQL, TAILWINDS, CSS, HOOKS, ANIMACIONES Y LIBRERIAS QUE CONSIDERES UTILES PARA ESTE PROYECTO.
+
+Los usuarios loggeados deberan poder seleccionar en un calendario el día y la hora a la que van a querer reservar la habitación
+
+No sé si te mencioné que quiero que usemos gmail para notificaciones y generacion de tokens etc, una agregado más que creo que pidió el profe, como quedarían nuestras tablas y la estructura?
+
+Como hago para generar esa clave de tokens, vincularla, etc?
+
+Quiero que te bases en esta pagina para imitarla como base, pero no al 100%
+
+Me gustaría que también se pueda navegar como invitado para que cualquiera pueda entrar y pueda mirar tranquilo, si es que quiere una reserva o algo así ahí sí debera hacer el loggin.
+
+Tras hacer Login:
+
+Acceso completo a todas las funciones Historial de reservas personales Guardar habitaciones favoritas Modificar o cancelar reservas 
+Recibir notificaciones si hay algun agregado de habitaciones etc y agregar seccion de comentarios del hotel y las habitaciones
+
+Debemos tener en cuenta precios, y que los empleados puedan hacer loggin y tener descuento si piden una reserva.
+
+Debes implementar uso de ubicacion de alguna manera.
+
+Quiero que te bases en estas 4 imagenes para la paleta de colores, y el modelo visual. Quiero que le agregues cards donde cada una debe ser el mismo componente con diferentes habitaciones, para que puedan elegir a su gusto los usuarios. Quiero que uses tabs, por favor. Indicame como crear el proyecto, y en que orden instalar el node modules  dependencias. El sistema sera dedicado a un hotel imaginario, al cual me gustaria que me des ideas de nombres y de como generar imagenes usando herramientas de IA o demas para poder generar cosas bastante reales. Este sistema, debe ser lo mas realista posible. Genera cada componente por separado, por favor. Ademas debo hostear ambos, backend y frontend, y generar una apk para que funcione

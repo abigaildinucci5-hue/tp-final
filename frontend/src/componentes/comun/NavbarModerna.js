@@ -3,58 +3,49 @@
  * Barra de navegación superior con logo, menú y perfil de usuario
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   Image,
-  Dimensions,
+  useWindowDimensions,
   Modal,
   ScrollView,
   Platform,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { COLORES } from '../../constantes/colores';
 
-const { width } = Dimensions.get('window');
-
 const NavbarModerna = ({ 
-  navigation: navigationProp, 
   usuario, 
   isAuthenticated, 
   onLogout,
-  activeRoute = 'Home' 
 }) => {
-  const navigation = useNavigation() || navigationProp;
+  const { width: windowWidth } = useWindowDimensions();
+  const navigation = useNavigation();
+  const route = useRoute();
   const [mostrarMenuUsuario, setMostrarMenuUsuario] = useState(false);
   const [mostrarMenuNav, setMostrarMenuNav] = useState(false);
+  const [activeRoute, setActiveRoute] = useState('Home');
+
+  // Monitorear cambios de ruta
+  useEffect(() => {
+    if (route?.name) {
+      setActiveRoute(route.name);
+    }
+  }, [route?.name]);
 
   const navigateTo = (screen, params = {}) => {
-    if (!navigation) return;
-    
-    try {
-      // Navegar a los tabs usando nombres actualizados
-      if (screen === 'Home') {
-        navigation.navigate('HomeTab', { screen: 'HomeMain', ...params });
-      } else if (screen === 'Habitaciones') {
-        navigation.navigate('HabitacionesTab', { screen: 'ListaHabitacionList', ...params });
-      } else if (screen === 'Reservas') {
-        navigation.navigate('ReservasTab', { screen: 'MisReservasList', ...params });
-      } else if (screen === 'Perfil') {
-        navigation.navigate('PerfilTab', { screen: 'PerfilMain', ...params });
-      } else if (screen === 'Contacto') {
-        navigation.navigate('ContactoUnique', params);
-      } else if (screen === 'Mapa') {
-        navigation.navigate('MapaUnique', params);
-      } else {
-        navigation.navigate(screen, params);
-      }
-    } catch (error) {
-      console.warn('Navigation error:', error);
-    }
+    // Usar navigation.navigate simplemente - cada pantalla decide si requiere auth
+    navigation.navigate('MainStack', {
+    screen: screen,
+    params,
+    });
+
+    setMostrarMenuNav(false);
     setMostrarMenuUsuario(false);
   };
 
@@ -69,7 +60,7 @@ const NavbarModerna = ({
       {/* NAVBAR PRINCIPAL */}
       <View style={styles.navbar}>
         {/* IZQUIERDA: Hamburguesa (solo mobile) o vacío */}
-        {width <= 600 ? (
+        {windowWidth <= 600 ? (
           <TouchableOpacity
             style={styles.hamburgerButton}
             onPress={() => setMostrarMenuNav(true)}
@@ -81,7 +72,7 @@ const NavbarModerna = ({
         )}
 
         {/* CENTRO: Nombre del hotel o menú en desktop */}
-        {width > 600 ? (
+        {windowWidth > 600 ? (
           <View style={styles.seccionCentroDesktop}>
             <NavLink
               label="Home"
@@ -126,7 +117,7 @@ const NavbarModerna = ({
                 source={{ uri: usuario.fotoPerfil || 'https://via.placeholder.com/40' }}
                 style={styles.fotoPerfil}
               />
-              {width > 480 && (
+              {windowWidth > 480 && (
                 <View style={styles.datosUsuario}>
                   <Text style={styles.nombreUsuario} numberOfLines={1}>
                     {usuario.nombre || 'Usuario'}
@@ -146,11 +137,7 @@ const NavbarModerna = ({
             <TouchableOpacity
               style={styles.botonLogin}
               onPress={() => {
-                if (navigation) {
-                  navigation.navigate('Auth', {
-                    screen: 'Login',
-                  });
-                }
+                navigation.navigate('AuthModal');
                 setMostrarMenuUsuario(false);
               }}
             >
@@ -159,7 +146,7 @@ const NavbarModerna = ({
                 size={28} 
                 color={COLORES.SECUNDARIO} 
               />
-              {width > 480 && (
+              {windowWidth > 480 && (
                 <Text style={styles.textoLogin}>Iniciar Sesión</Text>
               )}
             </TouchableOpacity>
@@ -167,19 +154,18 @@ const NavbarModerna = ({
         </View>
       </View>
 
-      {/* MENÚ HAMBURGUESA (pantallas chicas) */}
-      <Modal
-        visible={mostrarMenuNav}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setMostrarMenuNav(false)}
-      >
-        <TouchableOpacity
-          style={styles.overlay}
-          onPress={() => setMostrarMenuNav(false)}
-          activeOpacity={1}
-        >
-          <View style={styles.menuDropdown}>
+      {/* MENÚ LATERAL HAMBURGUESA (pantallas chicas) - Panel lateral transparente */}
+      {mostrarMenuNav && (
+        <View style={styles.sidebarContainer}>
+          {/* Overlay semi-transparente */}
+          <TouchableOpacity
+            style={styles.sidebarOverlay}
+            onPress={() => setMostrarMenuNav(false)}
+            activeOpacity={1}
+          />
+          
+          {/* Panel lateral del lado izquierdo */}
+          <View style={styles.sidebarPanel}>
             <ScrollView style={styles.menuItems}>
               <MenuItem
                 icono="home-outline"
@@ -203,8 +189,8 @@ const NavbarModerna = ({
               />
             </ScrollView>
           </View>
-        </TouchableOpacity>
-      </Modal>
+        </View>
+      )}
 
       {/* MENÚ DESPLEGABLE */}
       <Modal
@@ -494,6 +480,32 @@ const styles = StyleSheet.create({
   },
 
   // ===== MENÚ DESPLEGABLE =====
+  sidebarContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    flexDirection: 'row-reverse',
+    zIndex: 1000,
+    pointerEvents: 'box-none',
+  },
+
+  sidebarOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+
+  sidebarPanel: {
+    width: '70%',
+    maxWidth: 280,
+    height: '100%',
+    backgroundColor: 'rgba(20, 20, 20, 0.95)',
+    paddingTop: 60,
+    borderLeftWidth: 1,
+    borderLeftColor: 'rgba(255, 255, 255, 0.1)',
+  },
+
   overlay: {
     flex: 1,
     backgroundColor: COLORES.OVERLAY_DARK,
@@ -579,11 +591,11 @@ const styles = StyleSheet.create({
   },
 
   menuItemRojo: {
-    backgroundColor: 'rgba(239, 68, 68, 0.05)',
+    backgroundColor: 'rgba(239, 68, 68, 0.15)',
   },
 
   menuItemLabelRojo: {
-    color: COLORES.ERROR,
+    color: '#ff6b6b',
   },
 
   menuItemSubtext: {

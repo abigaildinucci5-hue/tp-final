@@ -4,11 +4,11 @@
     "slug": "hotel-luna-serena",
     "version": "1.0.1",
     "orientation": "portrait",
-    "icon": "./src/assets/imagenes/icon.png",
+    "icon": "./src/assets/images/icon.png",
     "userInterfaceStyle": "automatic",
     "scheme": "hotellunaserena",
     "splash": {
-      "image": "./src/assets/imagenes/splash.png",
+      "image": "./src/assets/images/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#1E3A8A"
     },
@@ -17,12 +17,12 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.hotellunserena.app",
+      "bundleIdentifier": "com.hotellunserena.abigail.app",
       "buildNumber": "1.0.0"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./src/assets/imagenes/icon.png",
+        "foregroundImage": "./src/assets/images/icon.png",
         "backgroundColor": "#1E3A8A"
       },
       "package": "com.hotellunserena.app",
@@ -36,7 +36,7 @@
       ]
     },
     "web": {
-      "favicon": "./src/assets/imagenes/icon.png"
+      "favicon": "./src/assets/images/icon.png"
     },
     "plugins": [
       [

@@ -22,9 +22,16 @@ export const BASE_URL_IMAGENES = {
   general: 'https://api.hotellunserena.com/uploads/general',
 };
 
-// Función helper
+// Función helper - Soporta URLs completas e imágenes locales
 export const construirUrlImagen = (tipo, filename) => {
   if (!filename) return null;
+  
+  // ✅ Si ya es una URL completa (http/https), devolverla tal cual
+  if (filename.startsWith('http://') || filename.startsWith('https://')) {
+    return filename;
+  }
+  
+  // Si es una ruta local, construir la URL completa
   const baseUrl = BASE_URL_IMAGENES[tipo] || BASE_URL_IMAGENES.general;
   return `${baseUrl}/${filename}`;
 };

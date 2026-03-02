@@ -1,23 +1,33 @@
 // ============================================
-// PARTE 5: AppNavigator.js actualizado
+// AppNavigator.js - Restructured
 // frontend/src/navegacion/AppNavigator.js
+// 
+// Estructura:
+// RootStack
+//  ├── MainStack (clientes)
+//  ├── EmployeeStack (empleados/recepcionistas)
+//  ├── AdminStack (admin)
+//  └── AuthModal (login para todos)
 // ============================================
 
 import React from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { useAuth } from '../contexto/AuthContext'; // 🆕 IMPORTANTE
-import AuthNavigator from './AuthNavigator';
+import { useAuth } from '../contexto/AuthContext';
 import MainNavigator from './MainNavigator';
+import EmployeeNavigator from './EmployeeNavigator';
 import AdminNavigator from './AdminNavigator';
+import AuthNavigator from './AuthNavigator';
 import { COLORES } from '../constantes/colores';
 
 const Stack = createNativeStackNavigator();
 
-const AppNavigatorContent = () => {
-  const { isAuthenticated, loading, esAdmin } = useAuth();
+/**
+ * RootStack - Estructura que mantiene el navegador correcto según el rol
+ */
+const RootStack = () => {
+  const { isAuthenticated, loading, esAdmin, esEmpleado, usuario } = useAuth();
 
-  // Mostrar loading mientras se verifica la autenticación
   if (loading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORES.fondoClaro }}>
@@ -26,14 +36,20 @@ const AppNavigatorContent = () => {
     );
   }
 
-  // Si es admin, mostrar navegación de admin
-  if (esAdmin) {
-    return <AdminNavigator />;
+  // ✅ Determinar qué navegador mostrar
+  let NavigatorComponent = MainNavigator; // Por defecto, cliente
+  
+  if (isAuthenticated) {
+    if (esAdmin) {
+      // Admin tiene acceso a todo (prioridad máxima)
+      NavigatorComponent = AdminNavigator;
+    } else if (esEmpleado) {
+      // Empleado/Recepcionista
+      NavigatorComponent = EmployeeNavigator;
+    }
+    // Si no es admin ni empleado, es cliente → MainNavigator
   }
 
-  // Navegación condicional según autenticación
-  // Se usa un Stack Navigator para permitir navegar entre Auth y Main
-  // Auth siempre está disponible para que usuarios puedan loguearse desde cualquier punto
   return (
     <Stack.Navigator
       screenOptions={{
@@ -42,33 +58,26 @@ const AppNavigatorContent = () => {
       }}
     >
       {isAuthenticated ? (
-        // Usuario autenticado ve MainNavigator
-        <Stack.Screen
-          name="MainStack"
-          component={MainNavigator}
+        // ✅ Si está autenticado, mostrar navegador principal según el rol
+        <Stack.Screen 
+          name="App" 
+          component={NavigatorComponent}
           options={{
             animationEnabled: false,
+            gestureEnabled: false,
           }}
         />
       ) : (
-        // Usuario no autenticado (guest) ve MainNavigator pero con Auth accesible
+        // 🔐 Si NO está autenticado, mostrar solo Auth
         <Stack.Screen
-          name="MainStack"
-          component={MainNavigator}
+          name="Auth"
+          component={AuthNavigator}
           options={{
-            animationEnabled: false,
+            animationEnabled: true,
+            gestureEnabled: false,
           }}
         />
       )}
-      {/* Auth siempre disponible para login desde cualquier punto */}
-      <Stack.Screen
-        name="Auth"
-        component={AuthNavigator}
-        options={{
-          animationAnimation: 'fade_from_bottom',
-          cardStyle: { backgroundColor: 'white' },
-        }}
-      />
     </Stack.Navigator>
   );
 };
@@ -77,7 +86,7 @@ const AppNavigatorContent = () => {
  * AppNavigator wrapper
  */
 const AppNavigator = () => {
-  return <AppNavigatorContent />;
+  return <RootStack />;
 };
 
 export default AppNavigator;

@@ -1,0 +1,21 @@
+
+About
+Owned by: @abigaildinucci5-hue
+
+App ID: 2782694
+
+Using your App ID to get installation tokens? You can now use your Client ID instead.
+
+Client ID: Iv23licLxm4gYzIBVba0
+
+GitHub Apps can use OAuth credentials to identify users. Learn more about identifying users by reading our integration developer documentation.
+
+9f7cb66c8a57c27895cb14990ae3d60c0b7981a4 ese es el secreto
+
+sobre google nuevo:
+
+
+id del cliente: 251632903609-lbbcnb5ja0aqalmrphv0u7qs2u8oiu0g.apps.googleusercontent.com
+
+secreto del cliente: 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
+

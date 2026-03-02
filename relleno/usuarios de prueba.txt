@@ -1,0 +1,23 @@
+usuario: Celeste
+
+email: celes453290@gmail.com
+
+contraseña: 
+
+Homerochino66
+
+USUARIO: Vane
+
+ape: Sanchez
+
+correo: vaninasanchez2026@yahoo.com
+
+contraseña: Vaninita45
+
+ADMIN:
+
+email: admin@hotel.com
+contraseña: Admin2024!
+
+email: recepcion@hotel.com
+contraseña: Empleado2024!

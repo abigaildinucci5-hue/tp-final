@@ -1,10 +1,8 @@
 // src/navegacion/MainNavigator.js
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { View } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { useFocusEffect } from '@react-navigation/native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { TouchableOpacity } from 'react-native';
 
 // Pantallas
 import HomeScreen from '../pantallas/home/HomeScreen';
@@ -13,19 +11,20 @@ import DetalleHabitacionScreen from '../pantallas/habitaciones/DetalleHabitacion
 import FavoritosScreen from '../pantallas/habitaciones/FavoritosScreen';
 import MisReservasScreen from '../pantallas/reservas/MisReservasScreen';
 import DetalleReservaScreen from '../pantallas/reservas/DetalleReservaScreen';
+import ReservaExitosaScreen from '../pantallas/reservas/ReservaExitosaScreen';
 import NuevaReservaScreen from '../pantallas/reservas/NuevaReservaScreen';
 import PerfilScreen from '../pantallas/perfil/PerfilScreen';
-import NotificacionesScreen from '../pantallas/perfil/NotificacionesScreen';
 import EditarPerfilScreen from '../pantallas/perfil/EditarPerfilScreen';
-import ContactoScreen from '../pantallas/otros/ContactoScreen';
-import MapaScreen from '../pantallas/otros/MapaScreen';
 
+// Navbar
+import NavbarModerna from '../componentes/comun/NavbarModerna';
+import { useAuth } from '../contexto/AuthContext';
 import { COLORES } from '../constantes/colores';
-import { FUENTES } from '../constantes/estilos';
 
 const Stack = createNativeStackNavigator();
+const Tab = createBottomTabNavigator();
 
-// Stack de Home
+// Stack de Home (sin DetalleHabitacion - va en HabitacionesStack)
 const HomeStack = () => (
   <Stack.Navigator
     screenOptions={{
@@ -34,13 +33,6 @@ const HomeStack = () => (
     }}
   >
     <Stack.Screen name="HomeMain" component={HomeScreen} />
-    <Stack.Screen 
-      name="DetalleHabitacion" 
-      component={DetalleHabitacionScreen}
-      options={{
-        animationEnabled: true,
-      }}
-    />
     <Stack.Screen 
       name="NuevaReserva" 
       component={NuevaReservaScreen}
@@ -93,6 +85,13 @@ const ReservasStack = () => (
         animationEnabled: true,
       }}
     />
+    <Stack.Screen 
+      name="ReservaExitosa" 
+      component={ReservaExitosaScreen}
+      options={{
+        animationEnabled: true,
+      }}
+    />
   </Stack.Navigator>
 );
 
@@ -112,13 +111,7 @@ const PerfilStack = () => (
         animationEnabled: true,
       }}
     />
-    <Stack.Screen 
-      name="Notificaciones" 
-      component={NotificacionesScreen}
-      options={{
-        animationEnabled: true,
-      }}
-    />
+
     <Stack.Screen 
       name="Favoritos" 
       component={FavoritosScreen}
@@ -129,21 +122,54 @@ const PerfilStack = () => (
   </Stack.Navigator>
 );
 
-const MainNavigator = ({ navigation }) => {
+/**
+ * MainNavigator - Estructura principal
+ * ✅ Siempre visible - TabNavigator sin condiciones
+ * ✅ Control de acceso a nivel de pantalla, no de estructura
+ */
+const MainNavigator = () => {
+  const { usuario, isAuthenticated, logout } = useAuth();
+
   return (
-    <Stack.Navigator
-      screenOptions={{
-        headerShown: false,
-        animationEnabled: true,
-      }}
-    >
-      <Stack.Screen name="HomeTab" component={HomeStack} />
-      <Stack.Screen name="HabitacionesTab" component={HabitacionesStack} />
-      <Stack.Screen name="ReservasTab" component={ReservasStack} />
-      <Stack.Screen name="PerfilTab" component={PerfilStack} />
-      <Stack.Screen name="ContactoUnique" component={ContactoScreen} />
-      <Stack.Screen name="MapaUnique" component={MapaScreen} />
-    </Stack.Navigator>
+    <View style={{ flex: 1, backgroundColor: COLORES.fondoClaro }}>
+      {/* NAVBAR */}
+      <NavbarModerna 
+        usuario={usuario}
+        isAuthenticated={isAuthenticated}
+        onLogout={logout}
+      />
+      
+      {/* TABS - Siempre visibles, control de acceso en pantallas individuales */}
+      <Tab.Navigator
+        screenOptions={{
+          headerShown: false,
+          tabBarStyle: { display: 'none' },
+          tabBarActiveTintColor: COLORES.dorado,
+          tabBarInactiveTintColor: COLORES.grisClaro,
+        }}
+      >
+        <Tab.Screen 
+          name="Home" 
+          component={HomeStack}
+          options={{ tabBarLabel: 'Inicio' }}
+        />
+        <Tab.Screen 
+          name="Habitaciones" 
+          component={HabitacionesStack}
+          options={{ tabBarLabel: 'Habitaciones' }}
+        />
+        <Tab.Screen 
+          name="Reservas" 
+          component={ReservasStack}
+          options={{ tabBarLabel: 'Mis Reservas' }}
+        />
+        <Tab.Screen 
+          name="Perfil" 
+          component={PerfilStack}
+          options={{ tabBarLabel: 'Perfil' }}
+        />
+      </Tab.Navigator>
+    </View>
   );
 };
 

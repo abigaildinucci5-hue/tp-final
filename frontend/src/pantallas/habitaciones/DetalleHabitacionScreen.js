@@ -20,36 +20,89 @@ import { TIPOGRAFIA, DIMENSIONES } from '../../constantes/estilos';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const DetalleHabitacionScreen = ({ route, navigation }) => {
-  const { habitacionId } = route.params;
+  // Aceptar tanto 'id' como 'habitacionId' para máxima compatibilidad
+  const habitacionId = route.params?.habitacionId || route.params?.id;
   const [habitacion, setHabitacion] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
   const scrollViewRef = useRef(null);
 
+  // ✅ useEffect con dependencia de habitacionId
   React.useEffect(() => {
-    cargarHabitacion();
-  }, []);
+    if (habitacionId) {
+      cargarHabitacion(habitacionId);
+    }
+  }, [habitacionId]);
 
-  const cargarHabitacion = async () => {
+  // 🆕 Helper function to generate room data based on ID
+  const getRoomDataByID = (roomId) => {
+    const roomNumber = 100 + roomId; // Room 1 → 101, Room 2 → 102, etc.
+    const roomTypes = ['Estándar', 'Doble', 'Suite', 'Suite Presidencial'];
+    const roomIndex = (roomId - 1) % roomTypes.length;
+    const roomType = roomTypes[roomIndex];
+    
+    const prices = [50, 75, 125, 250];
+    const price = prices[roomIndex];
+    
+    const capacities = [2, 3, 4, 6];
+    const capacity = capacities[roomIndex];
+    
+    const descriptions = [
+      'Habitación estándar acogedora con cama doble, baño privado y escritorio. Perfecta para parejas. Incluye WiFi, TV por cable y aire acondicionado.',
+      'Habitación doble espaciosa con dos camas individuales o una cama king. Baño completo con ducha y bañera. Vistas al jardín. Ideal para familias pequeñas.',
+      'Suite de lujo con sala de estar separada, cama king, minibar y jacuzzi privado. Vistas panorámicas al mar. Servicio de conserjería disponible.',
+      'Suite Presidencial con terraza privada, sala de conferencias, cocina completa y dormitorio con vistas 360°. Máximo lujo y privacidad.',
+    ];
+    const description = descriptions[roomIndex];
+    
+    return {
+      id_habitacion: roomId,
+      numero_habitacion: roomNumber.toString(),
+      tipo_habitacion: roomType,
+      precio_base: price,
+      capacidad_personas: capacity,
+      descripcion: description,
+    };
+  };
+
+  const cargarHabitacion = async (roomId) => {
     try {
       setLoading(true);
-      // Simulando data para demostración
-      // En producción, traerías del API
-      const mockData = {
-        id_habitacion: habitacionId,
-        numero_habitacion: '101',
-        tipo_habitacion: 'Estándar',
-        precio_base: 50,
-        estado: 'disponible',
-        capacidad_personas: 2,
-        imagen_principal: 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800&h=600&fit=crop',
-        galeria_imagenes: JSON.stringify([
+      // ✅ Get room-specific data based on roomId parameter
+      const roomBaseData = getRoomDataByID(roomId);
+      
+      // Image galleries per room type
+      const imagesByRoom = {
+        1: [ // Room 101 (Estándar)
           'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800&h=600&fit=crop',
           'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=600&fit=crop',
           'https://images.unsplash.com/photo-1578654881228-4b676f7f579e?w=800&h=600&fit=crop',
-        ]),
-        descripcion: 'Habitación estándar acogedora con cama doble, baño privado y escritorio. Perfecta para parejas. Incluye WiFi, TV por cable y aire acondicionado.',
+        ],
+        2: [ // Room 102 (Doble)
+          'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=600&fit=crop',
+          'https://images.unsplash.com/photo-1567521464027-f127ff144326?w=800&h=600&fit=crop',
+          'https://images.unsplash.com/photo-1611003228941-98852ba62227?w=800&h=600&fit=crop',
+        ],
+        3: [ // Room 103 (Suite)
+          'https://images.unsplash.com/photo-1611003228941-98852ba62227?w=800&h=600&fit=crop',
+          'https://images.unsplash.com/photo-1532900298318-6b8da08a0c1b?w=800&h=600&fit=crop',
+          'https://images.unsplash.com/photo-1618778860586-1f2a75ef696d?w=800&h=600&fit=crop',
+        ],
+        4: [ // Room 104 (Suite Presidencial)
+          'https://images.unsplash.com/photo-1532900298318-6b8da08a0c1b?w=800&h=600&fit=crop',
+          'https://images.unsplash.com/photo-1618778860586-1f2a75ef696d?w=800&h=600&fit=crop',
+          'https://images.unsplash.com/photo-1621905267537-b85daf00c69b?w=800&h=600&fit=crop',
+        ],
+      };
+      
+      const roomImages = imagesByRoom[roomId] || imagesByRoom[1];
+      
+      const mockData = {
+        ...roomBaseData,
+        estado: 'disponible',
+        imagen_principal: roomImages[0],
+        galeria_imagenes: JSON.stringify(roomImages),
       };
       setHabitacion(mockData);
     } catch (error) {
@@ -88,9 +141,19 @@ const DetalleHabitacionScreen = ({ route, navigation }) => {
     imagenes = [habitacion.imagen_principal];
   }
 
-  // Asegurar mínimo 5 imágenes
+  // Imágenes adicionales variadas
+  const imagenesAdicionales = [
+    'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=600&fit=crop',
+    'https://images.unsplash.com/photo-1567521464027-f127ff144326?w=800&h=600&fit=crop',
+    'https://images.unsplash.com/photo-1611003228941-98852ba62227?w=800&h=600&fit=crop',
+    'https://images.unsplash.com/photo-1532900298318-6b8da08a0c1b?w=800&h=600&fit=crop',
+  ];
+
+  // Asegurar mínimo 5 imágenes con variedad
+  let i = 0;
   while (imagenes.length < 5) {
-    imagenes.push(habitacion.imagen_principal);
+    imagenes.push(imagenesAdicionales[i % imagenesAdicionales.length]);
+    i++;
   }
 
   const handleScrollToImage = (index) => {
@@ -457,63 +520,6 @@ const DetalleHabitacionScreen = ({ route, navigation }) => {
             name="arrow-right"
             size={20}
             color={COLORES.blanco}
-          />
-        </TouchableOpacity>
-      </View>
-
-      {/* BARRA DE NAVEGACIÓN PERSONALIZADA */}
-      <View style={styles.customBottomNav}>
-        <View style={styles.navButtonsContainer}>
-          <TouchableOpacity
-            style={styles.navButton}
-            onPress={() => navigation.navigate('Home')}
-            activeOpacity={0.7}
-          >
-            <MaterialCommunityIcons
-              name="home-outline"
-              size={22}
-              color={COLORES.textoMedio}
-            />
-            <Text style={styles.navButtonText}>Inicio</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.navButton}
-            onPress={() => navigation.navigate('ListaHabitaciones')}
-            activeOpacity={0.7}
-          >
-            <MaterialCommunityIcons
-              name="bed-outline"
-              size={22}
-              color={COLORES.textoMedio}
-            />
-            <Text style={styles.navButtonText}>Habitaciones</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.navButton}
-            onPress={() => navigation.navigate('MisReservas')}
-            activeOpacity={0.7}
-          >
-            <MaterialCommunityIcons
-              name="calendar-outline"
-              size={22}
-              color={COLORES.textoMedio}
-            />
-            <Text style={styles.navButtonText}>Reservas</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* ÍCONO DE USUARIO A LA DERECHA */}
-        <TouchableOpacity
-          style={styles.userIcon}
-          onPress={() => navigation.navigate('Perfil')}
-          activeOpacity={0.7}
-        >
-          <MaterialCommunityIcons
-            name="account-outline"
-            size={24}
-            color={COLORES.dorado}
           />
         </TouchableOpacity>
       </View>
@@ -924,51 +930,6 @@ const styles = {
     color: COLORES.blanco,
     letterSpacing: 0.5,
     fontWeight: '600',
-  },
-
-  // BARRA DE NAVEGACIÓN INFERIOR PERSONALIZADA
-  customBottomNav: {
-    flexDirection: 'row',
-    backgroundColor: COLORES.blanco,
-    borderTopWidth: 1,
-    borderTopColor: '#E0E0E0',
-    paddingBottom: 10,
-    paddingTop: 10,
-    paddingHorizontal: 20,
-    elevation: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  navButtonsContainer: {
-    flexDirection: 'row',
-    gap: 25,
-  },
-  navButton: {
-    alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-  },
-  navButtonText: {
-    fontFamily: 'montserrat_500medium',
-    fontSize: 10,
-    color: COLORES.textoMedio,
-    marginTop: 4,
-    letterSpacing: 0.3,
-    fontWeight: '500',
-  },
-  userIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#F5F5F5',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
   },
 };
 
