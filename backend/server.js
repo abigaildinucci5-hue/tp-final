@@ -39,19 +39,19 @@ app.get('/ping', (req, res) => {
 // MIDDLEWARES
 // ============================
 
-// CORS PRIMERO, antes de helmet
-const allowedOrigins = [
-app.use(cors({
-  origin: function(origin, callback) {
-  credentials: true,
-// Permitir CORS para cualquier origen en producción Railway
+
+// CORS GLOBAL para Railway y frontend local
+const cors = require('cors');
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   exposedHeaders: ['X-Total-Count', 'X-Page-Count'],
+  credentials: true,
   maxAge: 86400
 }));
+// Soporte explícito para preflight
+app.options('*', cors());
 
 // Helmet después de CORS
 app.use(helmet({
@@ -245,6 +245,5 @@ process.on('uncaughtException', (error) => {
   console.error('❌ Excepción no capturada:', error);
 });
 
-iniciarServidor();
 
-module.exports = app;
+iniciarServidor();
