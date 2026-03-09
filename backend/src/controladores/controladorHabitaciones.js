@@ -14,8 +14,10 @@ const obtenerHabitacionesPopulares = asyncHandler(async (req, res) => {
     'Expires': '0'
   });
 
-  // Soportar ambos: "limite" y "limit"
-  const limit = parseInt(req.query.limite || req.query.limit) || 8;
+  // Soportar ambos: "limite" y "limit" y asegurar que sea número válido
+  let limit = req.query.limite ?? req.query.limit;
+  limit = Number.isInteger(Number(limit)) && Number(limit) > 0 ? Number(limit) : 8;
+  console.log('🟢 Valor de limit usado en SQL:', limit);
 
   const sql = `
     SELECT 
@@ -59,42 +61,46 @@ const obtenerHabitacionesPopulares = asyncHandler(async (req, res) => {
 
   // Formatear respuesta para el frontend
   const datosFormateados = habitaciones.map(h => {
+    // Robustecer parseo de campos JSON
+    let amenidades = [];
+    let galeria_imagenes = [];
     try {
-      return {
-        id: h.id_habitacion,
-        id_habitacion: h.id_habitacion,
-        numero: h.numero_habitacion,
-        numero_habitacion: h.numero_habitacion,
-        tipo: h.tipo_nombre,
-        tipo_nombre: h.tipo_nombre,
-        imagen: h.imagen_principal,
-        imagen_principal: h.imagen_principal,
-        precio: parseFloat(h.precio_base),
-        precio_base: parseFloat(h.precio_base),
-        estado: h.estado,
-        vista: h.vista,
-        piso: h.piso,
-        capacidad: h.capacidad_personas,
-        amenidades: h.amenidades ? (typeof h.amenidades === 'string' ? JSON.parse(h.amenidades) : h.amenidades) : [],
-        galeria_imagenes: h.galeria_imagenes ? (typeof h.galeria_imagenes === 'string' ? JSON.parse(h.galeria_imagenes) : h.galeria_imagenes) : [],
-        es_favorito: h.es_favorito || false
-      };
-    } catch (error) {
-      console.error('Error formateando habitación:', h.id_habitacion, error);
-      return {
-        id: h.id_habitacion,
-        id_habitacion: h.id_habitacion,
-        numero: h.numero_habitacion,
-        numero_habitacion: h.numero_habitacion,
-        tipo: h.tipo_nombre,
-        imagen: h.imagen_principal,
-        precio: parseFloat(h.precio_base),
-        estado: h.estado,
-        amenidades: [],
-        galeria_imagenes: [],
-        es_favorito: false
-      };
-    }
+      if (h.amenidades) {
+        if (typeof h.amenidades === 'string') {
+          try { amenidades = JSON.parse(h.amenidades); } catch { amenidades = []; }
+        } else if (Array.isArray(h.amenidades)) {
+          amenidades = h.amenidades;
+        }
+      }
+    } catch { amenidades = []; }
+    try {
+      if (h.galeria_imagenes) {
+        if (typeof h.galeria_imagenes === 'string') {
+          try { galeria_imagenes = JSON.parse(h.galeria_imagenes); } catch { galeria_imagenes = []; }
+        } else if (Array.isArray(h.galeria_imagenes)) {
+          galeria_imagenes = h.galeria_imagenes;
+        }
+      }
+    } catch { galeria_imagenes = []; }
+    return {
+      id: h.id_habitacion,
+      id_habitacion: h.id_habitacion,
+      numero: h.numero_habitacion,
+      numero_habitacion: h.numero_habitacion,
+      tipo: h.tipo_nombre,
+      tipo_nombre: h.tipo_nombre,
+      imagen: h.imagen_principal,
+      imagen_principal: h.imagen_principal,
+      precio: parseFloat(h.precio_base),
+      precio_base: parseFloat(h.precio_base),
+      estado: h.estado,
+      vista: h.vista,
+      piso: h.piso,
+      capacidad: h.capacidad_personas,
+      amenidades,
+      galeria_imagenes,
+      es_favorito: h.es_favorito || false
+    };
   });
 
   res.json({
