@@ -10,7 +10,7 @@
 //  └── AuthModal (login para todos)
 // ============================================
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useAuth } from '../contexto/AuthContext';
@@ -28,16 +28,16 @@ const Stack = createNativeStackNavigator();
 const RootStack = () => {
   const { isAuthenticated, loading, esAdmin, esEmpleado, usuario } = useAuth();
 
-  if (loading) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORES.fondoClaro }}>
-        <ActivityIndicator size="large" color={COLORES.dorado} />
-      </View>
-    );
-  }
+  useEffect(() => {
+    console.log("AUTH STATE:", {
+      isAuthenticated,
+      loading,
+      usuario
+    });
+  }, [isAuthenticated, loading, usuario]);
 
   // ✅ Determinar qué navegador mostrar
-  let NavigatorComponent = MainNavigator; // Por defecto, cliente
+  let NavigatorComponent = MainNavigator; // Por defecto, cliente (invitado o autenticado)
   
   if (isAuthenticated) {
     if (esAdmin) {
@@ -47,7 +47,16 @@ const RootStack = () => {
       // Empleado/Recepcionista
       NavigatorComponent = EmployeeNavigator;
     }
-    // Si no es admin ni empleado, es cliente → MainNavigator
+    // Si no es admin ni empleado, es cliente → MainNavigator (incluso autenticado)
+  }
+  // Si NO está autenticado → MainNavigator (como invitado)
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f5f5f5' }}>
+        <ActivityIndicator size="large" color={COLORES.SECUNDARIO} />
+      </View>
+    );
   }
 
   return (
@@ -57,27 +66,31 @@ const RootStack = () => {
         animationEnabled: true,
       }}
     >
-      {isAuthenticated ? (
-        // ✅ Si está autenticado, mostrar navegador principal según el rol
-        <Stack.Screen 
-          name="App" 
-          component={NavigatorComponent}
-          options={{
-            animationEnabled: false,
-            gestureEnabled: false,
-          }}
-        />
-      ) : (
-        // 🔐 Si NO está autenticado, mostrar solo Auth
+      {/* ✅ SIEMPRE mostrar MainNavigator (invitado o cliente autenticado) */}
+      <Stack.Screen 
+        name="MainApp" 
+        component={NavigatorComponent}
+        options={{
+          animationEnabled: false,
+          gestureEnabled: false,
+        }}
+      />
+
+      {/* 🔐 Modal de Auth disponible para cualquier usuario */}
+      <Stack.Group
+        screenOptions={{
+          presentation: 'modal',
+          animationEnabled: true,
+        }}
+      >
         <Stack.Screen
-          name="Auth"
+          name="AuthModal"
           component={AuthNavigator}
           options={{
-            animationEnabled: true,
-            gestureEnabled: false,
+            headerShown: false,
           }}
         />
-      )}
+      </Stack.Group>
     </Stack.Navigator>
   );
 };

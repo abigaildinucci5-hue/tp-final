@@ -38,21 +38,33 @@ const NavbarModerna = ({
     }
   }, [route?.name]);
 
-  const navigateTo = (screen, params = {}) => {
-    // Usar navigation.navigate simplemente - cada pantalla decide si requiere auth
-    navigation.navigate('MainStack', {
-    screen: screen,
-    params,
-    });
+  const navigateTo = (screen) => {
+  const pantallasPrivadas = ['Reservas'];
 
+  if (!isAuthenticated && pantallasPrivadas.includes(screen)) {
+    openAuthModal();
     setMostrarMenuNav(false);
-    setMostrarMenuUsuario(false);
-  };
+    return;
+  }
+
+  navigation.navigate(screen);
+  setMostrarMenuNav(false);
+};
 
   const handleLogout = () => {
     setMostrarMenuUsuario(false);
     if (onLogout) onLogout();
   };
+
+  const openAuthModal = () => {
+  let parent = navigation;
+
+  while (parent.getParent()) {
+    parent = parent.getParent();
+  }
+
+  parent.navigate('AuthModal');
+};
 
   return (
 
@@ -137,8 +149,8 @@ const NavbarModerna = ({
             <TouchableOpacity
               style={styles.botonLogin}
               onPress={() => {
-                navigation.navigate('AuthModal');
                 setMostrarMenuUsuario(false);
+                openAuthModal();
               }}
             >
               <MaterialCommunityIcons 
@@ -193,81 +205,146 @@ const NavbarModerna = ({
       )}
 
       {/* MENÚ DESPLEGABLE */}
-      <Modal
-        visible={mostrarMenuUsuario}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setMostrarMenuUsuario(false)}
-      >
+      {mostrarMenuUsuario && (
         <TouchableOpacity
-          style={styles.overlay}
+          style={styles.overlayAbsolute}
           onPress={() => setMostrarMenuUsuario(false)}
           activeOpacity={1}
         >
-          <View style={styles.menuDropdown}>
-            {/* Header menú */}
-            <View style={styles.menuHeader}>
-              <Image
-                source={{ uri: usuario?.fotoPerfil || 'https://via.placeholder.com/50' }}
-                style={styles.menuAvatar}
-              />
-              <View style={styles.menuHeaderInfo}>
-                <Text style={styles.menuNombre}>{usuario?.nombre || 'Usuario'}</Text>
-                <Text style={styles.menuEmail}>{usuario?.email || 'correo@example.com'}</Text>
-              </View>
-            </View>
+          <View style={styles.menuDropdownAbsolute} pointerEvents="auto">
+            {isAuthenticated && usuario ? (
+              <>
+                {/* Header menú - Usuario autenticado */}
+                <View style={styles.menuHeader}>
+                  <Image
+                    source={{ uri: usuario?.fotoPerfil || 'https://via.placeholder.com/50' }}
+                    style={styles.menuAvatar}
+                  />
+                  <View style={styles.menuHeaderInfo}>
+                    <Text style={styles.menuNombre}>{usuario?.nombre || 'Usuario'}</Text>
+                    <Text style={styles.menuEmail}>{usuario?.email || 'correo@example.com'}</Text>
+                  </View>
+                </View>
 
-            <ScrollView style={styles.menuItems}>
-              <MenuItem
-                icono="account-outline"
-                label="Mi Perfil"
-                onPress={() => {
-                  navigateTo('Perfil');
-                }}
-              />
-              <MenuItem
-                icono="bookmark-outline"
-                label="Mis Reservas"
-                onPress={() => navigateTo('Reservas')}
-              />
-              <MenuItem
-                icono="heart-outline"
-                label="Favoritos"
-                onPress={() => {
-                  setMostrarMenuUsuario(false);
-                  // Navegar a favoritos
-                }}
-              />
-              <MenuItem
-                icono="star-outline"
-                label="Mis Puntos"
-                subtext={`${usuario?.puntos || 0} pts`}
-                onPress={() => {
-                  setMostrarMenuUsuario(false);
-                  // Navegar a puntos
-                }}
-              />
-              <MenuItem
-                icono="cog-outline"
-                label="Configuración"
-                onPress={() => {
-                  setMostrarMenuUsuario(false);
-                  // Navegar a configuración
-                }}
-              />
+                <ScrollView style={styles.menuItems}>
+                  <MenuItem
+                    icono="account-outline"
+                    label="Mi Perfil"
+                    onPress={() => {
+                      setMostrarMenuUsuario(false);
+                      navigateTo('Perfil');
+                    }}
+                  />
+                  <MenuItem
+                    icono="bookmark-outline"
+                    label="Mis Reservas"
+                    onPress={() => {
+                      setMostrarMenuUsuario(false);
+                      navigateTo('Reservas');
+                    }}
+                  />
+                  <MenuItem
+                    icono="heart-outline"
+                    label="Favoritos"
+                    onPress={() => {
+                      setMostrarMenuUsuario(false);
+                      // Navegar a favoritos
+                    }}
+                  />
+                  <MenuItem
+                    icono="star-outline"
+                    label="Mis Puntos"
+                    subtext={`${usuario?.puntos || 0} pts`}
+                    onPress={() => {
+                      setMostrarMenuUsuario(false);
+                      // Navegar a puntos
+                    }}
+                  />
+                  <MenuItem
+                    icono="cog-outline"
+                    label="Configuración"
+                    onPress={() => {
+                      setMostrarMenuUsuario(false);
+                      // Navegar a configuración
+                    }}
+                  />
 
-              <View style={styles.menuDivisor} />
+                  <View style={styles.menuDivisor} />
 
-              <MenuItem
-                icono="logout"
-                label="Cerrar Sesión"
-                isRojo
-                onPress={handleLogout}
-              />
-            </ScrollView>
+                  <MenuItem
+                    icono="logout"
+                    label="Cerrar Sesión"
+                    isRojo
+                    onPress={handleLogout}
+                  />
+                </ScrollView>
+              </>
+            ) : (
+              <>
+                {/* Header menú - Modo invitado */}
+                <View style={[styles.menuHeader, { justifyContent: 'center', alignItems: 'center' }]}>
+                  <MaterialCommunityIcons
+                    name="account-outline"
+                    size={40}
+                    color={COLORES.SECUNDARIO}
+                  />
+                  <Text style={styles.menuNombre}>Modo Invitado</Text>
+                </View>
+
+                <ScrollView style={styles.menuItems}>
+                  <MenuItem
+                    icono="home-outline"
+                    label="Explorar Hotel"
+                    onPress={() => {
+                      setMostrarMenuUsuario(false);
+                      navigateTo('Home');
+                    }}
+                  />
+                  <MenuItem
+                    icono="bed-outline"
+                    label="Ver Habitaciones"
+                    onPress={() => {
+                      setMostrarMenuUsuario(false);
+                      navigateTo('Habitaciones');
+                    }}
+                  />
+                  <MenuItem
+                    icono="phone-outline"
+                    label="Contacto"
+                    onPress={() => {
+                      setMostrarMenuUsuario(false);
+                      navigateTo('Contacto');
+                    }}
+                  />
+
+                  <View style={styles.menuDivisor} />
+
+                  <TouchableOpacity
+                    style={styles.menuItemLogin}
+                    onPress={() => {
+                      setMostrarMenuUsuario(false);
+                      try {
+                        navigation.navigate('AuthModal');
+                      } catch {
+                        navigation.navigate('Auth');
+                      }
+                    }}
+                  >
+                    <MaterialCommunityIcons
+                      name="login"
+                      size={20}
+                      color={COLORES.PRIMARIO}
+                    />
+                    <Text style={[styles.menuItemLabel, { color: COLORES.PRIMARIO }]}>
+                      Iniciar Sesión
+                    </Text>
+                  </TouchableOpacity>
+                </ScrollView>
+              </>
+            )}
           </View>
         </TouchableOpacity>
-      </Modal>
+      )}
     </>
   );
 };
@@ -608,6 +685,51 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: COLORES.grisClaro,
     marginVertical: 8,
+  },
+
+  menuItemLogin: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 13,
+    backgroundColor: 'rgba(79, 70, 229, 0.1)',
+    marginHorizontal: 8,
+    marginVertical: 8,
+    borderRadius: 8,
+  },
+
+  overlayAbsolute: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    zIndex: 1000,
+  },
+
+  menuDropdownAbsolute: {
+    position: 'absolute',
+    top: 70,
+    right: 16,
+    backgroundColor: COLORES.BLANCO,
+    borderRadius: 12,
+    width: '88%',
+    maxWidth: 300,
+    maxHeight: '70%',
+    zIndex: 1001,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
   },
 });
 

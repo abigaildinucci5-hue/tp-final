@@ -1,8 +1,8 @@
 // frontend/src/contexto/AuthContext.js
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import storage from '../utils/storage';
 import { authService } from '../servicios/authService';
-import { STORAGE_KEYS } from '../constantes/config';
 
 const AuthContext = createContext(null);
 
@@ -11,23 +11,19 @@ export const AuthProvider = ({ children }) => {
   const [accessToken, setAccessToken] = useState(null);
   const [refreshToken, setRefreshToken] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const isAuthenticated = !!usuario && !!accessToken;
 
   useEffect(() => {
     cargarDatosAlmacenados();
   }, []);
 
-  useEffect(() => {
-    setIsAuthenticated(!!usuario && !!accessToken);
-  }, [usuario, accessToken]);
-
   const cargarDatosAlmacenados = async () => {
     try {
       console.log('🔍 AuthContext: Cargando datos almacenados...');
 
-      const storedToken = await storage.get(STORAGE_KEYS.TOKEN);
-      const storedRefresh = await storage.get(STORAGE_KEYS.REFRESH_TOKEN);
-      const storedUser = await storage.get(STORAGE_KEYS.USER);
+      const storedToken = await storage.get('accessToken');
+      const storedRefresh = await storage.get('refreshToken');
+      const storedUser = await storage.get('usuario');
 
       if (storedToken && storedUser) {
         console.log('✅ Datos encontrados en almacenamiento');
@@ -43,7 +39,7 @@ export const AuthProvider = ({ children }) => {
           if (response.exito && response.data) {
             console.log('✅ Token válido, actualizando datos');
             setUsuario(response.data);
-            await storage.set(STORAGE_KEYS.USER, JSON.stringify(response.data));
+            await AsyncStorage.setItem('usuario', JSON.stringify(response.data));
           } else {
             console.log('⚠️ Token inválido, limpiando...');
             await limpiarStorage();
@@ -63,23 +59,14 @@ export const AuthProvider = ({ children }) => {
 
   const limpiarStorage = async () => {
     console.log('🧹 Limpiando almacenamiento...');
-    try {
-      await storage.multiRemove([
-        STORAGE_KEYS.TOKEN,
-        STORAGE_KEYS.REFRESH_TOKEN,
-        STORAGE_KEYS.USER,
-      ]);
-      console.log('✅ Storage limpiado');
-    } catch (error) {
-      console.error('⚠️ Error limpiando storage:', error);
-    }
-    
-    // Fuerza actualizar estado
+    await storage.multiRemove([
+      'accessToken',
+      'refreshToken',
+      'usuario',
+    ]);
     setUsuario(null);
     setAccessToken(null);
     setRefreshToken(null);
-    setIsAuthenticated(false);
-    console.log('✅ Estado local limpiado');
   };
 
   const login = async (email, password) => {
@@ -94,9 +81,9 @@ export const AuthProvider = ({ children }) => {
         const { usuario: userData, tokens } = response.data;
 
         // ✅ IMPORTANTE: Primero guardar en almacenamiento
-        await storage.set(STORAGE_KEYS.TOKEN, tokens.accessToken);
-        await storage.set(STORAGE_KEYS.REFRESH_TOKEN, tokens.refreshToken);
-        await storage.set(STORAGE_KEYS.USER, JSON.stringify(userData));
+        await storage.set('accessToken', tokens.accessToken);
+        await storage.set('refreshToken', tokens.refreshToken);
+        await storage.set('usuario', JSON.stringify(userData));
 
         console.log('✅ Datos guardados en almacenamiento');
 
@@ -135,9 +122,9 @@ export const AuthProvider = ({ children }) => {
         const { usuario: userData, tokens } = response.data;
 
         // Guardar en almacenamiento
-        await storage.set(STORAGE_KEYS.TOKEN, tokens.accessToken);
-        await storage.set(STORAGE_KEYS.REFRESH_TOKEN, tokens.refreshToken);
-        await storage.set(STORAGE_KEYS.USER, JSON.stringify(userData));
+        await storage.set('accessToken', tokens.accessToken);
+        await storage.set('refreshToken', tokens.refreshToken);
+        await storage.set('usuario', JSON.stringify(userData));
 
         console.log('✅ Datos guardados en almacenamiento');
 
@@ -215,52 +202,21 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      console.log('👋 Iniciando logout...');
-      console.log('📱 isAuthenticated antes:', isAuthenticated);
-      
-      // Paso 1: Limpiar estado inmediatamente (sin esperar)
-      console.log('🔄 Limpiando estado...');
-      setIsAuthenticated(false);
-      setUsuario(null);
-      setAccessToken(null);
-      setRefreshToken(null);
-      console.log('✅ Estado limpiado');
+      console.log('👋 Cerrando sesión...');
 
-      // Paso 2: Limpiar storage (en background, no bloquear)
-      console.log('🧹 Limpiando storage...');
-      (async () => {
-        try {
-          await storage.multiRemove([
-            STORAGE_KEYS.TOKEN,
-            STORAGE_KEYS.REFRESH_TOKEN,
-            STORAGE_KEYS.USER,
-          ]);
-          console.log('✅ Storage limpiado');
-        } catch (err) {
-          console.error('⚠️ Error limpiando storage:', err);
-        }
-      })();
-
-      // Paso 3: Intentar invalidar token en backend (no bloquear si falla)
       if (accessToken) {
-        (async () => {
-          try {
-            await authService.logout(accessToken);
-            console.log('✅ Token invalidado en backend');
-          } catch (error) {
-            console.log('⚠️ Error invalidando token en backend:', error.message);
-          }
-        })();
+        try {
+          await authService.logout(accessToken);
+        } catch (error) {
+          console.log('⚠️ Error al invalidar token en backend:', error.message);
+        }
       }
 
-      console.log('✅ Logout completado');
+      await limpiarStorage();
+      console.log('✅ Sesión cerrada');
     } catch (error) {
-      console.error('❌ Error crítico en logout:', error);
-      // Forzar limpieza incluso si hay errores
-      setIsAuthenticated(false);
-      setUsuario(null);
-      setAccessToken(null);
-      setRefreshToken(null);
+      console.error('❌ Error en logout:', error);
+      await limpiarStorage();
     }
   };
 
@@ -305,6 +261,14 @@ export const AuthProvider = ({ children }) => {
     refrescarDatos,
   };
 
+  useEffect(() => {
+  console.log("AUTH CAMBIO:", {
+    usuario,
+    accessToken,
+    isAuthenticated
+  });
+}, [usuario, accessToken]);
+
   return (
     <AuthContext.Provider value={value}>
       {children}
@@ -313,13 +277,5 @@ export const AuthProvider = ({ children }) => {
 };
 
 export const useAuth = () => {
-  const context = useContext(AuthContext);
-  
-  if (!context) {
-    throw new Error('useAuth debe ser usado dentro de un AuthProvider');
-  }
-  
-  return context;
+  return useContext(AuthContext);
 };
-
-export default AuthContext;

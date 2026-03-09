@@ -20,6 +20,8 @@ const ModernSearchBar = ({
   const [isFocused, setIsFocused] = useState(false);
 
   const handleClear = () => {
+
+    
     onChangeText('');
     onClear();
   };

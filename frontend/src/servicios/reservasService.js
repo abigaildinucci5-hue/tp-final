@@ -15,7 +15,7 @@ export const obtenerReservas = async (filtros = {}) => {
   const url = queryString ? `/reservas?${queryString}` : '/reservas';
   
   const response = await api.get(url);
-  return response;
+  return response.data;
 };
 
 /**
@@ -23,7 +23,7 @@ export const obtenerReservas = async (filtros = {}) => {
  */
 export const obtenerReserva = async (idReserva) => {
   const response = await api.get(`/reservas/${idReserva}`);
-  return response;
+  return response.data;
 };
 
 /**
@@ -31,7 +31,7 @@ export const obtenerReserva = async (idReserva) => {
  */
 export const crearReserva = async (datosReserva) => {
   const response = await api.post('/reservas', datosReserva);
-  return response;
+  return response.data;
 };
 
 /**
@@ -39,7 +39,7 @@ export const crearReserva = async (datosReserva) => {
  */
 export const modificarReserva = async (idReserva, datos) => {
   const response = await api.put(`/reservas/${idReserva}`, datos);
-  return response;
+  return response.data;
 };
 
 /**
@@ -47,7 +47,7 @@ export const modificarReserva = async (idReserva, datos) => {
  */
 export const cancelarReserva = async (idReserva) => {
   const response = await api.delete(`/reservas/${idReserva}`);
-  return response;
+  return response.data;
 };
 
 /**
@@ -55,7 +55,7 @@ export const cancelarReserva = async (idReserva) => {
  */
 export const obtenerHistorial = async () => {
   const response = await api.get('/reservas/usuario/historial');
-  return response;
+  return response.data;
 };
 
 /**
@@ -63,5 +63,5 @@ export const obtenerHistorial = async () => {
  */
 export const confirmarReserva = async (idReserva) => {
   const response = await api.put(`/reservas/${idReserva}/confirmar`);
-  return response;
+  return response.data;
 };

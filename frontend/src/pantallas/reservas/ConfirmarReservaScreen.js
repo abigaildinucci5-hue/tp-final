@@ -12,38 +12,63 @@ import Boton from '../../componentes/comun/Boton';
 import ErrorMensaje from '../../componentes/comun/ErrorMensaje';
 
 const ConfirmarReservaScreen = ({ navigation, route }) => {
-  const { habitacion, fechaInicio, fechaFin, cantidadPersonas, precioTotal } = route.params;
-  const { crearReserva, loading } = useReservas();
+  const { habitacion, fechaInicio, fechaFin, cantidadPersonas, precioTotal } = route.params || {};
+  const { crearReserva } = useReservas();
   
   const [metodoPago, setMetodoPago] = useState(null);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const handleConfirmar = async () => {
+    console.log('🎬 BOTÓN PRESIONADO');
+    
     if (!metodoPago) {
       setError('Por favor selecciona un método de pago');
       return;
     }
 
-    // ✅ Validar que todos los datos requeridos estén presentes
     if (!habitacion || (!habitacion.id && !habitacion.id_habitacion)) {
       setError('Error: Habitación no válida');
       return;
     }
 
-    const reservaData = {
-      idHabitacion: habitacion.id || habitacion.id_habitacion,
-      fechaEntrada: fechaInicio,
-      fechaSalida: fechaFin,
-      numeroHuespedes: cantidadPersonas,
-      metodoPago: metodoPago,
-    };
+    try {
+      setLoading(true);
+      setError(null);
 
-    const result = await crearReserva(reservaData);
-    
-    if (result.success) {
-      navigation.navigate('ReservaExitosa', { reserva: result.data });
-    } else {
-      setError(result.error || 'Error al crear la reserva');
+      const reservaData = {
+        idHabitacion: habitacion.id || habitacion.id_habitacion,
+        fechaEntrada: fechaInicio,
+        fechaSalida: fechaFin,
+        numeroHuespedes: cantidadPersonas,
+        metodoPago: metodoPago,
+      };
+
+      console.log('📤 Enviando:', reservaData);
+      const result = await crearReserva(reservaData);
+      console.log('📥 Respuesta:', result);
+
+      if (result?.success) {
+        // Mostrar toast de éxito
+        if (window && window.toast) {
+          window.toast('Reserva creada correctamente', { type: 'success' });
+        }
+        // Redirigir a MisReservas
+        navigation.navigate('MisReservas');
+      } else {
+        if (window && window.toast) {
+          window.toast('Error al crear la reserva', { type: 'error' });
+        }
+        setError('Error al crear la reserva');
+      }
+    } catch (err) {
+      console.error('💥 Error:', err);
+      if (window && window.toast) {
+        window.toast('Error al crear la reserva', { type: 'error' });
+      }
+      setError(err.message || 'Error al crear la reserva');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -67,7 +92,7 @@ const ConfirmarReservaScreen = ({ navigation, route }) => {
 
         <View style={estilos.metodoPagoContainer}>
           <Text style={estilos.titulo}>Método de Pago</Text>
-          {METODOS_PAGO.map((metodo) => (
+          {METODOS_PAGO && METODOS_PAGO.map((metodo) => (
             <TouchableOpacity
               key={metodo.id}
               style={[
@@ -97,7 +122,12 @@ const ConfirmarReservaScreen = ({ navigation, route }) => {
       </ScrollView>
 
       <View style={estilos.footer}>
-        <Boton onPress={handleConfirmar} loading={loading} fullWidth>
+        <Boton 
+          onPress={handleConfirmar} 
+          loading={loading} 
+          fullWidth
+          disabled={loading}
+        >
           Confirmar y Pagar
         </Boton>
       </View>

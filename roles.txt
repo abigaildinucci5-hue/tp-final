@@ -1,6 +1,0 @@
-Email: admin@hotel.com
-Contraseña: admin123
-Recepcionista
-
-Email: recepcionista@hotel.com
-Contraseña: admin123

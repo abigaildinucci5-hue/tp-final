@@ -13,7 +13,12 @@ export const useRequireAuth = () => {
   const requireAuth = useCallback(async () => {
     if (!isAuthenticated) {
       // Mostrar modal de login sin romper navegación
-      navigation.navigate('AuthModal');
+      try {
+        navigation.navigate('AuthModal');
+      } catch {
+        // Si AuthModal no está disponible, intenta ir a Auth
+        navigation.navigate('Auth');
+      }
       return false;
     }
     return true;

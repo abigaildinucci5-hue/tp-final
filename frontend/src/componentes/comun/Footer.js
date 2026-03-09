@@ -157,7 +157,7 @@ const Footer = ({ navigation }) => {
           
           <TouchableOpacity 
             style={styles.linkItem}
-            onPress={() => navigation.navigate('ListaHabitaciones')}
+            onPress={() => navigation.navigate('Habitaciones')}
             activeOpacity={0.7}
           >
             <MaterialCommunityIcons
@@ -170,7 +170,7 @@ const Footer = ({ navigation }) => {
           
           <TouchableOpacity 
             style={styles.linkItem}
-            onPress={() => navigation.navigate('MisReservas')}
+            onPress={() => navigation.navigate('Reservas')}
             activeOpacity={0.7}
           >
             <MaterialCommunityIcons

@@ -20,9 +20,9 @@ export const obtenerReservas = createAsyncThunk(
   async (filtros = {}, { rejectWithValue }) => {
     try {
       const response = await reservasService.obtenerReservas(filtros);
-      return response.data;
+      return response;
     } catch (error) {
-      return rejectWithValue(error.response?.data);
+      return rejectWithValue(error.response?.data || error.message || error);
     }
   }
 );
@@ -32,9 +32,9 @@ export const obtenerReserva = createAsyncThunk(
   async (idReserva, { rejectWithValue }) => {
     try {
       const response = await reservasService.obtenerReserva(idReserva);
-      return response.data;
+      return response;
     } catch (error) {
-      return rejectWithValue(error.response?.data);
+      return rejectWithValue(error.response?.data || error.message || error);
     }
   }
 );
@@ -44,9 +44,9 @@ export const crearReserva = createAsyncThunk(
   async (datosReserva, { rejectWithValue }) => {
     try {
       const response = await reservasService.crearReserva(datosReserva);
-      return response.data;
+      return response;
     } catch (error) {
-      return rejectWithValue(error.response?.data);
+      return rejectWithValue(error.response?.data || error.message || error);
     }
   }
 );
@@ -56,9 +56,9 @@ export const modificarReserva = createAsyncThunk(
   async ({ idReserva, datos }, { rejectWithValue }) => {
     try {
       const response = await reservasService.modificarReserva(idReserva, datos);
-      return response.data;
+      return response;
     } catch (error) {
-      return rejectWithValue(error.response?.data);
+      return rejectWithValue(error.response?.data || error.message || error);
     }
   }
 );
@@ -68,9 +68,9 @@ export const cancelarReserva = createAsyncThunk(
   async (idReserva, { rejectWithValue }) => {
     try {
       const response = await reservasService.cancelarReserva(idReserva);
-      return { idReserva, ...response.data };
+      return { idReserva, ...response };
     } catch (error) {
-      return rejectWithValue(error.response?.data);
+      return rejectWithValue(error.response?.data || error.message || error);
     }
   }
 );
@@ -80,9 +80,9 @@ export const obtenerHistorial = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await reservasService.obtenerHistorial();
-      return response.data;
+      return response;
     } catch (error) {
-      return rejectWithValue(error.response?.data);
+      return rejectWithValue(error.response?.data || error.message || error);
     }
   }
 );
