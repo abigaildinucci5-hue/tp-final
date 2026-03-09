@@ -1,12 +1,12 @@
 // server.js - Servidor principal del backend con OAuth
 require('dotenv').config();
 const express = require('express');
-const cors = require('cors');
 const helmet = require('helmet');
 const compression = require('compression');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const passport = require('./src/config/oauth');
+const cors = require('cors');
 
 // Importar rutas
 const rutasAuth = require('./src/rutas/rutasAuth');
@@ -41,7 +41,6 @@ app.get('/ping', (req, res) => {
 
 
 // CORS GLOBAL para Railway y frontend local
-const cors = require('cors');
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
