@@ -14,7 +14,6 @@ const rutasUsuarios = require('./src/rutas/rutasUsuarios');
 const rutasHabitaciones = require('./src/rutas/rutasHabitaciones');
 const rutasReservas = require('./src/rutas/rutasReservas');
 const rutasComentarios = require('./src/rutas/rutasComentarios');
-const rutasNotificaciones = require('./src/rutas/rutasNotificaciones');
 const rutasEmpleado = require('./src/rutas/rutasEmpleado');
 const rutasPuntos = require('./src/rutas/rutasPuntos');
 
@@ -39,22 +38,31 @@ app.get('/ping', (req, res) => {
 // MIDDLEWARES
 // ============================
 
+app.use(helmet());
 
-// CORS GLOBAL para Railway y frontend local
+const allowedOrigins = [
+  'http://localhost:8081',
+  'http://localhost:3000',
+  'http://localhost:19006',
+  'https://tp-final-production-a1f6.up.railway.app'
+];
+
 app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  exposedHeaders: ['X-Total-Count', 'X-Page-Count'],
-  credentials: true,
-  maxAge: 86400
-}));
-// Soporte explícito para preflight
-app.options('*', cors());
+  origin: function(origin, callback) {
 
-// Helmet después de CORS
-app.use(helmet({
-  crossOriginResourcePolicy: { policy: "cross-origin" }
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    console.error('❌ CORS bloqueado:', origin);
+    return callback(new Error('CORS no permitido'));
+  },
+
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 app.use(compression());
@@ -125,7 +133,6 @@ app.use('/api/usuarios', rutasUsuarios);
 app.use('/api/habitaciones', rutasHabitaciones);
 app.use('/api/reservas', rutasReservas);
 app.use('/api/comentarios', rutasComentarios);
-app.use('/api/notificaciones', rutasNotificaciones);
 app.use('/api/empleado', rutasEmpleado);
 app.use('/api/puntos', rutasPuntos);
 
@@ -133,64 +140,6 @@ app.use('/uploads', express.static('uploads'));
 
 // ============================
 // 404
-// ============================
-
-// ============================
-// PROXY DE IMÁGENES (para evitar CORB de Unsplash)
-// ============================
-
-app.get('/api/proxy/image', (req, res) => {
-  const { url } = req.query;
-  
-  // Validar que la URL sea de imagen
-  if (!url) {
-    return res.status(400).json({
-      exito: false,
-      mensaje: 'URL es requerida'
-    });
-  }
-
-  // Validar que sea HTTPS
-  if (!url.startsWith('http://') && !url.startsWith('https://')) {
-    return res.status(400).json({
-      exito: false,
-      mensaje: 'URL no válida'
-    });
-  }
-
-  // Usar https.get o http.get según el protocolo
-  const https = require('https');
-  const http = require('http');
-  const protocol = url.startsWith('https') ? https : http;
-
-  try {
-    protocol.get(url, { timeout: 10000 }, (imgRes) => {
-      // Set CORS headers
-      res.setHeader('Access-Control-Allow-Origin', '*');
-      res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD');
-      res.setHeader('Content-Type', imgRes.headers['content-type']);
-      res.setHeader('Cache-Control', 'public, max-age=86400');
-      
-      // Stream la imagen al cliente
-      imgRes.pipe(res);
-    }).on('error', (error) => {
-      console.error('❌ Error al descargar imagen:', error);
-      res.status(500).json({
-        exito: false,
-        mensaje: 'Error al cargar la imagen'
-      });
-    });
-  } catch (error) {
-    console.error('❌ Error en proxy de imágenes:', error);
-    res.status(500).json({
-      exito: false,
-      mensaje: 'Error al cargar la imagen'
-    });
-  }
-});
-
-// ============================
-// 404 - RUT NO ENCONTRADA
 // ============================
 
 app.use((req, res) => {
@@ -244,5 +193,6 @@ process.on('uncaughtException', (error) => {
   console.error('❌ Excepción no capturada:', error);
 });
 
-
 iniciarServidor();
+
+module.exports = app;

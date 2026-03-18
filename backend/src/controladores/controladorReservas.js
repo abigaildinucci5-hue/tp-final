@@ -153,7 +153,6 @@ const crearReserva = asyncHandler(async (req, res) => {
     fechaEntrada,
     fechaSalida,
     numeroHuespedes,
-    metodoPago,
     notasEspeciales
   } = req.body;
 
@@ -162,10 +161,6 @@ const crearReserva = asyncHandler(async (req, res) => {
   // Validaciones
   if (!idHabitacion || !fechaEntrada || !fechaSalida || !numeroHuespedes) {
     throw crearError400('Todos los campos son requeridos');
-  }
-
-  if (!metodoPago) {
-    throw crearError400('El método de pago es requerido');
   }
 
   // Validar fechas
@@ -254,27 +249,19 @@ const crearReserva = asyncHandler(async (req, res) => {
     numero_huespedes: numeroHuespedes,
     precio_total: precioTotal,
     descuento_aplicado: descuento,
-    metodo_pago: metodoPago,
     estado: 'pendiente',
     notas_especiales: notasEspeciales || null
   };
 
   const idReserva = await insertar('reservas', datosReserva);
 
-  // Crear notificación
-  await insertar('notificaciones', {
-    id_usuario,
-    tipo: 'confirmacion_reserva',
-    titulo: 'Reserva Creada',
-    mensaje: `Tu reserva #${idReserva} ha sido creada exitosamente`,
-    datos_adicionales: JSON.stringify({ idReserva })
-  });
 
   res.status(201).json({
     exito: true,
     mensaje: 'Reserva creada exitosamente',
     data: {
-      idReserva,
+      id_reserva: idReserva, // Cambiamos esto para que coincida con el modelo
+      idReserva: idReserva,   // Mantenemos este por si acaso
       numeroReserva: idReserva,
       precioTotal,
       descuento,
@@ -450,14 +437,6 @@ const cancelarReserva = asyncHandler(async (req, res) => {
     fecha_cancelacion: new Date()
   });
 
-  // Crear notificación
-  await insertar('notificaciones', {
-    id_usuario: reserva.id_usuario,
-    tipo: 'cancelacion',
-    titulo: 'Reserva Cancelada',
-    mensaje: `Tu reserva #${idReserva} ha sido cancelada`,
-    datos_adicionales: JSON.stringify({ idReserva, montoReembolso })
-  });
 
   res.json({
     exito: true,

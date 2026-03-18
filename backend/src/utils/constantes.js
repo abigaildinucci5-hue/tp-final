@@ -37,7 +37,6 @@ const PERMISOS_POR_ROL = {
     'gestionar_reservas',
     'gestionar_comentarios',
     'ver_estadisticas',
-    'enviar_notificaciones_masivas',
     'acceso_completo',
   ],
 };
@@ -75,14 +74,6 @@ const TIPOS_COMENTARIO = {
   HABITACION: 'habitacion',
 };
 
-const TIPOS_NOTIFICACION = {
-  NUEVA_HABITACION: 'nueva_habitacion',
-  CONFIRMACION_RESERVA: 'confirmacion_reserva',
-  RECORDATORIO: 'recordatorio',
-  CANCELACION: 'cancelacion',
-  OFERTA: 'oferta',
-  SISTEMA: 'sistema',
-};
 
 const TIPOS_VISTA = {
   MAR: 'mar',
@@ -206,7 +197,6 @@ const RUTAS_API = {
   HABITACIONES: '/api/habitaciones',
   RESERVAS: '/api/reservas',
   COMENTARIOS: '/api/comentarios',
-  NOTIFICACIONES: '/api/notificaciones',
 };
 
 const RUTAS_FRONTEND = {
@@ -219,7 +209,6 @@ const RUTAS_FRONTEND = {
   RESERVAS: '/reservas',
   DETALLE_RESERVA: '/reservas/:id',
   FAVORITOS: '/favoritos',
-  NOTIFICACIONES: '/notificaciones',
   ADMIN: '/admin',
 };
 
@@ -373,7 +362,6 @@ module.exports = {
   ESTADOS_HABITACION,
   ESTADOS_PAGO,
   TIPOS_COMENTARIO,
-  TIPOS_NOTIFICACION,
   TIPOS_VISTA,
   LIMITES,
   DESCUENTOS,

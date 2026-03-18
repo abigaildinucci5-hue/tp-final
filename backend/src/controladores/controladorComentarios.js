@@ -186,50 +186,14 @@ const crearComentario = asyncHandler(async (req, res) => {
     aprobado: false // Los comentarios deben ser aprobados por empleados
   };
 
-  const [resultado] = await insertar('comentarios', datosComentario);
-  const idComentario = resultado.insertId;
+  const idComentario = await insertar('comentarios', datosComentario);
 
-  // ====== AGREGAR PUNTOS POR COMENTARIO ======
-  // El usuario gana 50 puntos por cada reseña publicada
-  try {
-    const controladorPuntos = require('./controladorPuntos');
-    await controladorPuntos.agregarPuntos(
-      id_usuario,
-      50,
-      'Reseña publicada',
-      idReserva
-    );
-
-    // Actualizar contador de reseñas del usuario
-    await ejecutarConsulta(
-      'UPDATE usuarios SET total_reseñas = total_reseñas + 1 WHERE id_usuario = ?',
-      [id_usuario]
-    );
-  } catch (error) {
-    console.error('Error agregando puntos por comentario:', error.message);
-    // Continuar aunque haya error en los puntos
-  }
-
-  // Crear notificación para administradores
-  const sqlAdmins = `SELECT id_usuario FROM usuarios WHERE rol = 'admin' AND activo = TRUE`;
-  const admins = await ejecutarConsulta(sqlAdmins);
-
-  for (const admin of admins) {
-    await insertar('notificaciones', {
-      id_usuario: admin.id_usuario,
-      tipo: 'sistema',
-      titulo: 'Nuevo Comentario Pendiente',
-      mensaje: `Hay un nuevo comentario esperando aprobación`,
-      datos_adicionales: JSON.stringify({ idComentario })
-    });
-  }
 
   res.status(201).json({
     exito: true,
     mensaje: 'Comentario creado exitosamente. Será visible una vez aprobado.',
     data: {
-      idComentario,
-      puntosGanados: 50
+      idComentario
     }
   });
 });
@@ -371,14 +335,6 @@ const responderComentario = asyncHandler(async (req, res) => {
     fecha_respuesta: new Date()
   });
 
-  // Notificar al autor del comentario
-  await insertar('notificaciones', {
-    id_usuario: comentarios[0].id_usuario,
-    tipo: 'sistema',
-    titulo: 'Respuesta a tu Comentario',
-    mensaje: 'El hotel ha respondido a tu comentario',
-    datos_adicionales: JSON.stringify({ idComentario })
-  });
 
   res.json({
     exito: true,
@@ -455,225 +411,6 @@ const obtenerMisComentarios = asyncHandler(async (req, res) => {
   });
 });
 
-/**
- * Actualizar calificación promedio de habitación
- * Función auxiliar para actualizar la calificación promedio
- */
-const actualizarCalificacionPromedio = async (idHabitacion) => {
-  const sql = `
-    SELECT 
-      COUNT(*) as total,
-      AVG(calificacion) as promedio
-    FROM comentarios
-    WHERE id_habitacion = ? AND aprobado = TRUE
-  `;
-
-  const [resultado] = await ejecutarConsulta(sql, [idHabitacion]);
-
-  if (resultado[0].total > 0) {
-    const sqlActualizar = `
-      UPDATE habitaciones 
-      SET calificacion_promedio = ?, total_reseñas = ?
-      WHERE id_habitacion = ?
-    `;
-    await ejecutarConsulta(sqlActualizar, [resultado[0].promedio, resultado[0].total, idHabitacion]);
-  }
-};
-
-/**
- * Agregar puntos al usuario por comentario
- * Función auxiliar
- */
-const agregarPuntosUsuario = async (idUsuario, cantidad, concepto) => {
-  try {
-    // Actualizar puntos
-    const sqlActualizar = `
-      UPDATE usuarios 
-      SET puntos_acumulados = puntos_acumulados + ?,
-          total_reseñas = total_reseñas + 1
-      WHERE id_usuario = ?
-    `;
-    await ejecutarConsulta(sqlActualizar, [cantidad, idUsuario]);
-
-    // Registrar en historial
-    const sqlHistorial = `
-      INSERT INTO historial_puntos (id_usuario, cantidad, tipo, concepto)
-      VALUES (?, ?, 'ganado', ?)
-    `;
-    await ejecutarConsulta(sqlHistorial, [idUsuario, cantidad, concepto]);
-  } catch (error) {
-    console.error('Error al agregar puntos:', error);
-  }
-};
-
-/**
- * Responder comentario mejorado (admin solo)
- * PUT /api/comentarios/:idComentario/responder-admin
- */
-const responderComentarioAdmin = asyncHandler(async (req, res) => {
-  const { idComentario } = req.params;
-  const { respuesta } = req.body;
-  const { id_usuario: empleadoId, rol } = req.usuario;
-
-  // Verificar que sea admin
-  if (rol !== 'admin') {
-    throw crearError403('Solo administradores pueden responder comentarios');
-  }
-
-  if (!respuesta || respuesta.trim() === '') {
-    throw crearError400('La respuesta no puede estar vacía');
-  }
-
-  // Verificar que el comentario existe
-  const sqlVerificar = `
-    SELECT id_usuario, id_comentario FROM comentarios WHERE id_comentario = ?
-  `;
-  const [comentarios] = await ejecutarConsulta(sqlVerificar, [idComentario]);
-
-  if (comentarios.length === 0) {
-    throw crearError404('Comentario no encontrado');
-  }
-
-  const comentario = comentarios[0];
-
-  // Actualizar comentario con respuesta
-  const sqlActualizar = `
-    UPDATE comentarios
-    SET respuesta_hotel = ?,
-        fecha_respuesta_hotel = NOW(),
-        respondido_por = ?
-    WHERE id_comentario = ?
-  `;
-  await ejecutarConsulta(sqlActualizar, [respuesta, empleadoId, idComentario]);
-
-  // Notificar al usuario que comentó
-  const sqlNotificacion = `
-    INSERT INTO notificaciones (id_usuario, tipo, titulo, mensaje, datos_adicionales)
-    VALUES (?, 'comentario', 'Respuesta a tu Comentario', 'El hotel ha respondido a tu comentario', ?)
-  `;
-  await ejecutarConsulta(sqlNotificacion, [
-    comentario.id_usuario,
-    JSON.stringify({ idComentario, tipo: 'respuesta_comentario' })
-  ]);
-
-  res.json({
-    exito: true,
-    mensaje: 'Respuesta agregada al comentario exitosamente',
-    comentarioId: idComentario
-  });
-});
-
-/**
- * Validar que usuario completó la reserva antes de comentar
- * GET /api/comentarios/validar-permiso/:idHabitacion
- */
-const validarPermisoComentar = asyncHandler(async (req, res) => {
-  const { idHabitacion } = req.params;
-  const { id_usuario } = req.usuario;
-
-  const sql = `
-    SELECT r.id_reserva, r.numero_reserva
-    FROM reservas r
-    WHERE r.usuario_id = ? 
-    AND r.habitacion_id = ? 
-    AND r.estado = 'completada'
-    LIMIT 1
-  `;
-
-  const [reservasCompletadas] = await ejecutarConsulta(sql, [id_usuario, idHabitacion]);
-
-  if (reservasCompletadas.length === 0) {
-    return res.json({
-      exito: false,
-      mensaje: 'No tienes una reserva completada en esta habitación',
-      puedeComment: false
-    });
-  }
-
-  // Verificar si ya comentó
-  const sqlComentario = `
-    SELECT id_comentario FROM comentarios
-    WHERE id_usuario = ? AND id_habitacion = ?
-    LIMIT 1
-  `;
-
-  const [comentariosExistentes] = await ejecutarConsulta(sqlComentario, [id_usuario, idHabitacion]);
-
-  res.json({
-    exito: true,
-    puedeComment: comentariosExistentes.length === 0,
-    mensaje: comentariosExistentes.length > 0 ? 'Ya has comentado esta habitación' : 'Puedes comentar esta habitación',
-    reservaId: reservasCompletadas[0].id_reserva,
-    numeroReserva: reservasCompletadas[0].numero_reserva
-  });
-});
-
-/**
- * Obtener estadísticas de comentarios
- * GET /api/comentarios/estadisticas/general
- */
-const obtenerEstadisticasComentarios = asyncHandler(async (req, res) => {
-  const sqlGeneral = `
-    SELECT 
-      COUNT(*) as total_comentarios,
-      SUM(CASE WHEN aprobado = TRUE THEN 1 ELSE 0 END) as aprobados,
-      SUM(CASE WHEN aprobado = FALSE THEN 1 ELSE 0 END) as pendientes,
-      AVG(calificacion) as calificacion_promedio,
-      SUM(CASE WHEN calificacion = 5 THEN 1 ELSE 0 END) as cinco_estrellas,
-      SUM(CASE WHEN calificacion = 4 THEN 1 ELSE 0 END) as cuatro_estrellas,
-      SUM(CASE WHEN calificacion = 3 THEN 1 ELSE 0 END) as tres_estrellas,
-      SUM(CASE WHEN calificacion = 2 THEN 1 ELSE 0 END) as dos_estrellas,
-      SUM(CASE WHEN calificacion = 1 THEN 1 ELSE 0 END) as una_estrella
-    FROM comentarios
-    WHERE aprobado = TRUE
-  `;
-
-  const [estadisticasGeneral] = await ejecutarConsulta(sqlGeneral);
-
-  // Habitaciones mejor calificadas
-  const sqlMejores = `
-    SELECT 
-      h.id_habitacion,
-      h.numero_habitacion,
-      AVG(c.calificacion) as promedio,
-      COUNT(*) as total_comentarios
-    FROM habitaciones h
-    LEFT JOIN comentarios c ON h.id_habitacion = c.id_habitacion AND c.aprobado = TRUE
-    GROUP BY h.id_habitacion
-    HAVING COUNT(*) > 0
-    ORDER BY promedio DESC
-    LIMIT 5
-  `;
-
-  const [mejoresHabitaciones] = await ejecutarConsulta(sqlMejores);
-
-  // Habitaciones peor calificadas
-  const sqlPeores = `
-    SELECT 
-      h.id_habitacion,
-      h.numero_habitacion,
-      AVG(c.calificacion) as promedio,
-      COUNT(*) as total_comentarios
-    FROM habitaciones h
-    LEFT JOIN comentarios c ON h.id_habitacion = c.id_habitacion AND c.aprobado = TRUE
-    GROUP BY h.id_habitacion
-    HAVING COUNT(*) > 0
-    ORDER BY promedio ASC
-    LIMIT 5
-  `;
-
-  const [peoresHabitaciones] = await ejecutarConsulta(sqlPeores);
-
-  res.json({
-    exito: true,
-    data: {
-      estadisticasGeneral: estadisticasGeneral[0],
-      mejoresHabitaciones: mejoresHabitaciones,
-      peoresHabitaciones: peoresHabitaciones
-    }
-  });
-});
-
 module.exports = {
   obtenerComentariosHotel,
   obtenerComentariosHabitacion,
@@ -683,10 +420,5 @@ module.exports = {
   aprobarComentario,
   responderComentario,
   obtenerComentariosPendientes,
-  obtenerMisComentarios,
-  responderComentarioAdmin,
-  validarPermisoComentar,
-  obtenerEstadisticasComentarios,
-  actualizarCalificacionPromedio,
-  agregarPuntosUsuario
+  obtenerMisComentarios
 };

@@ -382,8 +382,6 @@ const crearHabitacion = asyncHandler(async (req, res) => {
 
   const idHabitacion = await insertar('habitaciones', datosHabitacion);
 
-  // Notificar a usuarios sobre nueva habitación
-  // (implementar después con el servicio de notificaciones)
 
   res.status(201).json({
     exito: true,
