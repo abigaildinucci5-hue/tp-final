@@ -13,7 +13,8 @@ const pool = mysql.createPool({
   queueLimit: 0,
   enableKeepAlive: true,
   keepAliveInitialDelay: 0,
-  timezone: '-03:00', // Timezone de Argentina (Mar del Plata)
+  timezone: '-03:00',
+  ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : (process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false)
 });
 
 /**

@@ -4,19 +4,21 @@ const router = express.Router();
 const controladorReservas = require('../controladores/controladorReservas');
 const { verificarAutenticacion, verificarEmpleado, verificarCliente } = require('../middlewares/middlewareAuth');
 
-/**
- * @route   GET /api/reservas
- * @desc    Obtener todas las reservas (Admin/Empleado: todas, Cliente: solo las suyas)
- * @access  Privado
- */
-router.get('/', verificarAutenticacion, verificarCliente, controladorReservas.obtenerReservas);
+// --- 1. RUTAS FIJAS (Sin parámetros dinámicos) ---
 
 /**
- * @route   GET /api/reservas/:idReserva
- * @desc    Obtener detalles de una reserva
+ * @route   GET /api/reservas/usuario/historial
+ * @desc    Obtener historial de reservas del usuario (Activas, Pasadas, Canceladas)
  * @access  Privado
  */
-router.get('/:idReserva', verificarAutenticacion, controladorReservas.obtenerReservaPorId);
+router.get('/usuario/historial', verificarAutenticacion, controladorReservas.obtenerHistorial);
+
+/**
+ * @route   GET /api/reservas
+ * @desc    Obtener todas las reservas (Filtra por usuario si es cliente)
+ * @access  Privado
+ */
+router.get('/', verificarAutenticacion, controladorReservas.obtenerReservas);
 
 /**
  * @route   POST /api/reservas
@@ -25,16 +27,26 @@ router.get('/:idReserva', verificarAutenticacion, controladorReservas.obtenerRes
  */
 router.post('/', verificarAutenticacion, verificarCliente, controladorReservas.crearReserva);
 
+
+// --- 2. RUTAS CON PARÁMETROS DINÁMICOS (/:idReserva) ---
+
+/**
+ * @route   GET /api/reservas/:idReserva
+ * @desc    Obtener detalles de una reserva específica
+ * @access  Privado
+ */
+router.get('/:idReserva', verificarAutenticacion, controladorReservas.obtenerReserva);
+
 /**
  * @route   PUT /api/reservas/:idReserva
- * @desc    Modificar reserva
+ * @desc    Modificar datos de una reserva
  * @access  Privado
  */
 router.put('/:idReserva', verificarAutenticacion, controladorReservas.modificarReserva);
 
 /**
  * @route   DELETE /api/reservas/:idReserva
- * @desc    Cancelar reserva
+ * @desc    Cancelar una reserva
  * @access  Privado
  */
 router.delete('/:idReserva', verificarAutenticacion, controladorReservas.cancelarReserva);
@@ -45,14 +57,5 @@ router.delete('/:idReserva', verificarAutenticacion, controladorReservas.cancela
  * @access  Privado (Empleado/Admin)
  */
 router.put('/:idReserva/confirmar', verificarAutenticacion, verificarEmpleado, controladorReservas.confirmarReserva);
-
-/**
- * @route   GET /api/reservas/usuario/historial
- * @desc    Obtener historial de reservas del usuario
- * @access  Privado
- */
-router.get('/usuario/historial', verificarAutenticacion, (req, res) => {
-  res.json({ mensaje: 'Historial de reservas' });
-});
 
 module.exports = router;
