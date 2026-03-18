@@ -14,6 +14,7 @@ const rutasUsuarios = require('./src/rutas/rutasUsuarios');
 const rutasHabitaciones = require('./src/rutas/rutasHabitaciones');
 const rutasReservas = require('./src/rutas/rutasReservas');
 const rutasComentarios = require('./src/rutas/rutasComentarios');
+const rutasNotificaciones = require('./src/rutas/rutasNotificaciones');
 const rutasEmpleado = require('./src/rutas/rutasEmpleado');
 const rutasPuntos = require('./src/rutas/rutasPuntos');
 
