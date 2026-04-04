@@ -1,74 +1,49 @@
-/**
- * PALETA DE COLORES - HOTEL LUNA SERENA v2.0
- * Sistema centralizado mejorado con nomenclatura clara
- */
-
+// Paleta de colores Hotel Luna Serena - Elegante y Sofisticada
 export const COLORES = {
   // ==========================================
-  // COLORES PRINCIPALES - Identidad Visual
+  // COLORES PRINCIPALES - Dorado Elegante
   // ==========================================
-  PRIMARIO: '#2C2C2C',           // Navbar, headers oscuros (nuevo)
-  SECUNDARIO: '#C9A961',         // Dorado principal (acentos, botones)
-  ACENTO: '#F8F8F8',             // Fondos claros, textos alternos (nuevo)
-  COMPLEMENTARIO: '#6B6B6B',     // Textos secundarios, bordes (nuevo)
-  
-  // Dorados (compatibilidad)
-  dorado: '#C9A961',
-  doradoClaro: '#E5D5A8',
-  doradoOscuro: '#B8954D',
-  doradoMuyClaro: '#F5EFE0',
+  dorado: '#C9A961',           // Dorado principal (botones, acentos)
+  doradoClaro: '#E5D5A8',      // Dorado suave (hover, fondos suaves)
+  doradoOscuro: '#B8954D',     // Dorado oscuro (active, sombras)
+  doradoMuyClaro: '#F5EFE0',   // Dorado muy claro (fondos amplios)
   
   // ==========================================
   // COLORES NEUTROS - Elegancia
   // ==========================================
-  NEGRO: '#1A1A1A',
-  BLANCO: '#FFFFFF',
-  blanco: '#FFFFFF',
-  negroElegante: '#1A1A1A',
-  grisOscuro: '#2C3E50',
-  grisTexto: '#6C757D',
-  grisClaro: '#F8F9FA',
-  GRIS_CLARO: '#F5F5F5',
-  GRIS_MEDIO: '#999999',
-  GRIS_OSCURO: '#4A4A4A',
-  grisBorde: '#E5E7EB',
+  blanco: '#FFFFFF',           // Blanco puro
+  negroElegante: '#1A1A1A',    // Negro suave (headers, contraste fuerte)
+  grisOscuro: '#2C3E50',       // Gris oscuro (texto principal)
+  grisTexto: '#6C757D',        // Gris medio (textos secundarios)
+  grisClaro: '#F8F9FA',        // Gris muy claro (fondos)
+  grisBorde: '#E5E7EB',        // Gris para bordes
   
   // ==========================================
   // COLORES DE FONDO
   // ==========================================
-  fondo: '#FAFAFA',
-  fondoTarjeta: '#FFFFFF',
-  fondoInput: '#F8F9FA',
-  fondoClaro: '#F5EFE0',
+  fondo: '#FAFAFA',            // Fondo principal de la app
+  fondoTarjeta: '#FFFFFF',     // Fondo de tarjetas
+  fondoInput: '#F8F9FA',       // Fondo de inputs
+  fondoClaro: '#F5EFE0',       // Fondo con tinte dorado suave
   
   // ==========================================
-  // COLORES DE ESTADO
+  // COLORES DE ESTADO (mantener funcionales)
   // ==========================================
-  EXITO: '#10B981',
-  exito: '#10B981',
-  exitoClaro: '#34D399',
-  exitoOscuro: '#059669',
+  exito: '#10B981',            // Verde éxito
+  exitoClaro: '#34D399',       // Verde claro
+  exitoOscuro: '#059669',      // Verde oscuro
   
-  ERROR: '#EF4444',
-  error: '#EF4444',
-  errorClaro: '#F87171',
-  errorOscuro: '#DC2626',
+  error: '#EF4444',            // Rojo error
+  errorClaro: '#F87171',       // Rojo claro
+  errorOscuro: '#DC2626',      // Rojo oscuro
   
-  ADVERTENCIA: '#F59E0B',
-  advertencia: '#F59E0B',
-  advertenciaClaro: '#FBBF24',
-  advertenciaOscuro: '#D97706',
+  advertencia: '#F59E0B',      // Naranja advertencia
+  advertenciaClaro: '#FBBF24', // Naranja claro
+  advertenciaOscuro: '#D97706', // Naranja oscuro
   
-  INFO: '#3B82F6',
-  info: '#3B82F6',
-  infoClaro: '#60A5FA',
-  infoOscuro: '#2563EB',
-  
-  // Adicionales
-  ORO: '#FFD700',
-  DISABLED: '#CCCCCC',
-  OVERLAY_DARK: 'rgba(0, 0, 0, 0.5)',
-  OVERLAY_LIGHT: 'rgba(255, 255, 255, 0.1)',
+  info: '#3B82F6',             // Azul info
+  infoClaro: '#60A5FA',        // Azul claro
+  infoOscuro: '#2563EB',       // Azul oscuro
   
   // ==========================================
   // COLORES DE TEXTO

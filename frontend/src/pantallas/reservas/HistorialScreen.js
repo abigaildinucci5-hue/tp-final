@@ -2,11 +2,13 @@
 import React, { useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { ESTILOS_GLOBALES } from '../../constantes/estilos';
+import { useAuth } from '../../contexto/AuthContext';
 import { useReservas } from '../../hooks/useReservas';
 import HistorialReservas from '../../componentes/reservas/HistorialReservas';
 import HeaderApp from '../../componentes/comun/HeaderApp';
 
 const HistorialScreen = ({ navigation }) => {
+  const { usuario } = useAuth();
   const { misReservas, loading, cargarMisReservas } = useReservas();
 
   useEffect(() => {
@@ -30,6 +32,7 @@ const HistorialScreen = ({ navigation }) => {
         loading={loading}
         onReservaPress={handleReservaPress}
         onRefresh={() => cargarMisReservas({ incluir_completadas: true, incluir_canceladas: true })}
+        userRole={usuario?.rol || 'cliente'}
       />
     </View>
   );

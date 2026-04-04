@@ -7,13 +7,13 @@ import {
   Linking,
   StyleSheet,
   Dimensions,
-  Platform,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import COLORES from '../../constantes/colores';
 import { TIPOGRAFIA, DIMENSIONES } from '../../constantes/estilos';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
+const COLUMN_WIDTH = (SCREEN_WIDTH - 60) / 3; // 3 columnas con padding
 
 const Footer = ({ navigation }) => {
   const handlePhoneCall = () => {
@@ -36,29 +36,13 @@ const Footer = ({ navigation }) => {
     Linking.openURL('https://twitter.com');
   };
 
-  const handleRecharge = () => {
-    // En React Native recargar simplemente significa navegar a Home
-    // En web sería window.location.reload()
-    if (Platform.OS === 'web') {
-      window.location.reload();
-    } else {
-      // Navegar a Home para "recargar"
-      if (navigation) {
-        navigation.reset({
-          index: 0,
-          routes: [{ name: 'Home' }],
-        });
-      }
-    }
-  };
-
   return (
     <View style={styles.footerWrapper}>
       {/* SECCIÓN PRINCIPAL - 3 COLUMNAS */}
       <View style={styles.footerContainer}>
         
         {/* COLUMNA 1: RESERVA AHORA */}
-        <View style={styles.footerColumn}>
+        <View style={[styles.footerColumn, { width: COLUMN_WIDTH }]}>
           <Text style={styles.footerTitle}>Reserva Ahora</Text>
           
           <TouchableOpacity 
@@ -84,9 +68,7 @@ const Footer = ({ navigation }) => {
               size={18}
               color={COLORES.dorado}
             />
-            <Text style={styles.contactText} numberOfLines={1} ellipsizeMode="middle" selectable={true}>
-              info@hotellunaserena.com
-            </Text>
+            <Text style={styles.contactText}>info@hotellunaserena.com</Text>
           </TouchableOpacity>
           
           <View style={styles.contactItem}>
@@ -139,7 +121,7 @@ const Footer = ({ navigation }) => {
         </View>
 
         {/* COLUMNA 2: ENLACES RÁPIDOS */}
-        <View style={styles.footerColumn}>
+        <View style={[styles.footerColumn, { width: COLUMN_WIDTH }]}>
           <Text style={styles.footerTitle}>Enlaces Rápidos</Text>
           
           <TouchableOpacity 
@@ -209,14 +191,8 @@ const Footer = ({ navigation }) => {
         </View>
 
         {/* COLUMNA 3: HOTEL LUNA SERENA + ¿POR QUÉ ELEGIRNOS? */}
-        <View style={styles.footerColumn}>
-          <TouchableOpacity 
-            style={styles.hotelTitleContainer}
-            onPress={handleRecharge}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.footerTitle}>Hotel Luna Serena</Text>
-          </TouchableOpacity>
+        <View style={[styles.footerColumn, { width: COLUMN_WIDTH }]}>
+          <Text style={styles.footerTitle}>Hotel Luna Serena</Text>
           
           <Text style={styles.hotelDescription}>
             Experimenta lujo y confort en el corazón de Mar del Plata. Nuestro hotel ofrece habitaciones elegantes y servicios de primera clase.
@@ -244,7 +220,7 @@ const Footer = ({ navigation }) => {
             
             <View style={styles.featureRow}>
               <MaterialCommunityIcons
-                name="phone-outline"
+                name="headset"
                 size={16}
                 color={COLORES.dorado}
               />
@@ -281,22 +257,17 @@ const styles = StyleSheet.create({
     backgroundColor: COLORES.blanco,
     borderTopWidth: 1,
     borderTopColor: COLORES.grisBorde,
-    width: '100%',
   },
   
   footerContainer: {
     flexDirection: 'row',
-    paddingVertical: 50,
-    paddingHorizontal: 40,
-    gap: 30,
-    width: '100%',
-    maxWidth: '100%',
-    overflow: 'hidden',
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+    gap: 20,
   },
   
   footerColumn: {
     justifyContent: 'flex-start',
-    flex: 1,
   },
   
   // TÍTULOS DE COLUMNAS
@@ -308,10 +279,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     textTransform: 'uppercase',
     fontWeight: '700',
-  },
-
-  hotelTitleContainer: {
-    paddingBottom: 10,
   },
   
   // COLUMNA 1: CONTACTO
@@ -328,7 +295,6 @@ const styles = StyleSheet.create({
     color: COLORES.grisOscuro,
     lineHeight: 20,
     fontWeight: '400',
-    flex: 1,
   },
   
   socialIconsRow: {
@@ -398,18 +364,16 @@ const styles = StyleSheet.create({
   // BARRA DE COPYRIGHT
   copyrightBar: {
     backgroundColor: COLORES.grisClaro,
-    paddingVertical: 20,
-    paddingHorizontal: 40,
+    paddingVertical: 15,
+    paddingHorizontal: 20,
     borderTopWidth: 1,
     borderTopColor: COLORES.grisBorde,
-    width: '100%',
   },
   
   copyrightContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    width: '100%',
   },
   
   copyrightText: {
@@ -417,7 +381,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: COLORES.textoMedio,
     fontWeight: '300',
-    flex: 1,
   },
   
   copyrightLinks: {

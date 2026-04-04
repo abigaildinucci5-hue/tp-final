@@ -100,7 +100,7 @@ const estilos = StyleSheet.create({
     width: 100,
     height: 100,
     marginBottom: 16,
-    // resizeMode is now a prop
+    // resizeMode moved to Image prop
   },
   hotelNombre: {
     fontSize: TIPOGRAFIA.fontSizeHeading,

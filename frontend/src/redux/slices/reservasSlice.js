@@ -123,7 +123,15 @@ const reservasSlice = createSlice({
       })
       .addCase(obtenerReservas.fulfilled, (state, action) => {
         state.loading = false;
-        state.reservas = action.payload;
+        // Asegurarse de siempre guardar un array
+        const payload = action.payload;
+        if (Array.isArray(payload)) {
+          state.reservas = payload;
+        } else if (Array.isArray(payload?.data)) {
+          state.reservas = payload.data;
+        } else {
+          state.reservas = [];
+        }
       })
       .addCase(obtenerReservas.rejected, (state, action) => {
         state.loading = false;
@@ -205,8 +213,23 @@ const reservasSlice = createSlice({
 
     // Obtener Historial
     builder
+      .addCase(obtenerHistorial.pending, (state) => {
+        state.loading = true;
+      })
       .addCase(obtenerHistorial.fulfilled, (state, action) => {
-        state.historial = action.payload;
+          state.loading = false;
+          // El interceptor devuelve el objeto completo: { exito, data: { activas, pasadas, canceladas } }
+          const datos = action.payload?.data || action.payload;
+          state.historial = {
+            activas: datos?.activas || [],
+            pasadas: datos?.pasadas || [],
+            canceladas: datos?.canceladas || [],
+          };
+        })
+      .addCase(obtenerHistorial.rejected, (state, action) => {
+        console.error('❌ Redux - Error obtenerHistorial:', action.payload);
+        state.loading = false;
+        state.error = action.payload?.mensaje;
       });
   },
 });

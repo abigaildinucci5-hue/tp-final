@@ -15,10 +15,16 @@ import { Picker } from '@react-native-picker/picker';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORES } from '../../constantes/colores';
 import { useAuth } from '../../contexto/AuthContext';
+import { useReservas } from '../../hooks/useReservas';
 
 const NuevaReservaScreen = ({ route, navigation }) => {
-  const { habitacionId } = route.params || {};
+  const { habitacion } = route.params || {};
+  const habitacionId = habitacion?.id_habitacion;
+console.log("DEBUG - ID de habitación recibido:", habitacionId);
+console.log("DEBUG - Objeto habitación completo:", habitacion);
+
   const { usuario, isAuthenticated } = useAuth();
+  const { crearReserva } = useReservas();
   
   // Estados
   const [fechaCheckIn, setFechaCheckIn] = useState(null);
@@ -41,25 +47,51 @@ const NuevaReservaScreen = ({ route, navigation }) => {
     }
   }, [isAuthenticated, navigation]);
 
-  const handleConfirmarReserva = () => {
-    if (!fechaCheckIn || !fechaCheckOut || !metodoPago) {
-      Alert.alert('Campos faltantes', 'Por favor completa todos los campos obligatorios');
+  const handleConfirmarReserva = async () => {
+    console.log("1. Intento de Confirmación");
+    
+    // Validación de datos
+    if (!fechaCheckIn || !fechaCheckOut) {
+      Alert.alert('Fechas faltantes', 'Por favor selecciona el rango de fechas en el calendario.');
       return;
     }
 
-    // Navegar a pantalla de confirmación
-    navigation.navigate('ConfirmarReserva', {
-      habitacionId,
-      fechaCheckIn,
-      fechaCheckOut,
-      numHuespedes,
-      numNiños,
-      horaLlegada,
-      turno,
-      solicitudes,
-      metodoPago,
-      usarPuntos,
-    });
+    if (!metodoPago) {
+      Alert.alert('Método de pago', 'Por favor selecciona cómo deseas pagar.');
+      return;
+    }
+
+    if (!habitacionId) {
+      console.error("ERROR: No se encontró ID de habitación");
+      Alert.alert('Error', 'No se pudo identificar la habitación. Regresa e intenta de nuevo.');
+      return;
+    }
+
+    try {
+      console.log("2. Enviando datos al hook...");
+      // DATOS CORRECTOS ESPERADOS POR EL BACKEND
+      const reservaData = {
+        idHabitacion: habitacionId,           // ✅ Correcto
+        fechaEntrada: fechaCheckIn,           // ✅ Correcto
+        fechaSalida: fechaCheckOut,           // ✅ Correcto
+        numeroHuespedes: numHuespedes,        // ✅ CORREGIDO: era "huespedes"
+        notasEspeciales: solicitudes          // ✅ CORREGIDO: era "solicitudesEspeciales"
+      };
+
+      const result = await crearReserva(reservaData);
+      
+      console.log("3. Respuesta del servidor:", result);
+
+      if (result && result.success) {
+        navigation.navigate('ReservaExitosa', { reserva: result.data });
+      } else {
+        const msgError = result?.error?.mensaje || 'Error desconocido al reservar';
+        Alert.alert('Atención', msgError);
+      }
+    } catch (err) {
+      console.error("4. Error catastrófico:", err);
+      Alert.alert('Error de Red', 'No pudimos conectar con el servidor.');
+    }
   };
 
   return (
@@ -303,6 +335,7 @@ const NuevaReservaScreen = ({ route, navigation }) => {
       <TouchableOpacity
         style={styles.botonConfirmar}
         onPress={handleConfirmarReserva}
+        activeOpacity={0.7} // Esto hará que el botón brille al tocarlo
       >
         <Text style={styles.textoBoton}>Confirmar Reserva</Text>
       </TouchableOpacity>

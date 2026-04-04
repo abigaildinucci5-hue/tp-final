@@ -2,12 +2,19 @@
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const isWeb = Platform.OS === 'web';
+// Determinar si es web de forma segura
+const isWeb = () => {
+  try {
+    return Platform.OS === 'web' || typeof localStorage !== 'undefined';
+  } catch {
+    return false;
+  }
+};
 
 const storage = {
   async get(key) {
     try {
-      if (isWeb) {
+      if (isWeb()) {
         return localStorage.getItem(key);
       }
       return await AsyncStorage.getItem(key);
@@ -18,7 +25,7 @@ const storage = {
 
   async set(key, value) {
     try {
-      if (isWeb) {
+      if (isWeb()) {
         localStorage.setItem(key, value);
       } else {
         await AsyncStorage.setItem(key, value);
@@ -28,7 +35,7 @@ const storage = {
 
   async remove(key) {
     try {
-      if (isWeb) {
+      if (isWeb()) {
         localStorage.removeItem(key);
       } else {
         await AsyncStorage.removeItem(key);
@@ -38,7 +45,7 @@ const storage = {
 
   async multiRemove(keys) {
     try {
-      if (isWeb) {
+      if (isWeb()) {
         keys.forEach(k => localStorage.removeItem(k));
       } else {
         await AsyncStorage.multiRemove(keys);

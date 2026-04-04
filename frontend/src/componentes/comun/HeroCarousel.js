@@ -6,45 +6,26 @@ import {
   StyleSheet,
   ScrollView,
   ImageBackground,
-  useWindowDimensions,
+  Dimensions,
   TouchableOpacity,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import COLORES from '../../constantes/colores';
 import { TIPOGRAFIA, DIMENSIONES } from '../../constantes/estilos';
 
+const getScreenWidth = () => Dimensions.get('window').width;
+
 const HeroCarousel = ({ slides = [], onSlidePress = () => {} }) => {
-  const { width: screenWidth } = useWindowDimensions();
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [screenWidth, setScreenWidth] = useState(getScreenWidth());
   const scrollViewRef = useRef(null);
-  const autoScrollIntervalRef = useRef(null);
 
-  // Altura proporcional: 16:9 ratio
-  const carouselHeight = screenWidth * 0.5625; // 16:9
-
-  // Auto-scroll cada 5 segundos
+  // Actualizar ancho en rotación/cambio de tamaño
   useEffect(() => {
-    const startAutoScroll = () => {
-      autoScrollIntervalRef.current = setInterval(() => {
-        setCurrentSlide((prev) => {
-          const nextSlide = (prev + 1) % (slides && slides.length > 0 ? slides.length : 3);
-          scrollViewRef.current?.scrollTo({
-            x: nextSlide * screenWidth,
-            animated: true,
-          });
-          return nextSlide;
-        });
-      }, 5000);
-    };
-
-    startAutoScroll();
-
-    return () => {
-      if (autoScrollIntervalRef.current) {
-        clearInterval(autoScrollIntervalRef.current);
-      }
-    };
-  }, [slides, screenWidth]);
+    const onChange = () => setScreenWidth(getScreenWidth());
+    Dimensions.addEventListener('change', onChange);
+    return () => Dimensions.removeEventListener('change', onChange);
+  }, []);
 
   const defaultSlides = [
     {
@@ -69,6 +50,7 @@ const HeroCarousel = ({ slides = [], onSlidePress = () => {} }) => {
 
   const dataSlides = slides && slides.length > 0 ? slides : defaultSlides;
 
+
   const handleScroll = (event) => {
     const contentOffsetX = event.nativeEvent.contentOffset.x;
     const currentIndex = Math.round(contentOffsetX / screenWidth);
@@ -82,8 +64,17 @@ const HeroCarousel = ({ slides = [], onSlidePress = () => {} }) => {
     });
   };
 
+  // Scroll automático cada 6s
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const next = (currentSlide + 1) % dataSlides.length;
+      goToSlide(next);
+    }, 6000);
+    return () => clearInterval(interval);
+  }, [currentSlide, screenWidth, dataSlides.length]);
+
   return (
-    <View style={[styles.heroCarouselContainer, { height: carouselHeight }]}>
+    <View style={[styles.heroCarouselContainer, { width: screenWidth }]}> 
       <ScrollView
         ref={scrollViewRef}
         horizontal
@@ -91,13 +82,15 @@ const HeroCarousel = ({ slides = [], onSlidePress = () => {} }) => {
         showsHorizontalScrollIndicator={false}
         onScroll={handleScroll}
         scrollEventThrottle={16}
+        style={{ width: screenWidth }}
+        contentContainerStyle={{ width: screenWidth * dataSlides.length }}
       >
         {dataSlides.map((slide, index) => (
-          <View key={index} style={[styles.slideContainer, { width: screenWidth, height: carouselHeight }]}>
+          <View key={index} style={[styles.slideContainer, { width: screenWidth }]}> 
             <ImageBackground
               source={typeof slide.image === 'string' ? { uri: slide.image } : slide.image}
               style={styles.slideImage}
-              imageStyle={{ resizeMode: 'cover' }}
+              resizeMode="cover"
             >
               <LinearGradient
                 colors={['rgba(0, 0, 0, 0.3)', 'rgba(0, 0, 0, 0.7)']}
@@ -114,7 +107,6 @@ const HeroCarousel = ({ slides = [], onSlidePress = () => {} }) => {
           </View>
         ))}
       </ScrollView>
-
       {/* Indicadores de página */}
       <View style={styles.paginationContainer}>
         {dataSlides.map((_, index) => (
@@ -135,13 +127,15 @@ const HeroCarousel = ({ slides = [], onSlidePress = () => {} }) => {
 
 const styles = StyleSheet.create({
   heroCarouselContainer: {
+    height: 520, // Increased height
     backgroundColor: COLORES.negroElegante,
     position: 'relative',
+    width: '100%',
+    maxWidth: '100vw',
     overflow: 'hidden',
   },
   slideContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
+    height: 520, // Increased height
   },
   slideImage: {
     width: '100%',

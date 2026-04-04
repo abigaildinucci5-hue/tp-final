@@ -1,8 +1,9 @@
 // frontend/src/contexto/AuthContext.js
+import AsyncStorage from '@react-native-async-storage/async-storage'; 
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import storage from '../utils/storage';
 import { authService } from '../servicios/authService';
+import { STORAGE_KEYS } from '../constantes/config';
 
 const AuthContext = createContext(null);
 
@@ -21,9 +22,9 @@ export const AuthProvider = ({ children }) => {
     try {
       console.log('🔍 AuthContext: Cargando datos almacenados...');
 
-      const storedToken = await storage.get('accessToken');
+      const storedToken = await storage.get(STORAGE_KEYS.TOKEN); 
       const storedRefresh = await storage.get('refreshToken');
-      const storedUser = await storage.get('usuario');
+      const storedUser = await storage.get(STORAGE_KEYS.USER);   
 
       if (storedToken && storedUser) {
         console.log('✅ Datos encontrados en almacenamiento');
@@ -32,14 +33,14 @@ export const AuthProvider = ({ children }) => {
         
         setAccessToken(storedToken);
         setRefreshToken(storedRefresh);
-        setUsuario(parsedUser); // ✅ IMPORTANTE: Setear el usuario
+        setUsuario(parsedUser); 
 
         try {
           const response = await authService.obtenerPerfil(storedToken);
           if (response.exito && response.data) {
             console.log('✅ Token válido, actualizando datos');
             setUsuario(response.data);
-            await AsyncStorage.setItem('usuario', JSON.stringify(response.data));
+            await storage.set(STORAGE_KEYS.USER, JSON.stringify(response.data));
           } else {
             console.log('⚠️ Token inválido, limpiando...');
             await limpiarStorage();
@@ -60,9 +61,9 @@ export const AuthProvider = ({ children }) => {
   const limpiarStorage = async () => {
     console.log('🧹 Limpiando almacenamiento...');
     await storage.multiRemove([
-      'accessToken',
+      STORAGE_KEYS.TOKEN,
+      STORAGE_KEYS.USER,
       'refreshToken',
-      'usuario',
     ]);
     setUsuario(null);
     setAccessToken(null);
@@ -76,23 +77,22 @@ export const AuthProvider = ({ children }) => {
 
       if (response.exito && response.data) {
         console.log('✅ Login exitoso');
-        console.log('👤 Usuario:', response.data.usuario); // ✅ DEBUG
+        console.log('👤 Usuario:', response.data.usuario);
 
         const { usuario: userData, tokens } = response.data;
 
-        // ✅ IMPORTANTE: Primero guardar en almacenamiento
-        await storage.set('accessToken', tokens.accessToken);
+        // ✅ Uso de STORAGE_KEYS para consistencia con api.js
+        await storage.set(STORAGE_KEYS.TOKEN, tokens.accessToken);
         await storage.set('refreshToken', tokens.refreshToken);
-        await storage.set('usuario', JSON.stringify(userData));
+        await storage.set(STORAGE_KEYS.USER, JSON.stringify(userData));
 
         console.log('✅ Datos guardados en almacenamiento');
 
-        // ✅ LUEGO actualizar el estado (esto dispara el re-render)
         setUsuario(userData);
         setAccessToken(tokens.accessToken);
         setRefreshToken(tokens.refreshToken);
 
-        console.log('✅ Estado actualizado:', userData.nombre); // ✅ DEBUG
+        console.log('✅ Estado actualizado:', userData.nombre);
 
         return { exito: true };
       } else {
@@ -109,26 +109,17 @@ export const AuthProvider = ({ children }) => {
     try {
       console.log('📝 Intentando registro...');
       const response = await authService.registroLocal({
-        nombre,
-        apellido,
-        email,
-        password,
-        telefono,
+        nombre, apellido, email, password, telefono,
       });
 
       if (response.exito && response.data) {
         console.log('✅ Registro exitoso');
-
         const { usuario: userData, tokens } = response.data;
 
-        // Guardar en almacenamiento
-        await storage.set('accessToken', tokens.accessToken);
+        await storage.set(STORAGE_KEYS.TOKEN, tokens.accessToken);
         await storage.set('refreshToken', tokens.refreshToken);
-        await storage.set('usuario', JSON.stringify(userData));
+        await storage.set(STORAGE_KEYS.USER, JSON.stringify(userData));
 
-        console.log('✅ Datos guardados en almacenamiento');
-
-        // Actualizar estado
         setUsuario(userData);
         setAccessToken(tokens.accessToken);
         setRefreshToken(tokens.refreshToken);
@@ -151,12 +142,11 @@ export const AuthProvider = ({ children }) => {
 
       if (response.exito && response.data) {
         console.log('✅ Login con Google exitoso');
-
         const { usuario: userData, tokens } = response.data;
 
-        await storage.set('accessToken', tokens.accessToken);
+        await storage.set(STORAGE_KEYS.TOKEN, tokens.accessToken);
         await storage.set('refreshToken', tokens.refreshToken);
-        await storage.set('usuario', JSON.stringify(userData));
+        await storage.set(STORAGE_KEYS.USER, JSON.stringify(userData));
 
         setUsuario(userData);
         setAccessToken(tokens.accessToken);
@@ -179,12 +169,11 @@ export const AuthProvider = ({ children }) => {
 
       if (response.exito && response.data) {
         console.log('✅ Login con GitHub exitoso');
-
         const { usuario: userData, tokens } = response.data;
 
-        await storage.set('accessToken', tokens.accessToken);
+        await storage.set(STORAGE_KEYS.TOKEN, tokens.accessToken);
         await storage.set('refreshToken', tokens.refreshToken);
-        await storage.set('usuario', JSON.stringify(userData));
+        await storage.set(STORAGE_KEYS.USER, JSON.stringify(userData));
 
         setUsuario(userData);
         setAccessToken(tokens.accessToken);
@@ -203,7 +192,6 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       console.log('👋 Cerrando sesión...');
-
       if (accessToken) {
         try {
           await authService.logout(accessToken);
@@ -211,7 +199,6 @@ export const AuthProvider = ({ children }) => {
           console.log('⚠️ Error al invalidar token en backend:', error.message);
         }
       }
-
       await limpiarStorage();
       console.log('✅ Sesión cerrada');
     } catch (error) {
@@ -222,27 +209,17 @@ export const AuthProvider = ({ children }) => {
 
   const refrescarDatos = async () => {
     if (!accessToken) return;
-
     try {
       console.log('🔄 Refrescando datos del usuario...');
       const response = await authService.obtenerPerfil(accessToken);
-      
       if (response.exito && response.data) {
         console.log('✅ Datos refrescados');
         setUsuario(response.data);
-        await storage.set('usuario', JSON.stringify(response.data));
+        await storage.set(STORAGE_KEYS.USER, JSON.stringify(response.data));
       }
     } catch (error) {
       console.error('❌ Error al refrescar datos:', error);
     }
-  };
-
-  const esAdmin = () => {
-    return usuario?.rol === 'admin';
-  };
-
-  const esEmpleado = () => {
-    return usuario?.rol === 'empleado' || usuario?.rol === 'admin';
   };
 
   const value = {
@@ -251,8 +228,8 @@ export const AuthProvider = ({ children }) => {
     refreshToken,
     loading,
     isAuthenticated,
-    esAdmin: esAdmin(),
-    esEmpleado: esEmpleado(),
+    esAdmin: usuario?.rol === 'admin',
+    esEmpleado: usuario?.rol === 'empleado' || usuario?.rol === 'admin',
     login,
     registro,
     loginConGoogle,
@@ -262,12 +239,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
-  console.log("AUTH CAMBIO:", {
-    usuario,
-    accessToken,
-    isAuthenticated
-  });
-}, [usuario, accessToken]);
+    console.log("AUTH CAMBIO:", { usuario, accessToken, isAuthenticated });
+  }, [usuario, accessToken]);
 
   return (
     <AuthContext.Provider value={value}>
@@ -276,6 +249,4 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-export const useAuth = () => {
-  return useContext(AuthContext);
-};
+export const useAuth = () => useContext(AuthContext);

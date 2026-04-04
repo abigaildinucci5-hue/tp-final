@@ -7,13 +7,20 @@ import {
   ScrollView,
   ImageBackground,
   TouchableOpacity,
-  useWindowDimensions,
+  Dimensions,
   ActivityIndicator,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import COLORES from '../../constantes/colores';
 import { TIPOGRAFIA, DIMENSIONES } from '../../constantes/estilos';
 import { obtenerImagenHabitacion } from '../../constantes/imagenes';
+// Definir CARD_WIDTH igual que en CarruselHabitaciones.js
+const getScreenWidth = () => Dimensions.get('window').width;
+const getIsMobile = () => getScreenWidth() < 768;
+
+// Responsive: recalcular en resize
+let initialWidth = getScreenWidth();
+let initialIsMobile = getIsMobile();
 
 const AutoScrollCarousel = ({
   habitaciones = [],
@@ -21,112 +28,77 @@ const AutoScrollCarousel = ({
   onRoomPress = () => {},
   onViewAllPress = () => {},
   title = 'HABITACIONES DESTACADAS',
-  autoScrollInterval = 4000, // 4 segundos por defecto
+  autoScrollInterval = 6000, // 6 segundos por defecto, más suave
 }) => {
-  const { width } = useWindowDimensions();
-  
-  // ✅ RESPONSIVE: Mobile vs Web
-  const isMobile = width < 768;
-  const MAX_CARD_WIDTH = 350;
-  const horizontalPadding = 16;
-  
-  // Ancho de card
-  // En mobile: 85% del ancho para no cortarse + centrado
-  // En web: máximo 350px
-  const MOBILE_CARD_RATIO = 0.85; // 85% del ancho en mobile
-  const cardWidth = isMobile ? width * MOBILE_CARD_RATIO : MAX_CARD_WIDTH;
-  
-  // Altura basada en proporción
-  const cardHeight = cardWidth * 1.3; // Proporción 5:6.5
-  
-  // Spacing entre cards
-  const cardSpacing = isMobile ? 0 : 16; // No hay espacio en mobile (pagingEnabled), 16px en web
-
+  const [screenWidth, setScreenWidth] = React.useState(initialWidth);
+  const [isMobile, setIsMobile] = React.useState(initialIsMobile);
   const scrollViewRef = useRef(null);
   const currentIndexRef = useRef(0);
   const scrollIntervalRef = useRef(null);
-  const scrollTimeoutRef = useRef(null);
-  const isScrollingRef = useRef(false);
 
-  // Iniciar auto-scroll
-  useEffect(() => {
-    if (habitaciones.length > 0) {
-      startAutoScroll();
-    }
+  // Card width: 100% en mobile, 45% en desktop
+  const CARD_WIDTH = isMobile ? screenWidth : Math.round(screenWidth * 0.45);
 
-    return () => {
-      if (scrollIntervalRef.current) {
-        clearInterval(scrollIntervalRef.current);
-      }
+  React.useEffect(() => {
+    const onChange = () => {
+      const w = getScreenWidth();
+      setScreenWidth(w);
+      setIsMobile(getIsMobile());
     };
-  }, [habitaciones.length, cardWidth, cardSpacing, isMobile]);
+    Dimensions.addEventListener('change', onChange);
+    return () => Dimensions.removeEventListener('change', onChange);
+  }, []);
 
-  const startAutoScroll = () => {
-    scrollIntervalRef.current = setInterval(() => {
-      if (scrollViewRef.current && habitaciones.length > 0) {
-        currentIndexRef.current = (currentIndexRef.current + 1) % habitaciones.length;
-        
-        // Calcular offset diferente según dispositivo
-        let offset;
-        if (isMobile) {
-          offset = currentIndexRef.current * cardWidth;
-        } else {
-          offset = currentIndexRef.current * (cardWidth + cardSpacing);
+  // Iniciar auto-scroll más suave
+  React.useEffect(() => {
+    if (habitaciones.length > 0) {
+      if (scrollIntervalRef.current) clearInterval(scrollIntervalRef.current);
+      scrollIntervalRef.current = setInterval(() => {
+        if (scrollViewRef.current && habitaciones.length > 0) {
+          currentIndexRef.current = (currentIndexRef.current + 1) % habitaciones.length;
+          const offsetBase = currentIndexRef.current * (CARD_WIDTH + 16);
+          const offset = isMobile ? offsetBase : 16 + offsetBase;
+          scrollViewRef.current.scrollTo({
+            x: offset,
+            y: 0,
+            animated: true,
+          });
         }
-
-        scrollViewRef.current.scrollTo({
-          x: offset,
-          y: 0,
-          animated: true,
-        });
-      }
-    }, autoScrollInterval);
-  };
+      }, autoScrollInterval);
+    }
+    return () => {
+      if (scrollIntervalRef.current) clearInterval(scrollIntervalRef.current);
+    };
+  }, [habitaciones.length, CARD_WIDTH, autoScrollInterval, isMobile]);
 
   const pauseAutoScroll = () => {
-    isScrollingRef.current = true;
     if (scrollIntervalRef.current) {
       clearInterval(scrollIntervalRef.current);
     }
-    
-    // Reanudar autoscroll después de 2 segundos sin scroll
-    if (scrollTimeoutRef.current) {
-      clearTimeout(scrollTimeoutRef.current);
-    }
-    scrollTimeoutRef.current = setTimeout(() => {
-      isScrollingRef.current = false;
-      startAutoScroll();
-    }, 2000);
   };
 
   const handleScroll = (event) => {
-    pauseAutoScroll();
     const contentOffsetX = event.nativeEvent.contentOffset.x;
-    if (isMobile) {
-      // Calcular índice considerando centrado en mobile
-      const centerOffset = (width - cardWidth) / 2;
-      currentIndexRef.current = Math.round((contentOffsetX - centerOffset) / cardWidth);
-    } else {
-      currentIndexRef.current = Math.round(contentOffsetX / (cardWidth + cardSpacing));
-    }
+    // En desktop agregamos 16px por el margen del primer elemento
+    const offset = isMobile ? contentOffsetX : contentOffsetX - 16;
+    currentIndexRef.current = Math.round(Math.max(0, offset) / (CARD_WIDTH + 16));
   };
 
-  const handleNavigateToDetail = (habitacion) => {
-    if (habitacion.id_habitacion || habitacion.id) {
-      onRoomPress(habitacion);
-    }
-  };
+    const handleNavigateToDetail = (habitacion) => {
+  console.log("CLICK HABITACION:");
+  console.log("numero:", habitacion.numero_habitacion);
+  console.log("id:", habitacion.id);
+  console.log("id_habitacion:", habitacion.id_habitacion);
+
+  onRoomPress(habitacion);
+};
 
   // Funciones para navegación manual
   const goToPrevious = () => {
     if (scrollViewRef.current) {
       currentIndexRef.current = Math.max(0, currentIndexRef.current - 1);
-      let offset;
-      if (isMobile) {
-        offset = currentIndexRef.current * cardWidth;
-      } else {
-        offset = currentIndexRef.current * (cardWidth + cardSpacing);
-      }
+      const offsetBase = currentIndexRef.current * (CARD_WIDTH + 16);
+      const offset = isMobile ? offsetBase : 16 + offsetBase;
       scrollViewRef.current.scrollTo({
         x: offset,
         y: 0,
@@ -141,12 +113,8 @@ const AutoScrollCarousel = ({
         habitaciones.length - 1,
         currentIndexRef.current + 1
       );
-      let offset;
-      if (isMobile) {
-        offset = currentIndexRef.current * cardWidth;
-      } else {
-        offset = currentIndexRef.current * (cardWidth + cardSpacing);
-      }
+      const offsetBase = currentIndexRef.current * (CARD_WIDTH + 16);
+      const offset = isMobile ? offsetBase : 16 + offsetBase;
       scrollViewRef.current.scrollTo({
         x: offset,
         y: 0,
@@ -186,26 +154,18 @@ const AutoScrollCarousel = ({
         </TouchableOpacity>
       </View>
 
-      {/* Carousel - Visible en todos los dispositivos */}
+      {/* Carousel con flechas */}
       <View style={styles.carouselContainer}>
-        {/* Flecha izquierda - solo web */}
-        <TouchableOpacity
-          style={[
-            styles.arrowButton, 
-            styles.arrowButtonLeft,
-            currentIndexRef.current === 0 && styles.arrowButtonDisabled,
-            isMobile && { display: 'none' }
-          ]}
-          onPress={goToPrevious}
-          activeOpacity={currentIndexRef.current === 0 ? 0.5 : 0.7}
-          disabled={currentIndexRef.current === 0}
-        >
-          <MaterialCommunityIcons
-            name="chevron-left"
-            size={32}
-            color={currentIndexRef.current === 0 ? '#ccc' : COLORES.dorado}
-          />
-        </TouchableOpacity>
+        {/* Flecha izquierda */}
+        {currentIndexRef.current > 0 && !isMobile && ( // <--- Agregamos !isMobile
+          <TouchableOpacity
+            style={[styles.arrowButton, styles.arrowButtonLeft]}
+            onPress={goToPrevious}
+            activeOpacity={0.7}
+          >
+            <MaterialCommunityIcons name="chevron-left" size={32} color={COLORES.dorado} />
+          </TouchableOpacity>
+        )}
 
         {/* ScrollView del Carousel */}
         <ScrollView
@@ -215,121 +175,82 @@ const AutoScrollCarousel = ({
           showsHorizontalScrollIndicator={false}
           scrollEventThrottle={16}
           onScroll={handleScroll}
-          onTouchBegin={pauseAutoScroll}
-          style={styles.carouselScroll}
-          contentContainerStyle={[
-            styles.carouselContent,
-            isMobile && {
-              paddingHorizontal: (width - cardWidth) / 2,
-            },
-            !isMobile && {
-              paddingHorizontal: horizontalPadding,
-            }
-          ]}
-          decelerationRate="fast"
-          snapToInterval={!isMobile ? cardWidth + cardSpacing : undefined}
-          snapToAlignment="start"
+          style={[styles.carouselScroll, { width: screenWidth }]}
+          contentContainerStyle={{ 
+            width: isMobile 
+              ? (CARD_WIDTH + 16) * habitaciones.length 
+              : (CARD_WIDTH + 16) * habitaciones.length + 16, 
+            alignItems: 'stretch'
+          }}
+          decelerationRate={isMobile ? 'fast' : 0.98}
+          snapToInterval={isMobile ? CARD_WIDTH : undefined}
+          snapToAlignment={isMobile ? 'start' : undefined}
         >
-        {habitaciones.map((habitacion, index) => {
-          // Array de imágenes de respaldo variadas
-          const imagenesFallback = [
-            'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800&h=600&fit=crop',
-            'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=600&fit=crop',
-            'https://images.unsplash.com/photo-1567521464027-f127ff144326?w=800&h=600&fit=crop',
-            'https://images.unsplash.com/photo-1611003228941-98852ba62227?w=800&h=600&fit=crop',
-            'https://images.unsplash.com/photo-1532900298318-6b8da08a0c1b?w=800&h=600&fit=crop',
-            'https://images.unsplash.com/photo-1520631778298-1b434c919eba?w=800&h=600&fit=crop',
-          ];
-          
-          const imagenFallback = imagenesFallback[index % imagenesFallback.length];
-
-          return (
+          {habitaciones.map((habitacion, index) => (
             <TouchableOpacity
               key={habitacion.id_habitacion || habitacion.id}
               onPress={() => handleNavigateToDetail(habitacion)}
               activeOpacity={0.8}
               style={[
-                styles.roomCard, 
-                { 
-                  width: cardWidth, 
-                  height: cardHeight, 
-                  marginRight: cardSpacing,
-                }
+                styles.roomCard,
+                {
+                  width: CARD_WIDTH,
+                  height: isMobile ? 380 : 400,
+                  marginRight: 16,
+                  marginLeft: !isMobile && index === 0 ? 16 : 0,
+                  borderRadius: 18,
+                },
               ]}
             >
               <ImageBackground
-                source={{
-                  uri:
-                    obtenerImagenHabitacion(habitacion.imagen_principal) || imagenFallback,
-                }}
-                style={styles.roomCardImage}
-                imageStyle={{ borderRadius: 16, resizeMode: 'cover' }}
+                source={{ uri: habitacion.imagen_principal || '...' }}
+                style={{ flex: 1, justifyContent: 'flex-end' }} // <--- Esto empuja todo abajo
+                imageStyle={{ borderRadius: 18 }}
               >
-              {/* Overlay degradado */}
-              <View style={styles.overlay} />
-
-              {/* Tipo de habitación */}
-              <View style={styles.badgeContainer}>
-                <View style={styles.badge}>
-                  <Text style={styles.badgeText}>
-                    {habitacion.tipo_habitacion || 'Habitación'}
-                  </Text>
-                </View>
-              </View>
-
-              {/* Info al pie */}
-              <View style={styles.infoContainer}>
-                <View style={styles.titlePriceRow}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.roomNumber}>
-                      {habitacion.numero_habitacion || 'N/A'}
-                    </Text>
-                    <Text style={styles.roomType} numberOfLines={1}>
-                      {habitacion.tipo_habitacion || 'Estándar'}
-                    </Text>
-                  </View>
-                  <View style={styles.priceBox}>
-                    <Text style={styles.priceValue}>
-                      ${habitacion.precio_base || 50}
-                    </Text>
-                    <Text style={styles.priceUnit}>/noche</Text>
-                  </View>
-                </View>
-
-                {/* Features */}
-                <View style={styles.featuresRow}>
-                  <View style={styles.feature}>
-                    <MaterialCommunityIcons
-                      name="account-multiple"
-                      size={16}
-                      color={COLORES.blanco}
-                    />
-                    <Text style={styles.featureText}>
-                      {habitacion.capacidad_personas || 2}
-                    </Text>
-                  </View>
-                  <View style={styles.feature}>
-                    <MaterialCommunityIcons
-                      name="check-circle"
-                      size={16}
-                      color={
-                        habitacion.estado === 'disponible'
-                          ? COLORES.exito
-                          : COLORES.error
-                      }
-                    />
-                    <Text style={styles.featureText}>
-                      {habitacion.estado === 'disponible'
-                        ? 'Disponible'
-                        : 'Ocupada'}
+                <View style={styles.overlay} />
+  
+                {/* El Badge lo mantenemos arriba usando posición absoluta */}
+                <View style={[styles.badgeContainer, { position: 'absolute', top: 16, left: 16 }]}>
+                  <View style={styles.badge}>
+                    <Text style={styles.badgeText}>
+                      {habitacion.tipo_habitacion || 'Habitación'}
                     </Text>
                   </View>
                 </View>
-              </View>
-            </ImageBackground>
+
+                {/* Contenedor de Info: ahora es una franja pegada al fondo */}
+                <View style={styles.infoContainer}>
+                  <View style={styles.titlePriceRow}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.roomNumber}>
+                        {habitacion.numero_habitacion || 'N/A'}
+                      </Text>
+                      <Text style={styles.roomType} numberOfLines={1}>
+                        {habitacion.tipo_habitacion || 'Estándar'}
+                      </Text>
+                    </View>
+                    <View style={styles.priceBox}>
+                      <Text style={styles.priceValue}>${habitacion.precio_base}</Text>
+                      <Text style={styles.priceUnit}>/noche</Text>
+                    </View>
+                  </View>
+    
+                  {/* Features - Solo si hay espacio o es Admin */}
+                  <View style={styles.featuresRow}>
+                    <View style={styles.feature}>
+                        <MaterialCommunityIcons name="account-group" size={14} color={COLORES.blanco} />
+                        <Text style={styles.featureText}>{habitacion.capacidad_personas}</Text>
+                    </View>
+                    <View style={[styles.feature, { backgroundColor: habitacion.estado === 'disponible' ? 'rgba(46, 204, 113, 0.2)' : 'rgba(231, 76, 60, 0.2)' }]}>
+                        <Text style={[styles.featureText, { color: habitacion.estado === 'disponible' ? '#2ECC71' : '#E74C3C' }]}>
+                          {habitacion.estado === 'disponible' ? 'Disponible' : 'Ocupada'}
+                        </Text>
+                    </View>
+                  </View>
+                </View>
+              </ImageBackground>
             </TouchableOpacity>
-          );
-        })}
+          ))}
         </ScrollView>
 
         {/* Flecha derecha - solo web */}
@@ -419,14 +340,14 @@ const styles = StyleSheet.create({
     paddingRight: DIMENSIONES.padding,
   },
   roomCard: {
-    borderRadius: 16,
-    overflow: 'hidden',
     backgroundColor: COLORES.blanco,
     elevation: 5,
     shadowColor: COLORES.negro,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
+    overflow: 'hidden',
+    marginBottom: 8,
   },
   roomCardImage: {
     width: '100%',
@@ -436,7 +357,8 @@ const styles = StyleSheet.create({
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    // Degradado sutil para que el texto resalte más
+    backgroundColor: 'rgba(0, 0, 0, 0.2)', 
   },
   badgeContainer: {
     alignItems: 'flex-start',
@@ -454,20 +376,34 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   infoContainer: {
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    padding: 12,
-    borderRadius: 12,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)', // Un toque más oscuro mejora la legibilidad
+    paddingHorizontal: 16,
+    paddingVertical: 14, // Más aire vertical para que no se corte el precio
+    borderBottomLeftRadius: 18,
+    borderBottomRightRadius: 18,
+    width: '100%',
   },
   titlePriceRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 10,
+    alignItems: 'center', // Alineado al centro para que el precio no suba mucho
+    marginBottom: 8,
+  },
+  priceBox: {
+    alignItems: 'flex-end',
+    minWidth: 80, // Le damos un ancho mínimo para que el precio no se amontone
+  },
+  priceValue: {
+    fontSize: 20, // Un tamaño imponente pero controlado
+    fontFamily: TIPOGRAFIA.fontMontserratBold,
+    color: COLORES.dorado,
+    lineHeight: 24, // Evita que se corte por arriba o abajo
   },
   roomNumber: {
-    fontSize: 16,
+    fontSize: 18,
     fontFamily: TIPOGRAFIA.fontMerriweatherBold,
     color: COLORES.blanco,
+    marginBottom: 2,
   },
   roomType: {
     fontSize: 12,
@@ -479,7 +415,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   priceValue: {
-    fontSize: 18,
+    fontSize: 20,
     fontFamily: TIPOGRAFIA.fontMontserratBold,
     color: COLORES.dorado,
   },
@@ -496,11 +432,11 @@ const styles = StyleSheet.create({
   feature: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    borderRadius: 8,
-    gap: 6,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 6,
+    gap: 4,
   },
   featureText: {
     fontSize: 11,
@@ -562,5 +498,4 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
 });
-
 export default AutoScrollCarousel;

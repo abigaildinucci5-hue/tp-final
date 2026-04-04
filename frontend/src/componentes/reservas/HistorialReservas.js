@@ -13,6 +13,9 @@ const HistorialReservas = ({
   onRefresh,
   refreshing = false,
   ListEmptyComponent,
+  ListHeaderComponent,
+  ListFooterComponent,
+  userRole = 'cliente',
 }) => {
   if (loading && reservas.length === 0) {
     return <Loading />;
@@ -22,6 +25,7 @@ const HistorialReservas = ({
     <CardReserva
       reserva={item}
       onPress={() => onReservaPress && onReservaPress(item)}
+      userRole={userRole}
     />
   );
 
@@ -44,10 +48,12 @@ const HistorialReservas = ({
     <FlatList
       data={reservas}
       renderItem={renderItem}
-      keyExtractor={(item) => item.id.toString()}
+      keyExtractor={(item) => item.id_reserva?.toString() || Math.random().toString()}
       onRefresh={onRefresh}
       refreshing={refreshing}
       ListEmptyComponent={renderEmpty}
+      ListHeaderComponent={ListHeaderComponent}
+      ListFooterComponent={ListFooterComponent}
       contentContainerStyle={estilos.listContent}
       showsVerticalScrollIndicator={false}
     />

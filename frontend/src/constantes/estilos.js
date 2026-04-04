@@ -1,5 +1,5 @@
 // frontend/src/constantes/estilos.js
-import { StyleSheet, Dimensions } from 'react-native';
+import { StyleSheet, Dimensions, Platform } from 'react-native';
 import COLORES from './colores';
 
 const { width, height } = Dimensions.get('window');

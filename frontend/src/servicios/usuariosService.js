@@ -1,119 +1,36 @@
-// frontend/src/servicios/usuariosService.js
-import { apiHelper } from './api';
-import { USER_ROUTES } from '../constantes/rutas';
+// usuariosService.js — cambiar import
+import api from './api'; // en lugar de { apiHelper }
 
+// Y reemplazar todos los apiHelper.get/put/delete/patch por api.get/put/delete/patch
 const usuariosService = {
-  // Obtener perfil del usuario actual
   getProfile: async () => {
-    try {
-      const response = await apiHelper.get(USER_ROUTES.PROFILE);
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    return await api.get('/usuarios/perfil');
   },
 
-  // Actualizar perfil del usuario
   updateProfile: async (userData) => {
-    try {
-      const response = await apiHelper.put(USER_ROUTES.UPDATE_PROFILE, userData);
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    return await api.put('/usuarios/perfil', userData);
   },
 
-  // Cambiar contraseña
-  changePassword: async (passwordData) => {
-    try {
-      const response = await apiHelper.put(USER_ROUTES.CHANGE_PASSWORD, passwordData);
-      return response;
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  // Subir foto de perfil
-  uploadPhoto: async (imageFile, onUploadProgress) => {
-    try {
-      const formData = new FormData();
-      formData.append('foto', {
-        uri: imageFile.uri,
-        type: imageFile.type || 'image/jpeg',
-        name: imageFile.fileName || `perfil_${Date.now()}.jpg`
-      });
-
-      const response = await apiHelper.uploadFile(
-        USER_ROUTES.UPLOAD_PHOTO,
-        formData,
-        onUploadProgress
-      );
-      return response;
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  // Obtener usuario por ID (Admin)
   getById: async (id) => {
-    try {
-      const response = await apiHelper.get(USER_ROUTES.GET_BY_ID(id));
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    return await api.get(`/usuarios/${id}`);
   },
 
-  // Listar todos los usuarios (Admin)
   getAll: async (params = {}) => {
-    try {
-      const queryParams = new URLSearchParams(params).toString();
-      const url = queryParams ? `${USER_ROUTES.LIST}?${queryParams}` : USER_ROUTES.LIST;
-      const response = await apiHelper.get(url);
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    const queryParams = new URLSearchParams(params).toString();
+    const url = queryParams ? `/usuarios?${queryParams}` : '/usuarios';
+    return await api.get(url);
   },
 
-  // Eliminar usuario (Admin)
   delete: async (id) => {
-    try {
-      const response = await apiHelper.delete(USER_ROUTES.DELETE(id));
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    return await api.delete(`/usuarios/${id}`);
   },
 
-  // Actualizar rol de usuario (Admin)
   updateRole: async (id, rol) => {
-    try {
-      const response = await apiHelper.patch(`${USER_ROUTES.GET_BY_ID(id)}/rol`, { rol });
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    return await api.put(`/usuarios/${id}/cambiar-rol`, { nuevoRol: rol });
   },
 
-  // Activar/Desactivar usuario (Admin)
   toggleStatus: async (id) => {
-    try {
-      const response = await apiHelper.patch(`${USER_ROUTES.GET_BY_ID(id)}/toggle-status`);
-      return response;
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  // Obtener estadísticas de usuario (Admin)
-  getEstadisticas: async (id) => {
-    try {
-      const response = await apiHelper.get(`${USER_ROUTES.GET_BY_ID(id)}/estadisticas`);
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    return await api.put(`/usuarios/${id}/toggle-activo`);
   },
 };
 

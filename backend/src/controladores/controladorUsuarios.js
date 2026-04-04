@@ -37,7 +37,9 @@ const obtenerUsuarios = asyncHandler(async (req, res) => {
 
   if (activo !== undefined) {
     sql += ` AND activo = ?`;
-    parametros.push(activo === 'true');
+    // Convertir string 'true'/'false' o número 1/0 a boolean
+    const activoBoolean = activo === 'true' || activo === '1' || activo === 1 ? 1 : 0;
+    parametros.push(activoBoolean);
   }
 
   if (busqueda) {
@@ -62,7 +64,9 @@ const obtenerUsuarios = asyncHandler(async (req, res) => {
 
   if (activo !== undefined) {
     sqlTotal += ` AND activo = ?`;
-    totalParams.push(activo === 'true');
+    // Convertir string 'true'/'false' o número 1/0 a boolean
+    const activoBoolean = activo === 'true' || activo === '1' || activo === 1 ? 1 : 0;
+    totalParams.push(activoBoolean);
   }
 
   if (busqueda) {
@@ -764,6 +768,44 @@ const canjearPuntos = asyncHandler(async (req, res) => {
   });
 });
 
+/**
+ * Eliminar la propia cuenta del usuario autenticado
+ * DELETE /api/usuarios/cuenta
+ */
+const eliminarMiCuenta = asyncHandler(async (req, res) => {
+  const { id_usuario: idUsuario } = req.usuario;
+
+  // Verificar que no tenga reservas activas
+  const sqlReservas = `
+    SELECT id_reserva FROM reservas
+    WHERE id_usuario = ? 
+    AND estado IN ('pendiente', 'confirmada')
+    AND fecha_salida > CURDATE()
+    LIMIT 1
+  `;
+  const reservasActivas = await ejecutarConsulta(sqlReservas, [idUsuario]);
+
+  if (reservasActivas.length > 0) {
+    throw crearError400('No se puede eliminar tu cuenta mientras tengas reservas activas. Cancela tus reservas primero.');
+  }
+
+  // Soft delete del usuario
+  const filasAfectadas = await actualizar('usuarios', 'id_usuario', idUsuario, { activo: 0 });
+
+  if (filasAfectadas === 0) {
+    throw crearError404('Usuario no encontrado');
+  }
+
+  // Invalidar todas las sesiones del usuario
+  const sqlInvalidar = `UPDATE tokens_sesion SET activo = FALSE WHERE id_usuario = ?`;
+  await ejecutarConsulta(sqlInvalidar, [idUsuario]);
+
+  res.json({
+    exito: true,
+    mensaje: 'Tu cuenta ha sido eliminada exitosamente'
+  });
+});
+
 module.exports = {
   obtenerUsuarios,
   obtenerUsuario,
@@ -780,5 +822,6 @@ module.exports = {
   eliminarMetodoPago,
   actualizarPreferencias,
   obtenerHistorialPuntos,
-  canjearPuntos
+  canjearPuntos,
+  eliminarMiCuenta
 };

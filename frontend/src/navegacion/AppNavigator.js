@@ -1,105 +1,82 @@
 // ============================================
-// AppNavigator.js - Restructured
+// PARTE 5: AppNavigator.js actualizado
 // frontend/src/navegacion/AppNavigator.js
-// 
-// Estructura:
-// RootStack
-//  ├── MainStack (clientes)
-//  ├── EmployeeStack (empleados/recepcionistas)
-//  ├── AdminStack (admin)
-//  └── AuthModal (login para todos)
 // ============================================
 
 import React, { useEffect } from 'react';
 import { ActivityIndicator, View } from 'react-native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createStackNavigator } from '@react-navigation/stack';
+import AuthNavigator from './AuthNavigator';
 import { useAuth } from '../contexto/AuthContext';
 import MainNavigator from './MainNavigator';
-import EmployeeNavigator from './EmployeeNavigator';
 import AdminNavigator from './AdminNavigator';
-import AuthNavigator from './AuthNavigator';
+import EmpleadoNavigator from './EmpleadoNavigator';
 import { COLORES } from '../constantes/colores';
 
-const Stack = createNativeStackNavigator();
+const Stack = createStackNavigator();
 
-/**
- * RootStack - Estructura que mantiene el navegador correcto según el rol
- */
-const RootStack = () => {
+const AppNavigatorContent = () => {
   const { isAuthenticated, loading, esAdmin, esEmpleado, usuario } = useAuth();
 
+  // 1. EL HOOK SIEMPRE PRIMERO (Arregla el error de Hooks)
   useEffect(() => {
     console.log("AUTH STATE:", {
       isAuthenticated,
       loading,
-      usuario
+      usuario,
+      rol: usuario?.rol
     });
   }, [isAuthenticated, loading, usuario]);
 
-  // ✅ Determinar qué navegador mostrar
-  let NavigatorComponent = MainNavigator; // Por defecto, cliente (invitado o autenticado)
-  
-  if (isAuthenticated) {
-    if (esAdmin) {
-      // Admin tiene acceso a todo (prioridad máxima)
-      NavigatorComponent = AdminNavigator;
-    } else if (esEmpleado) {
-      // Empleado/Recepcionista
-      NavigatorComponent = EmployeeNavigator;
-    }
-    // Si no es admin ni empleado, es cliente → MainNavigator (incluso autenticado)
-  }
-  // Si NO está autenticado → MainNavigator (como invitado)
-
+  // 2. DESPUÉS LAS CONDICIONES DE CARGA
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f5f5f5' }}>
-        <ActivityIndicator size="large" color={COLORES.SECUNDARIO} />
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORES.fondoClaro }}>
+        <ActivityIndicator size="large" color={COLORES.dorado} />
       </View>
     );
   }
 
-  return (
-    <Stack.Navigator
-      screenOptions={{
-        headerShown: false,
-        animationEnabled: true,
-      }}
-    >
-      {/* ✅ SIEMPRE mostrar MainNavigator (invitado o cliente autenticado) */}
-      <Stack.Screen 
-        name="MainApp" 
-        component={NavigatorComponent}
-        options={{
-          animationEnabled: false,
-          gestureEnabled: false,
-        }}
-      />
+  // 3. LOGICA DE NAVEGACIÓN
+  if (esAdmin) {
+    return (
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Admin" component={AdminNavigator} />
+      </Stack.Navigator>
+    );
+  }
 
-      {/* 🔐 Modal de Auth disponible para cualquier usuario */}
-      <Stack.Group
-        screenOptions={{
-          presentation: 'modal',
-          animationEnabled: true,
-        }}
-      >
-        <Stack.Screen
-          name="AuthModal"
-          component={AuthNavigator}
-          options={{
-            headerShown: false,
-          }}
+  // Mostrar EmpleadoNavigator si es empleado pero NO admin
+  if (esEmpleado && usuario?.rol === 'empleado') {
+    return (
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Empleado" component={EmpleadoNavigator} />
+      </Stack.Navigator>
+    );
+  }
+
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      {/* TIP: Si NO está autenticado, lo ideal es mostrar primero el AuthStack
+         pero si permites ver la Home antes de loguearse, deja el MainStack primero.
+      */}
+      <Stack.Screen name="MainStack" component={MainNavigator} />
+      
+      {!isAuthenticated && (
+        <Stack.Screen 
+          name="Auth" 
+          component={AuthNavigator} 
+          options={{ animation: 'fade_from_bottom' }}
         />
-      </Stack.Group>
+      )}
     </Stack.Navigator>
   );
 };
-
 /**
  * AppNavigator wrapper
  */
 const AppNavigator = () => {
-  return <RootStack />;
+  return <AppNavigatorContent />;
 };
 
 export default AppNavigator;

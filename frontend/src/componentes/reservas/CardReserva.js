@@ -8,7 +8,9 @@ import { formatearFecha, formatearNoches } from '../../utils/fechas';
 import { formatearPrecio, formatearEstadoReserva } from '../../utils/formatters';
 import { obtenerImagenHabitacion } from '../../constantes/imagenes';
 
-const CardReserva = ({ reserva, onPress }) => {
+const CardReserva = ({ reserva, onPress, userRole = 'cliente' }) => {
+  const mostrarEstado = userRole !== 'cliente';
+
   const getEstadoColor = (estado) => {
     switch (estado) {
       case 'pendiente':
@@ -26,38 +28,40 @@ const CardReserva = ({ reserva, onPress }) => {
     }
   };
 
-  const imagenUrl = reserva.habitacion?.imagen_principal
-    ? obtenerImagenHabitacion(reserva.habitacion.imagen_principal)
+  const imagenUrl = reserva.imagen_principal
+    ? obtenerImagenHabitacion(reserva.imagen_principal)
     : null;
 
-  const noches = formatearNoches(reserva.fecha_inicio, reserva.fecha_fin);
+  const noches = formatearNoches(reserva.fecha_entrada, reserva.fecha_salida);
 
   return (
-    <TouchableOpacity style={estilos.card} onPress={onPress} activeOpacity={0.8}>
+    <TouchableOpacity style={estilos.card} onPress={onPress} activeOpacity={0.8} disabled={reserva.estado === 'eliminada'}>
       <View style={estilos.row}>
         {/* Imagen */}
         <Image
           source={imagenUrl ? { uri: imagenUrl } : require('../../assets/images/placeholder-habitacion.png')}
-          style={estilos.imagen}
+          style={[estilos.imagen, reserva.estado === 'eliminada' && { opacity: 0.5 }]}
         />
 
         {/* Información */}
         <View style={estilos.infoContainer}>
           <View style={estilos.headerRow}>
             <Text style={estilos.habitacionNombre} numberOfLines={1}>
-              {reserva.habitacion?.nombre || 'Habitación'}
+              {reserva.tipo_habitacion || 'Habitación'} #{reserva.numero_habitacion}
             </Text>
-            <View style={[estilos.estadoBadge, { backgroundColor: getEstadoColor(reserva.estado) }]}>
-              <Text style={estilos.estadoTexto}>
-                {formatearEstadoReserva(reserva.estado)}
-              </Text>
-            </View>
+            {mostrarEstado && (
+              <View style={[estilos.estadoBadge, { backgroundColor: getEstadoColor(reserva.estado) }]}>
+                <Text style={estilos.estadoTexto}>
+                  {formatearEstadoReserva(reserva.estado)}
+                </Text>
+              </View>
+            )}
           </View>
 
           <View style={estilos.detalle}>
             <MaterialCommunityIcons name="calendar-outline" size={16} color={COLORES.textoMedio} />
             <Text style={estilos.detalleTexto}>
-              {formatearFecha(reserva.fecha_inicio)} - {formatearFecha(reserva.fecha_fin)}
+              {formatearFecha(reserva.fecha_entrada)} - {formatearFecha(reserva.fecha_salida)}
             </Text>
           </View>
 
@@ -66,7 +70,13 @@ const CardReserva = ({ reserva, onPress }) => {
             <Text style={estilos.detalleTexto}>{noches}</Text>
           </View>
 
-          <Text style={estilos.precio}>{formatearPrecio(reserva.precio_total)}</Text>
+          {reserva.estado === 'eliminada' && userRole === 'cliente' ? (
+            <Text style={estilos.mensajeEliminada}>
+              ⚠️ Tu reserva fue dada de baja. Comunícate con nuestro personal.
+            </Text>
+          ) : (
+            <Text style={estilos.precio}>{formatearPrecio(reserva.precio_total)}</Text>
+          )}
         </View>
       </View>
     </TouchableOpacity>
@@ -130,6 +140,13 @@ const estilos = StyleSheet.create({
     fontWeight: TIPOGRAFIA.fontWeightBold,
     color: COLORES.primario,
     marginTop: 4,
+  },
+  mensajeEliminada: {
+    fontSize: TIPOGRAFIA.fontSizeSmall,
+    color: COLORES.error,
+    fontWeight: TIPOGRAFIA.fontWeightSemiBold,
+    marginTop: 4,
+    fontStyle: 'italic',
   },
 });
 

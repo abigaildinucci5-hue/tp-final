@@ -16,6 +16,11 @@ export const crearReservaConNotificacion = createAsyncThunk(
       // Mostrar toast de éxito
       dispatch(showSuccessToast('¡Reserva creada exitosamente!'));
       
+      // Programar notificación de recordatorio de check-in
+      if (response.fecha_inicio) {
+        await notificacionesService.notificarRecordatorioCheckIn(response, 24);
+      }
+      
       return response;
     } catch (error) {
       dispatch(showErrorToast(error.message || 'Error al crear reserva'));
@@ -31,6 +36,9 @@ export const cancelarReservaConNotificacion = createAsyncThunk(
     try {
       const response = await reservasService.cancel(id, motivo);
       dispatch(showSuccessToast('Reserva cancelada correctamente'));
+      
+      // Notificación local de cancelación
+      await notificacionesService.notificarReservaCancelada(response);
       
       return response;
     } catch (error) {
@@ -48,6 +56,9 @@ export const confirmarReservaConNotificacion = createAsyncThunk(
       const response = await reservasService.confirmar(id);
       dispatch(showSuccessToast('Reserva confirmada exitosamente'));
       
+      // Notificación de confirmación
+      await notificacionesService.notificarReservaConfirmada(response);
+      
       return response;
     } catch (error) {
       dispatch(showErrorToast(error.message || 'Error al confirmar reserva'));
@@ -63,6 +74,11 @@ export const checkInConNotificacion = createAsyncThunk(
     try {
       const response = await reservasService.checkIn(id);
       dispatch(showSuccessToast('Check-in realizado exitosamente. ¡Disfruta tu estadía!'));
+      
+      // Programar recordatorio de check-out
+      if (response.fecha_fin) {
+        await notificacionesService.notificarRecordatorioCheckOut(response, 2);
+      }
       
       return response;
     } catch (error) {

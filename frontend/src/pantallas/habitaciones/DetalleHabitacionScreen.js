@@ -1,5 +1,8 @@
 // frontend/src/pantallas/habitaciones/DetalleHabitacionScreen.js
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect
+
+  
+} from 'react';
 import {
   View,
   Text,
@@ -20,8 +23,8 @@ import { TIPOGRAFIA, DIMENSIONES } from '../../constantes/estilos';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const DetalleHabitacionScreen = ({ route, navigation }) => {
-  // Aceptar tanto 'id' como 'habitacionId' para máxima compatibilidad
-  const habitacionId = route.params?.habitacionId || route.params?.id;
+  // Aceptar id, id_habitacion, habitacionId, etc. para máxima compatibilidad
+  const roomId = route.params?.id || route.params?.id_habitacion || route.params?.habitacionId || route.params?.numero_habitacion || route.params?.numero;
   const [habitacion, setHabitacion] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -30,87 +33,36 @@ const DetalleHabitacionScreen = ({ route, navigation }) => {
 
   // ✅ useEffect con dependencia de habitacionId
   React.useEffect(() => {
-    if (habitacionId) {
-      cargarHabitacion(habitacionId);
-    }
-  }, [habitacionId]);
-
-  // 🆕 Helper function to generate room data based on ID
-  const getRoomDataByID = (roomId) => {
-    const roomNumber = 100 + roomId; // Room 1 → 101, Room 2 → 102, etc.
-    const roomTypes = ['Estándar', 'Doble', 'Suite', 'Suite Presidencial'];
-    const roomIndex = (roomId - 1) % roomTypes.length;
-    const roomType = roomTypes[roomIndex];
-    
-    const prices = [50, 75, 125, 250];
-    const price = prices[roomIndex];
-    
-    const capacities = [2, 3, 4, 6];
-    const capacity = capacities[roomIndex];
-    
-    const descriptions = [
-      'Habitación estándar acogedora con cama doble, baño privado y escritorio. Perfecta para parejas. Incluye WiFi, TV por cable y aire acondicionado.',
-      'Habitación doble espaciosa con dos camas individuales o una cama king. Baño completo con ducha y bañera. Vistas al jardín. Ideal para familias pequeñas.',
-      'Suite de lujo con sala de estar separada, cama king, minibar y jacuzzi privado. Vistas panorámicas al mar. Servicio de conserjería disponible.',
-      'Suite Presidencial con terraza privada, sala de conferencias, cocina completa y dormitorio con vistas 360°. Máximo lujo y privacidad.',
-    ];
-    const description = descriptions[roomIndex];
-    
-    return {
-      id_habitacion: roomId,
-      numero_habitacion: roomNumber.toString(),
-      tipo_habitacion: roomType,
-      precio_base: price,
-      capacidad_personas: capacity,
-      descripcion: description,
-    };
-  };
+  if (roomId) {
+    cargarHabitacion(roomId);
+  }
+}, [roomId]);
 
   const cargarHabitacion = async (roomId) => {
-    try {
-      setLoading(true);
-      // ✅ Get room-specific data based on roomId parameter
-      const roomBaseData = getRoomDataByID(roomId);
-      
-      // Image galleries per room type
-      const imagesByRoom = {
-        1: [ // Room 101 (Estándar)
-          'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1578654881228-4b676f7f579e?w=800&h=600&fit=crop',
-        ],
-        2: [ // Room 102 (Doble)
-          'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1567521464027-f127ff144326?w=800&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1611003228941-98852ba62227?w=800&h=600&fit=crop',
-        ],
-        3: [ // Room 103 (Suite)
-          'https://images.unsplash.com/photo-1611003228941-98852ba62227?w=800&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1532900298318-6b8da08a0c1b?w=800&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1618778860586-1f2a75ef696d?w=800&h=600&fit=crop',
-        ],
-        4: [ // Room 104 (Suite Presidencial)
-          'https://images.unsplash.com/photo-1532900298318-6b8da08a0c1b?w=800&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1618778860586-1f2a75ef696d?w=800&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1621905267537-b85daf00c69b?w=800&h=600&fit=crop',
-        ],
+  try {
+    setLoading(true);
+    const response = await fetch(
+      `https://tp-final-production-2d4c.up.railway.app/api/habitaciones/${roomId}`
+    );
+    const result = await response.json();
+
+    if (result.exito && result.data) {
+      // "Traducimos" los nombres del backend a los que usa tu pantalla
+      const habitacionData = {
+        ...result.data,
+        // Backend manda 'tipo_nombre', Pantalla usa 'tipo_habitacion'
+        tipo_habitacion: result.data.tipo_nombre,
+        // Backend manda 'descripcion_detallada', Pantalla usa 'descripcion'
+        descripcion: result.data.descripcion_detallada || 'Sin descripción disponible.',
       };
-      
-      const roomImages = imagesByRoom[roomId] || imagesByRoom[1];
-      
-      const mockData = {
-        ...roomBaseData,
-        estado: 'disponible',
-        imagen_principal: roomImages[0],
-        galeria_imagenes: JSON.stringify(roomImages),
-      };
-      setHabitacion(mockData);
-    } catch (error) {
-      console.error('Error al cargar habitación:', error);
-    } finally {
-      setLoading(false);
+      setHabitacion(habitacionData);
     }
-  };
+  } catch (error) {
+    console.error('Error al cargar habitación:', error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   if (loading) {
     return (
@@ -130,14 +82,17 @@ const DetalleHabitacionScreen = ({ route, navigation }) => {
 
   // Array de imágenes
   let imagenes = [];
-  try {
-    const galeriaData = JSON.parse(habitacion.galeria_imagenes);
-    imagenes = Array.isArray(galeriaData) ? galeriaData : [habitacion.imagen_principal];
-  } catch {
-    imagenes = [habitacion.imagen_principal];
+  if (habitacion.galeria_imagenes) {
+    try {
+      imagenes = typeof habitacion.galeria_imagenes === 'string' 
+        ? JSON.parse(habitacion.galeria_imagenes) 
+        : habitacion.galeria_imagenes;
+    } catch {
+      imagenes = [habitacion.imagen_principal];
+    }
   }
-
-  if (imagenes.length === 0) {
+  
+  if (!Array.isArray(imagenes) || imagenes.length === 0) {
     imagenes = [habitacion.imagen_principal];
   }
 
@@ -264,33 +219,31 @@ const DetalleHabitacionScreen = ({ route, navigation }) => {
 
         {/* 2. TÍTULO Y PRECIO */}
         <View style={styles.titlePriceSection}>
-          <View style={styles.titleRow}>
-            <View style={styles.titleLeft}>
-              <Text style={styles.roomCategory}>{habitacion.tipo_habitacion}</Text>
-              <Text style={styles.roomTitle}>
-                Habitación {habitacion.numero_habitacion}
-              </Text>
-            </View>
+  <View style={styles.titleRow}>
+    <View style={styles.titleLeft}>
+      <Text style={styles.roomCategory}>{habitacion.tipo_habitacion}</Text>
+      <Text style={styles.roomTitle}>
+        Habitación {habitacion.numero_habitacion}
+      </Text>
+    </View>
 
-            <View style={styles.priceBox}>
-              <Text style={styles.priceLabel}>Desde</Text>
-              <Text style={styles.priceAmount}>${habitacion.precio_base}</Text>
-              <Text style={styles.priceUnit}>/ noche</Text>
-            </View>
-          </View>
+    <View style={styles.priceBox}>
+      <Text style={styles.priceLabel}>Desde</Text>
+      <Text style={styles.priceAmount}>
+        ${(habitacion.precio || habitacion.precio_base || 0).toLocaleString('es-AR')}
+      </Text>
+      <Text style={styles.priceUnit}>/ noche</Text>
+    </View>
+  </View>
 
-          {/* Badge de Disponibilidad */}
-          {habitacion.estado === 'disponible' && (
-            <View style={styles.availableBadge}>
-              <MaterialCommunityIcons
-                name="check-circle"
-                size={16}
-                color="#2ECC71"
-              />
-              <Text style={styles.availableBadgeText}>Disponible</Text>
-            </View>
-          )}
-        </View>
+  {/* Badge de Disponibilidad */}
+  {habitacion.estado === 'disponible' && (
+    <View style={styles.availableBadge}>
+      <MaterialCommunityIcons name="check-circle" size={16} color="#2ECC71" />
+      <Text style={styles.availableBadgeText}>Disponible</Text>
+    </View>
+  )}
+</View>
 
         {/* 3. SERVICIOS */}
         <View style={styles.servicesRow}>
@@ -343,7 +296,8 @@ const DetalleHabitacionScreen = ({ route, navigation }) => {
         <View style={styles.descriptionSection}>
           <Text style={styles.sectionTitle}>Descripción</Text>
           <Text style={styles.descriptionText}>
-            {habitacion.descripcion}
+            {/* CAMBIO: descripcion_detallada en lugar de descripcion */}
+            {habitacion.descripcion_detallada || 'No hay una descripción disponible para esta habitación.'}
           </Text>
         </View>
 
@@ -508,11 +462,10 @@ const DetalleHabitacionScreen = ({ route, navigation }) => {
         <TouchableOpacity
           style={styles.reserveButton}
           onPress={() => {
-            navigation.navigate('Home', {
-              screen: 'NuevaReserva',
-              params: { habitacion },
-            });
-          }}
+            console.log("BOTON RESERVAR PRESIONADO", habitacion);
+
+            navigation.navigate('NuevaReserva', { habitacion });
+}}
           activeOpacity={0.85}
         >
           <Text style={styles.reserveButtonText}>Reservar Ahora</Text>

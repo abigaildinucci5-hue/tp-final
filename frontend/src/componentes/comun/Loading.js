@@ -26,7 +26,7 @@ const Loading = ({
     Animated.timing(fadeAnim, {
       toValue: 1,
       duration: 300,
-      useNativeDriver: false,
+      useNativeDriver: true,
     }).start();
 
     Animated.loop(
@@ -34,12 +34,12 @@ const Loading = ({
         Animated.timing(pulseAnim, {
           toValue: 1.1,
           duration: 800,
-          useNativeDriver: false,
+          useNativeDriver: true,
         }),
         Animated.timing(pulseAnim, {
           toValue: 1,
           duration: 800,
-          useNativeDriver: false,
+          useNativeDriver: true,
         }),
       ])
     ).start();
@@ -108,12 +108,12 @@ const LoadingDots = ({ color = COLORES.primario }) => {
           Animated.timing(dot, {
             toValue: 1,
             duration: 400,
-            useNativeDriver: false,
+            useNativeDriver: true,
           }),
           Animated.timing(dot, {
             toValue: 0,
             duration: 400,
-            useNativeDriver: false,
+            useNativeDriver: true,
           }),
         ])
       ).start();
@@ -158,12 +158,12 @@ export const SkeletonLoader = ({ count = 3, tipo = 'card' }) => {
         Animated.timing(pulseAnim, {
           toValue: 1,
           duration: 1000,
-          useNativeDriver: false,
+          useNativeDriver: true,
         }),
         Animated.timing(pulseAnim, {
           toValue: 0,
           duration: 1000,
-          useNativeDriver: false,
+          useNativeDriver: true,
         }),
       ])
     ).start();

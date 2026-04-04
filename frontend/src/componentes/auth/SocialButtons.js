@@ -1,91 +1,135 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Alert, Platform } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
-import * as Linking from 'expo-linking';
+import * as Google from 'expo-auth-session/providers/google';
+import * as AuthSession from 'expo-auth-session';
 import GoogleButton from './GoogleButton';
 import GitHubButton from './GitHubButton';
-import { API_CONFIG } from '../../constantes/config';
 
 WebBrowser.maybeCompleteAuthSession();
 
-// 🔥 Detectar si es development o production
-const BACKEND_URL = API_CONFIG.BASE_URL || 'http://localhost:3000';
+// 🔥 CONFIGURACIÓN OAUTH
+const GOOGLE_CLIENT_ID = '251632903609-lbbcnb5ja0aqalmrphv0u7qs2u8oiu0g.apps.googleusercontent.com';
+const GOOGLE_ANDROID_CLIENT_ID = '251632903609-lbbcnb5ja0aqalmrphv0u7qs2u8oiu0g.apps.googleusercontent.com';
+const GITHUB_CLIENT_ID = 'Iv23licLxm4gYzIBVba0'; // ✅ CONFIGURADO
 
 const SocialButtons = ({ onSuccess, onError }) => {
   const [loadingGoogle, setLoadingGoogle] = useState(false);
   const [loadingGitHub, setLoadingGitHub] = useState(false);
 
   // ==========================================
-  // GOOGLE - WEB + MOBILE UNIFICADO
+  // GOOGLE
   // ==========================================
-  const handleGoogleLogin = async () => {
-    try {
-      setLoadingGoogle(true);
+  const [requestGoogle, responseGoogle, promptAsyncGoogle] = Google.useAuthRequest({
+    androidClientId: GOOGLE_ANDROID_CLIENT_ID,
+    webClientId: GOOGLE_CLIENT_ID,
+    scopes: ['profile', 'email'],
+  });
 
-      if (Platform.OS === 'web') {
-        // WEB: Redirect normal (sin ?platform=mobile)
-        console.log('🌐 Google Login WEB');
-        window.location.href = `${BACKEND_URL}/api/auth/google`;
-      } else {
-        // MOBILE: Abrir navegador con ?platform=mobile para deep linking
-        console.log('📱 Google Login MOBILE');
-        const googleAuthUrl = `${BACKEND_URL}/api/auth/google?platform=mobile`;
-        
-        try {
-          await WebBrowser.openAuthSessionAsync(
-            googleAuthUrl,
-            'hotelunaserenamobile://auth'  // Deep link scheme
-          );
-          // Cuando vuelve de WebBrowser, el hook useGoogleAuthCallback
-          // capturará los tokens desde route.params
-        } catch (error) {
-          console.error('❌ Error abriendo navegador para Google:', error);
-          Alert.alert('Error', 'No se pudo iniciar sesión con Google');
-          setLoadingGoogle(false);
-        }
-      }
-    } catch (error) {
-      console.error('❌ Error en Google Login:', error);
+  useEffect(() => {
+    if (responseGoogle?.type === 'success') {
+      const token = responseGoogle.authentication?.accessToken;
+      handleGoogleAuthSuccess(token);
+    } else if (responseGoogle?.type === 'error') {
+      setLoadingGoogle(false);
       Alert.alert('Error', 'No se pudo iniciar sesión con Google');
+    }
+  }, [responseGoogle]);
+
+  const handleGoogleAuthSuccess = async (googleAccessToken) => {
+    if (!googleAccessToken) {
+      setLoadingGoogle(false);
+      Alert.alert('Error', 'No se pudo obtener el token de Google');
+      return;
+    }
+
+    try {
+      onSuccess && onSuccess('google', googleAccessToken);
+    } catch (error) {
+      onError && onError('google', error.message);
+    } finally {
       setLoadingGoogle(false);
     }
   };
 
-  // ==========================================
-  // GITHUB - WEB + MOBILE UNIFICADO
-  // ==========================================
-  const handleGitHubLogin = async () => {
-    try {
-      setLoadingGitHub(true);
+  const handleGoogleLogin = () => {
+  if (Platform.OS === 'web') {
+    // ✅ Sin popup, redirige la página completa
+    window.location.href = 'https://tp-final-production-2d4c.up.railway.app/api/auth/google';
+  } else {
+    setLoadingGoogle(true);
+    promptAsyncGoogle();
+  }
+};
 
-      if (Platform.OS === 'web') {
-        // WEB: Redirect normal (sin ?platform=mobile)
-        console.log('🌐 GitHub Login WEB');
-        window.location.href = `${BACKEND_URL}/api/auth/github`;
+  // ==========================================
+  // GITHUB
+  // ==========================================
+  // 🔥 Para móvil, GitHub requiere intercambiar el código por un token
+  // Usamos el flujo implicit con scopes para obtener el access_token directamente
+  const discoveryGitHub = {
+    authorizationEndpoint: 'https://github.com/login/oauth/authorize',
+    tokenEndpoint: 'https://github.com/login/oauth/access_token',
+    revokeEndpoint: 'https://github.com/settings/connections/applications',
+  };
+
+  const [requestGitHub, responseGitHub, promptAsyncGitHub] = AuthSession.useAuthRequest(
+    {
+      clientId: GITHUB_CLIENT_ID,
+      scopes: ['user:email', 'read:user'],
+      redirectUri: AuthSession.makeRedirectUri({
+        scheme: 'hotellunaserena'
+      }),
+    },
+    discoveryGitHub
+  );
+
+  useEffect(() => {
+    if (responseGitHub?.type === 'success') {
+      // GitHub devuelve el token en responseGitHub.params.access_token
+      const accessToken = responseGitHub.params?.access_token;
+      if (accessToken) {
+        handleGitHubAuthSuccess(accessToken);
       } else {
-        // MOBILE: Abrir navegador con ?platform=mobile para deep linking
-        console.log('📱 GitHub Login MOBILE');
-        const githubAuthUrl = `${BACKEND_URL}/api/auth/github?platform=mobile`;
-        
-        try {
-          await WebBrowser.openAuthSessionAsync(
-            githubAuthUrl,
-            'hotelunaserenamobile://auth'  // Deep link scheme
-          );
-          // Cuando vuelve de WebBrowser, el hook useGoogleAuthCallback
-          // capturará los tokens desde route.params
-        } catch (error) {
-          console.error('❌ Error abriendo navegador para GitHub:', error);
-          Alert.alert('Error', 'No se pudo iniciar sesión con GitHub');
-          setLoadingGitHub(false);
+        // Si no hay token, intentar con el código
+        const code = responseGitHub.params?.code;
+        if (code) {
+          console.log('ℹ️ GitHub devolvió código en lugar de token, necesita intercambio en backend');
+          // El backend está configurado para manejar esto en github/mobile
+          handleGitHubAuthSuccess(code);
         }
       }
-    } catch (error) {
-      console.error('❌ Error en GitHub Login:', error);
+    } else if (responseGitHub?.type === 'error') {
+      setLoadingGitHub(false);
       Alert.alert('Error', 'No se pudo iniciar sesión con GitHub');
+    }
+  }, [responseGitHub]);
+
+  const handleGitHubAuthSuccess = async (tokenOrCode) => {
+    if (!tokenOrCode) {
+      setLoadingGitHub(false);
+      Alert.alert('Error', 'No se pudo obtener el token de GitHub');
+      return;
+    }
+
+    try {
+      onSuccess && onSuccess('github', tokenOrCode);
+    } catch (error) {
+      onError && onError('github', error.message);
+    } finally {
       setLoadingGitHub(false);
     }
   };
+
+  const handleGitHubLogin = () => {
+  if (Platform.OS === 'web') {
+    // ✅ Sin popup
+    window.location.href = 'https://tp-final-production-2d4c.up.railway.app/api/auth/github';
+  } else {
+    setLoadingGitHub(true);
+    promptAsyncGitHub();
+  }
+};
 
   return (
     <View style={styles.container}>

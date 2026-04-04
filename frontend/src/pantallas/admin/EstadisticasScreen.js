@@ -28,7 +28,7 @@ const EstadisticasScreen = ({ navigation }) => {
         onLeftPress={() => navigation.goBack()}
       />
 
-      <ScrollView style={estilos.container}>
+      <ScrollView style={[estilos.container, { flex: 1 }]} scrollEnabled={true} nestedScrollEnabled={true} contentContainerStyle={{ flexGrow: 1, paddingHorizontal: DIMENSIONES.padding, paddingVertical: DIMENSIONES.padding }}>
         {/* Estadísticas del mes */}
         <View style={estilos.seccion}>
           <Text style={estilos.seccionTitulo}>Este Mes</Text>

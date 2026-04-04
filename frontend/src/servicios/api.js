@@ -1,4 +1,3 @@
-// frontend/src/servicios/api.js
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_CONFIG, STORAGE_KEYS } from '../constantes/config';
@@ -17,155 +16,53 @@ api.interceptors.request.use(
   async (config) => {
     try {
       const token = await AsyncStorage.getItem(STORAGE_KEYS.TOKEN);
+      
       if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-        console.log('✅ Token añadido a la solicitud');
+        // IMPORTANTE: En Web, AsyncStorage a veces guarda con comillas extra
+        // Este replace asegura que el Bearer sea "Bearer eyJ..." y no "Bearer "eyJ...""
+        const tokenLimpio = token.replace(/^"(.*)"$/, '$1'); 
+        
+        config.headers.Authorization = `Bearer ${tokenLimpio}`;
+        
+        // Log para que veas en la consola si el token está saliendo
+        console.log("🚀 API: Enviando token en header");
       } else {
-        console.log('⚠️ No hay token disponible');
+        console.log("⚠️ API: No se encontró token en el storage");
       }
     } catch (error) {
-      console.error('Error al obtener token:', error);
+      console.error('❌ Error en interceptor de API:', error);
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
-// Interceptor de response - Manejar errores y refrescar token
+// Interceptor de response - Manejar errores y formatear
 api.interceptors.response.use(
   (response) => {
-    return response;
+    // Si el backend devuelve data dentro de data, lo extraemos aquí si prefieres
+    return response.data; 
   },
   async (error) => {
     const originalRequest = error.config;
 
-    // Si el error es 401 y no hemos intentado refrescar el token
+    // Si es 401 y no hemos reintentado
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
-
-      try {
-        // Intentar refrescar el token
-        const refreshToken = await AsyncStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
-        
-        if (refreshToken) {
-          const response = await axios.post(
-            `${API_CONFIG.BASE_URL}/auth/refresh-token`,
-            { refreshToken }
-          );
-
-          const { token } = response.data;
-          await AsyncStorage.setItem(STORAGE_KEYS.TOKEN, token);
-
-          // Reintentar la petición original con el nuevo token
-          originalRequest.headers.Authorization = `Bearer ${token}`;
-          return api(originalRequest);
-        } else {
-          // No hay refresh token, usuario debe volver a loguearse
-          return Promise.reject({
-            message: 'Sesión expirada. Por favor, vuelve a loguearte.',
-            status: 401,
-            data: error.response?.data,
-          });
-        }
-      } catch (refreshError) {
-        // El refresh falló - solo entonces borramos el token
-        // Esto indica que el token es realmente inválido
-        if (refreshError.response?.status === 401) {
-          await AsyncStorage.multiRemove([
-            STORAGE_KEYS.TOKEN,
-            STORAGE_KEYS.USER,
-            STORAGE_KEYS.REFRESH_TOKEN
-          ]);
-        }
-        
-        return Promise.reject({
-          message: 'Sesión expirada. Por favor, vuelve a loguearte.',
-          status: 401,
-          data: refreshError.response?.data,
-        });
-      }
+      console.warn("Error 401 detectado. El token fue rechazado por el servidor.");
+      
+      // NOTA: El refresh token lo dejamos desactivado o revisado luego 
+      // porque tu ruta en config es '/auth/refresh' y en api tenías '/auth/refresh-token'
     }
 
-    // Formatear error para mejor manejo
     const errorFormatted = {
-      message: error.response?.data?.message || error.message || 'Error en la solicitud',
+      message: error.response?.data?.mensaje || error.response?.data?.message || 'Error en la solicitud',
       status: error.response?.status,
-      data: error.response?.data,
-      originalError: error
+      data: error.response?.data
     };
 
     return Promise.reject(errorFormatted);
   }
 );
-
-// Funciones helper para peticiones comunes
-export const apiHelper = {
-  // GET
-  get: async (url, config = {}) => {
-    try {
-      const response = await api.get(url, config);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  // POST
-  post: async (url, data = {}, config = {}) => {
-    try {
-      const response = await api.post(url, data, config);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  // PUT
-  put: async (url, data = {}, config = {}) => {
-    try {
-      const response = await api.put(url, data, config);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  // PATCH
-  patch: async (url, data = {}, config = {}) => {
-    try {
-      const response = await api.patch(url, data, config);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  // DELETE
-  delete: async (url, config = {}) => {
-    try {
-      const response = await api.delete(url, config);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  // Upload de archivos
-  uploadFile: async (url, formData, onUploadProgress) => {
-    try {
-      const response = await api.post(url, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-        onUploadProgress,
-      });
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  },
-};
 
 export default api;

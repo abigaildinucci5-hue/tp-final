@@ -201,6 +201,18 @@ const crearReserva = asyncHandler(async (req, res) => {
 
   const habitacion = habitaciones[0];
 
+  if (habitacion.estado !== 'disponible') {
+  if (habitacion.estado === 'ocupada') {
+    throw crearError400('Habitación ocupada');
+  }
+
+  if (habitacion.estado === 'mantenimiento') {
+    throw crearError400('Habitación en mantenimiento');
+  }
+
+  throw crearError400(`Habitación no disponible`);
+}
+
   // Verificar capacidad
   if (numeroHuespedes > habitacion.capacidad_personas) {
     throw crearError400(`La habitación solo admite ${habitacion.capacidad_personas} personas`);
@@ -478,6 +490,25 @@ const confirmarReserva = asyncHandler(async (req, res) => {
   });
 });
 
+const completarReserva = asyncHandler(async (req, res) => {
+  const { idReserva } = req.params;
+
+  const reservas = await ejecutarConsulta(
+    `SELECT estado FROM reservas WHERE id_reserva = ? LIMIT 1`,
+    [idReserva]
+  );
+
+  if (reservas.length === 0) throw crearError404('Reserva no encontrada');
+
+  if (reservas[0].estado !== 'confirmada') {
+    throw crearError400('Solo se pueden completar reservas confirmadas');
+  }
+
+  await actualizar('reservas', 'id_reserva', idReserva, { estado: 'completada' });
+
+  res.json({ exito: true, mensaje: 'Reserva completada exitosamente' });
+});
+
 /**
  * Obtener historial de reservas del usuario
  * GET /api/reservas/usuario/historial
@@ -561,6 +592,18 @@ const crearReservaConPuntos = asyncHandler(async (req, res) => {
   }
 
   const habitacion = habitaciones[0];
+
+  if (habitacion.estado !== 'disponible') {
+  if (habitacion.estado === 'ocupada') {
+    throw crearError400('Habitación ocupada');
+  }
+
+  if (habitacion.estado === 'mantenimiento') {
+    throw crearError400('Habitación en mantenimiento');
+  }
+
+  throw crearError400(`Habitación no disponible`);
+}
 
   // Verificar capacidad
   if (numeroHuespedes > habitacion.capacidad_personas) {
@@ -945,6 +988,7 @@ module.exports = {
   obtenerReservas,
   obtenerReserva,
   crearReserva,
+  completarReserva,
   modificarReserva,
   cancelarReserva,
   confirmarReserva,

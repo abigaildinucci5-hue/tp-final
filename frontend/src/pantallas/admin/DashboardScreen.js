@@ -1,104 +1,224 @@
 // frontend/src/pantallas/admin/DashboardScreen.js
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform, Dimensions } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import COLORES from '../../constantes/colores';
 import { TIPOGRAFIA, DIMENSIONES, ESTILOS_GLOBALES } from '../../constantes/estilos';
-import { useAuth } from '../../contexto/AuthContext';
-import HeaderApp from '../../componentes/comun/HeaderApp';
+import AdminDropdownMenu from '../../componentes/admin/AdminDropdownMenu';
 import Card from '../../componentes/comun/Card';
+import { useAuth } from '../../contexto/AuthContext';
 
 const DashboardScreen = ({ navigation }) => {
-  const { logout } = useAuth();
-  const estadisticas = [
-    { id: 'reservas', titulo: 'Reservas Hoy', valor: '12' },
-    { id: 'habitaciones', titulo: 'Habitaciones', valor: '24' },
-    { id: 'ocupacion', titulo: 'Ocupación', valor: '85%' },
-    { id: 'ingresos', titulo: 'Ingresos Hoy', valor: '$25,000' },
-  ];
+  const { usuario, logout } = useAuth();
 
+  const handleLogout = async () => {
+    await logout();
+  };
+
+  // Solo opciones principales, sin gestión de usuarios
   const menuOpciones = [
-    { id: 'habitaciones', titulo: 'Gestión de Habitaciones', pantalla: 'GestionHabitaciones' },
-    { id: 'reservas', titulo: 'Gestión de Reservas', pantalla: 'GestionReservas' },
-    { id: 'usuarios', titulo: 'Gestión de Usuarios', pantalla: 'GestionUsuarios' },
-    { id: 'estadisticas', titulo: 'Estadísticas', pantalla: 'Estadisticas' },
+    {
+      id: 'habitaciones',
+      titulo: 'Gestión de Habitaciones',
+      pantalla: 'GestionHabitaciones',
+      icon: 'bed-king',
+      color: COLORES.primario,
+      descripcion: 'Ver, editar y crear habitaciones',
+    },
+    {
+      id: 'reservas',
+      titulo: 'Gestión de Reservas',
+      pantalla: 'GestionReservas',
+      icon: 'calendar-multiple-check',
+      color: COLORES.exito,
+      descripcion: 'Gestionar todas las reservas',
+    },
+    {
+      id: 'estadisticas',
+      titulo: 'Estadísticas',
+      pantalla: 'Estadisticas',
+      icon: 'chart-line',
+      color: COLORES.error,
+      descripcion: 'Ver reportes y análisis',
+    },
   ];
 
   return (
-    <View style={ESTILOS_GLOBALES.container}>
-      <HeaderApp title="Dashboard Admin" onLogoutPress={logout} />
+    <View style={{ flex: 1, backgroundColor: '#f5f5f5' }}>
+      <AdminDropdownMenu usuario={usuario} onLogout={handleLogout} navigation={navigation} />
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: DIMENSIONES.padding }}>
+        <View style={{ width: '100%', maxWidth: Platform.select({ web: 1200, default: 420 }) }}>
+          {/* Hero */}
+          <View style={estilos.heroSection}>
+            <Text style={estilos.heroTitulo}>Panel de Administración</Text>
+            <Text style={estilos.heroSubtitulo}>
+              Bienvenido, administra tu hotel desde aquí
+            </Text>
+          </View>
 
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Estadísticas */}
-        <View style={estilos.estadisticasContainer}>
-          {estadisticas.map((stat) => (
-            <Card key={stat.id} style={estilos.statCard}>
-              <Text style={estilos.statValor}>{stat.valor}</Text>
-              <Text style={estilos.statTitulo}>{stat.titulo}</Text>
-            </Card>
-          ))}
+          {/* Menú de Opciones */}
+          <View style={estilos.menuContainer}>
+            <Text style={estilos.seccionTitulo}>Gestión Principal</Text>
+            {menuOpciones.map((opcion) => (
+              <TouchableOpacity
+                key={opcion.id}
+                style={estilos.menuItem}
+                onPress={() => navigation.navigate(opcion.pantalla)}
+                activeOpacity={0.7}
+              >
+                <View style={[estilos.iconContainer, { backgroundColor: opcion.color + '15' }]}> 
+                  <MaterialCommunityIcons
+                    name={opcion.icon}
+                    size={28}
+                    color={opcion.color}
+                  />
+                </View>
+                <View style={estilos.menuInfo}>
+                  <Text style={estilos.menuTexto}>{opcion.titulo}</Text>
+                  <Text style={estilos.menuDescripcion}>{opcion.descripcion}</Text>
+                </View>
+                <MaterialCommunityIcons
+                  name="chevron-right"
+                  size={24}
+                  color={COLORES.textoMedio}
+                />
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {/* Quick Actions */}
+          <View style={estilos.quickActionsContainer}>
+            <Text style={estilos.seccionTitulo}>Acciones Rápidas</Text>
+            <View style={[estilos.quickActionsGrid, { flexWrap: 'wrap', justifyContent: 'center' }]}> 
+              <TouchableOpacity
+                style={estilos.quickAction}
+                onPress={() => navigation.navigate('CrearHabitacion')}
+              >
+                <View style={[estilos.qaIcon, { backgroundColor: COLORES.primario + '20' }]}> 
+                  <MaterialCommunityIcons
+                    name="plus"
+                    size={24}
+                    color={COLORES.primario}
+                  />
+                </View>
+                <Text style={estilos.qaText}>Nueva Habitación</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={estilos.quickAction}
+                onPress={() => navigation.navigate('GestionReservas')}
+              >
+                <View style={[estilos.qaIcon, { backgroundColor: COLORES.exito + '20' }]}> 
+                  <MaterialCommunityIcons
+                    name="calendar-check"
+                    size={24}
+                    color={COLORES.exito}
+                  />
+                </View>
+                <Text style={estilos.qaText}>Reservas Hoy</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
-
-        {/* Menú */}
-        <View style={estilos.menuContainer}>
-          <Text style={estilos.seccionTitulo}>Gestión</Text>
-
-          {menuOpciones.map((opcion) => (
-            <TouchableOpacity
-              key={opcion.id}
-              style={estilos.menuItem}
-              onPress={() => navigation.navigate(opcion.pantalla)}
-            >
-              <Text style={estilos.menuTexto}>{opcion.titulo}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </ScrollView>
+      </View>
     </View>
   );
 };
 
 const estilos = StyleSheet.create({
-  estadisticasContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    padding: DIMENSIONES.padding,
-    gap: 12,
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: DIMENSIONES.padding,
   },
-  statCard: {
-    width: '48%',
-    alignItems: 'center',
-    padding: DIMENSIONES.padding,
+  heroSection: {
+    backgroundColor: COLORES.fondoBlanco,
+    padding: DIMENSIONES.padding * 1.5,
+    marginHorizontal: DIMENSIONES.padding,
+    marginTop: DIMENSIONES.padding,
+    borderRadius: DIMENSIONES.borderRadius,
+    marginBottom: DIMENSIONES.padding * 1.5,
   },
-  statValor: {
+  heroTitulo: {
     fontSize: TIPOGRAFIA.fontSizeDisplay,
     fontWeight: TIPOGRAFIA.fontWeightBold,
     color: COLORES.textoOscuro,
-    marginBottom: 4,
+    marginBottom: 8,
   },
-  statTitulo: {
-    fontSize: TIPOGRAFIA.fontSizeSmall,
+  heroSubtitulo: {
+    fontSize: TIPOGRAFIA.fontSizeBase,
     color: COLORES.textoMedio,
-    textAlign: 'center',
+    lineHeight: 20,
   },
   menuContainer: {
-    padding: DIMENSIONES.padding,
+    paddingHorizontal: DIMENSIONES.padding,
+    marginBottom: DIMENSIONES.padding * 2,
   },
   seccionTitulo: {
-    fontSize: TIPOGRAFIA.fontSizeLarge,
+    fontSize: TIPOGRAFIA.fontSizeMedium,
     fontWeight: TIPOGRAFIA.fontWeightBold,
     color: COLORES.textoOscuro,
-    marginBottom: 16,
+    marginBottom: DIMENSIONES.padding,
   },
   menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: COLORES.fondoBlanco,
     padding: DIMENSIONES.padding,
     borderRadius: DIMENSIONES.borderRadius,
     marginBottom: 12,
+    gap: 12,
+    borderWidth: 1,
+    borderColor: COLORES.borde,
+  },
+  iconContainer: {
+    width: 50,
+    height: 50,
+    borderRadius: DIMENSIONES.borderRadius,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  menuInfo: {
+    flex: 1,
   },
   menuTexto: {
-    fontSize: TIPOGRAFIA.fontSizeMedium,
-    fontWeight: TIPOGRAFIA.fontWeightMedium,
+    fontSize: TIPOGRAFIA.fontSizeBase,
+    fontWeight: TIPOGRAFIA.fontWeightSemiBold,
     color: COLORES.textoOscuro,
+    marginBottom: 2,
+  },
+  menuDescripcion: {
+    fontSize: TIPOGRAFIA.fontSizeSmall,
+    color: COLORES.textoMedio,
+  },
+  quickActionsContainer: {
+    paddingHorizontal: DIMENSIONES.padding,
+  },
+  quickActionsGrid: {
+    flexDirection: 'row',
+    gap: DIMENSIONES.padding,
+  },
+  quickAction: {
+    flex: 1,
+    backgroundColor: COLORES.fondoBlanco,
+    borderRadius: DIMENSIONES.borderRadius,
+    padding: DIMENSIONES.padding,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORES.borde,
+  },
+  qaIcon: {
+    width: 50,
+    height: 50,
+    borderRadius: DIMENSIONES.borderRadius,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  qaText: {
+    fontSize: TIPOGRAFIA.fontSizeSmall,
+    fontWeight: TIPOGRAFIA.fontWeightSemiBold,
+    color: COLORES.textoOscuro,
+    textAlign: 'center',
   },
 });
 

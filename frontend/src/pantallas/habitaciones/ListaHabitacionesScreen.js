@@ -48,103 +48,66 @@ const ListaHabitacionesScreen = ({ navigation, route }) => {
   }, [precioMin, precioMax, numHuespedes, tipoHabitacion, ordenarPor, habitaciones]);
 
   const cargarHabitaciones = async () => {
-    try {
-      setCargando(true);
-      // Simulación de API - reemplazar con endpoint real
-      const response = await fetch('http://192.168.0.100:3000/api/habitaciones');
-      const data = await response.json();
-      setHabitaciones(data);
-      setHabitacionesFiltradas(data);
-    } catch (error) {
-      console.error('Error:', error);
-      // Datos de prueba
-      const dataPrueba = [
-        {
-          id: 1,
-          numero: '101',
-          tipo: 'Estándar',
-          capacidad: 2,
-          precio_por_noche: 80,
-          descripcion: 'Habitación acogedora con vistas al jardín',
-          total_reservas: 45,
-        },
-        {
-          id: 2,
-          numero: '102',
-          tipo: 'Premium',
-          capacidad: 2,
-          precio_por_noche: 150,
-          descripcion: 'Habitación elegante con balcón privado',
-          total_reservas: 68,
-        },
-        {
-          id: 3,
-          numero: '201',
-          tipo: 'Suite',
-          capacidad: 4,
-          precio_por_noche: 300,
-          descripcion: 'Suite de lujo con sala de estar',
-          total_reservas: 92,
-        },
-        {
-          id: 4,
-          numero: '202',
-          tipo: 'Deluxe',
-          capacidad: 3,
-          precio_por_noche: 200,
-          descripcion: 'Habitación deluxe con jacuzzi',
-          total_reservas: 78,
-        },
-        {
-          id: 5,
-          numero: '103',
-          tipo: 'Estándar',
-          capacidad: 2,
-          precio_por_noche: 90,
-          descripcion: 'Habitación moderna con wifi gratis',
-          total_reservas: 52,
-        },
-      ];
-      setHabitaciones(dataPrueba);
-      setHabitacionesFiltradas(dataPrueba);
-    } finally {
-      setCargando(false);
-    }
-  };
+  try {
+    setCargando(true);
+
+    const response = await fetch(
+      'https://tp-final-production-2d4c.up.railway.app/api/habitaciones'
+    );
+
+    const json = await response.json();
+
+    const habitacionesAPI = json.data || [];
+
+    console.log("Habitaciones API:", habitacionesAPI);
+
+    setHabitaciones(habitacionesAPI);
+    setHabitacionesFiltradas(habitacionesAPI);
+
+  } catch (error) {
+    console.error("Error cargando habitaciones:", error);
+  } finally {
+    setCargando(false);
+  }
+};
 
   const aplicarFiltros = useCallback(() => {
     let resultado = [...habitaciones];
 
     // Filtro por precio
     resultado = resultado.filter(
-      (hab) => hab.precio_por_noche >= precioMin && hab.precio_por_noche <= precioMax
+   (hab) => hab.precio_base >= precioMin && hab.precio_base <= precioMax
     );
 
     // Filtro por tipo de habitación
     if (tipoHabitacion !== 'todas') {
       resultado = resultado.filter(
-        (hab) => hab.tipo.toLowerCase() === tipoHabitacion.toLowerCase()
+        (hab) =>
+          hab.tipo &&
+          hab.tipo.toLowerCase() === tipoHabitacion.toLowerCase()
       );
     }
 
     // Filtro por capacidad de personas
     if (numHuespedes) {
-      resultado = resultado.filter((hab) => hab.capacidad >= numHuespedes);
+      resultado = resultado.filter(
+        (hab) => hab.capacidad_personas >= numHuespedes
+      );
     }
 
     // Ordenar
     switch (ordenarPor) {
       case 'precio_asc':
-        resultado.sort((a, b) => a.precio_por_noche - b.precio_por_noche);
+        resultado.sort((a, b) => a.precio_base - b.precio_base);
         break;
       case 'precio_desc':
-        resultado.sort((a, b) => b.precio_por_noche - a.precio_por_noche);
+        resultado.sort((a, b) => b.precio_base - a.precio_base);
         break;
       case 'capacidad_asc':
-        resultado.sort((a, b) => a.capacidad - b.capacidad);
+        resultado.sort((a, b) => a.capacidad_personas - b.capacidad_personas);
         break;
       case 'capacidad_desc':
-        resultado.sort((a, b) => b.capacidad - a.capacidad);
+        resultado.sort((a, b) => b.capacidad_personas - a.capacidad_personas)
         break;
       case 'popularidad':
         resultado.sort((a, b) => (b.total_reservas || 0) - (a.total_reservas || 0));
@@ -268,26 +231,36 @@ const ListaHabitacionesScreen = ({ navigation, route }) => {
   );
 
   const renderHabitacionCard = ({ item }) => {
+    console.log("ITEM HABITACION:", item);
+    console.log("ID HAB:", item.id, item.id_habitacion);
     const imagenUrl = item.imagen_principal || item.imagen || 'https://via.placeholder.com/300x200?text=Habitaci%C3%B3n';
     const numeroHab = item.numero_habitacion || item.numero || 'N/A';
     const tipoHab = item.tipo_nombre || item.tipo || 'Habitación';
     const descripcion = item.descripcion_detallada || item.descripcion || '';
-    const precio = item.precio_base || item.precio_por_noche || 0;
+    const precio = Number(item.precio_base) || 0;
     const estado = item.estado || 'disponible';
     const reseñas = item.total_reseñas || item.total_reservas || 45;
 
     return (
       <TouchableOpacity
         style={estilos.card}
-        onPress={() =>
-          navigation.navigate('DetalleHabitacion', {
+        onPress={() => {
+          setCargando(false);
+          // Pasar todos los datos relevantes de la habitación
+          navigation.navigate("DetalleHabitacion", {
             id: item.id_habitacion || item.id,
-            habitacionId: item.id_habitacion || item.id,
-            fechaCheckIn,
-            fechaCheckOut,
-            numHuespedes,
-          })
-        }
+            numero_habitacion: item.numero_habitacion || item.numero || '',
+            tipo_habitacion: item.tipo_nombre || item.tipo || '',
+            precio_base: item.precio_base || '',
+            descripcion: item.descripcion_detallada || item.descripcion || '',
+            estado: item.estado || '',
+            imagen_principal: item.imagen_principal || item.imagen || '',
+            galeria_imagenes: item.galeria_imagenes || '',
+            total_reseñas: item.total_reseñas || item.total_reservas || 0,
+            capacidad_personas: item.capacidad_personas || '',
+            // Puedes agregar más campos si es necesario
+          });
+        }}
         activeOpacity={0.9}
       >
         {/* Imagen grande */}
@@ -456,7 +429,11 @@ const ListaHabitacionesScreen = ({ navigation, route }) => {
       ) : habitacionesFiltradas.length > 0 ? (
         <FlatList
           data={habitacionesFiltradas}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={(item, index) => {
+            if (!item) return `item-null-${index}`;
+            const key = item.id || item.id_habitacion || item.numero_habitacion || item.numero;
+            return key ? key.toString() : `item-${index}`;
+          }}
           renderItem={renderHabitacionCard}
           contentContainerStyle={estilos.listContent}
           showsVerticalScrollIndicator={false}

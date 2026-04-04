@@ -1,43 +1,12 @@
 // frontend/src/utils/permisos.js
 import * as ImagePicker from 'expo-image-picker';
-import * as Location from 'expo-location';
-import * as Notifications from 'expo-notifications';
+import { Alert, Linking, Platform } from 'react-native';
 import { Alert, Linking, Platform } from 'react-native';
 
 // ============ PERMISOS DE CÁMARA ============
 
-// Solicitar permiso de cámara
-export const solicitarPermisoCamara = async () => {
-  try {
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    
-    if (status !== 'granted') {
-      mostrarAlertaPermisoDenegado(
-        'Permiso de Cámara',
-        'Necesitamos acceso a la cámara para tomar fotos.'
-      );
-      return false;
-    }
-    
-    return true;
-  } catch (error) {
-    console.error('Error al solicitar permiso de cámara:', error);
-    return false;
-  }
-};
-
-// Verificar si tiene permiso de cámara
 export const tienePermisoCamara = async () => {
   try {
-    const { status } = await ImagePicker.getCameraPermissionsAsync();
-    return status === 'granted';
-  } catch (error) {
-    console.error('Error al verificar permiso de cámara:', error);
-    return false;
-  }
-};
-
-// ============ PERMISOS DE GALERÍA ============
 
 // Solicitar permiso de galería/librería de fotos
 export const solicitarPermisoGaleria = async () => {
@@ -198,12 +167,9 @@ export const abrirConfiguracion = () => {
 // Solicitar todos los permisos necesarios
 export const solicitarPermisosIniciales = async () => {
   const permisos = {
-    notificaciones: false,
     ubicacion: false,
   };
   
-  // Solicitar notificaciones
-  permisos.notificaciones = await solicitarPermisoNotificaciones();
   
   // Solicitar ubicación (opcional, no bloquear si no se otorga)
   const ubicacion = await solicitarPermisoUbicacion();
@@ -218,7 +184,6 @@ export const verificarTodosLosPermisos = async () => {
     camara: await tienePermisoCamara(),
     galeria: await tienePermisoGaleria(),
     ubicacion: await tienePermisoUbicacion(),
-    notificaciones: await tienePermisoNotificaciones(),
   };
   
   return permisos;

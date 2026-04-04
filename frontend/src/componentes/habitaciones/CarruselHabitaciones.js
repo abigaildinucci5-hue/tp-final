@@ -48,7 +48,10 @@ const CarruselHabitaciones = ({
             index === habitacionesLimitadas.length - 1 ? DIMENSIONES.padding : 8,
         },
       ]}
-      onPress={() => onHabitacionPress?.(item)}
+      onPress={() => {
+        console.log("TOCADA:", item.numero_habitacion, item.id_habitacion);
+        onHabitacionPress?.(item);
+      }}
       activeOpacity={0.85}
     >
       {/* Carrusel interno de imágenes (soporta item.imagenes o item.imagen) */}
@@ -174,7 +177,7 @@ const CarruselHabitaciones = ({
     <FlatList
       data={habitacionesLimitadas}
       renderItem={renderCard}
-      keyExtractor={(item) => `carrusel-${item.id || Math.random()}`}
+      keyExtractor={(item) => (item.id_habitacion || item.id).toString()}
       horizontal
       showsHorizontalScrollIndicator={false}
       scrollEventThrottle={16}
@@ -215,8 +218,6 @@ const estilos = StyleSheet.create({
     overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,

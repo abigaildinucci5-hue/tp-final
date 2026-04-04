@@ -1,163 +1,78 @@
-import React, { useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORES } from '../../constantes/colores';
-import { ESTILOS_GLOBALES } from '../../constantes/estilos';
 
 const ReservaExitosaScreen = ({ route, navigation }) => {
+  // Recibimos la reserva que viene desde la pantalla anterior
   const { reserva } = route.params || {};
 
-  // Auto-navegar después de 3 segundos
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'MisReservasList' }],
-      });
-    }, 3000);
-
-    return () => clearTimeout(timer);
-  }, [navigation]);
-
   return (
-    <View style={[ESTILOS_GLOBALES.container, styles.container]}>
-      {/* Check animado */}
-      <View style={styles.checkContainer}>
-        <Ionicons name="checkmark-circle" size={100} color={COLORES.EXITO} />
-      </View>
-
-      {/* Título */}
-      <Text style={styles.titulo}>¡Reserva Confirmada!</Text>
-
-      {/* Mensaje */}
-      <Text style={styles.mensaje}>
-        Tu reserva ha sido creada correctamente. Pronto recibirás una confirmación por correo.
-      </Text>
-
-      {/* Detalles de la reserva */}
-      {reserva && (
-        <View style={styles.detallesContainer}>
-          <View style={styles.detalleRow}>
-            <Text style={styles.detalleLabel}>Número:</Text>
-            <Text style={styles.detalleValue}>
-              #{reserva.id_reserva || reserva.id}
-            </Text>
-          </View>
-          <View style={styles.detalleRow}>
-            <Text style={styles.detalleLabel}>Monto:</Text>
-            <Text style={styles.detalleValue}>
-              ${reserva.precio_total || '0.00'}
-            </Text>
-          </View>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.content}>
+        
+        <View style={styles.iconContainer}>
+          <Ionicons name="checkmark-circle" size={100} color="#C9A961" />
         </View>
-      )}
 
-      {/* Botones */}
-      <View style={styles.buttonsContainer}>
-        <TouchableOpacity
-          style={[styles.button, styles.verReservasButton]}
-          onPress={() =>
-            navigation.reset({
-              index: 0,
-              routes: [{ name: 'MisReservasList' }],
-            })
-          }
+        <Text style={styles.titulo}>¡Reserva Confirmada!</Text>
+        <Text style={styles.subtitulo}>
+          Tu estadía ha sido reservada con éxito.
+        </Text>
+
+        <View style={styles.cardInfo}>
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>Número de Reserva:</Text>
+            <Text style={styles.valor}>#{reserva?.id_reserva || reserva?.idReserva || 'N/A'}</Text>
+          </View>
+          
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>Estado:</Text>
+            <Text style={[styles.valor, { color: '#10B981' }]}>
+              {reserva?.estado?.toUpperCase() || 'CONFIRMADA'}
+            </Text>
+          </View>
+
+          <View style={styles.divider} />
+
+          <Text style={styles.nota}>
+            Puedes ver los detalles en "Mis Reservas".
+          </Text>
+        </View>
+
+        <TouchableOpacity 
+          style={styles.botonPrincipal}
+          onPress={() => navigation.navigate('HomeMain')}
         >
-          <Text style={styles.verReservasText}>Ver mis reservas</Text>
+          <Text style={styles.textoBotonPrincipal}>Ir al Inicio</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[styles.button, styles.volverButton]}
-          onPress={() => navigation.reset({
-            index: 0,
-            routes: [{ name: 'HomeMain' }],
-          })}
+        <TouchableOpacity 
+          style={styles.botonSecundario}
+          onPress={() => navigation.navigate('Reservas', { screen: 'MisReservas' })}
         >
-          <Text style={styles.volverText}>← Volver al inicio</Text>
+          <Text style={styles.textoBotonSecundario}>Ver Mis Reservas</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-  },
-  checkContainer: {
-    marginBottom: 30,
-  },
-  titulo: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: COLORES.EXITO,
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  mensaje: {
-    fontSize: 16,
-    color: COLORES.grisTexto,
-    textAlign: 'center',
-    marginBottom: 30,
-    lineHeight: 22,
-  },
-  detallesContainer: {
-    backgroundColor: COLORES.FONDO_CLARO,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    borderRadius: 12,
-    marginBottom: 30,
-    width: '100%',
-  },
-  detalleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORES.grisClaro,
-  },
-  detalleLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: COLORES.grisTexto,
-  },
-  detalleValue: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: COLORES.NEGRO,
-  },
-  buttonsContainer: {
-    width: '100%',
-    gap: 12,
-  },
-  button: {
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 48,
-  },
-  verReservasButton: {
-    backgroundColor: COLORES.PRIMARIO,
-  },
-  verReservasText: {
-    color: COLORES.BLANCO,
-    fontWeight: '700',
-    fontSize: 14,
-  },
-  volverButton: {
-    backgroundColor: COLORES.BLANCO,
-    borderWidth: 2,
-    borderColor: COLORES.grisClaro,
-  },
-  volverText: {
-    color: COLORES.NEGRO,
-    fontWeight: '700',
-    fontSize: 14,
-  },
+  container: { flex: 1, backgroundColor: '#FFFFFF' },
+  content: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 30 },
+  iconContainer: { marginBottom: 20 },
+  titulo: { fontSize: 24, fontWeight: 'bold', color: '#1A1A1A', marginBottom: 10 },
+  subtitulo: { fontSize: 16, color: '#6B6B6B', textAlign: 'center', marginBottom: 30 },
+  cardInfo: { width: '100%', backgroundColor: '#F8F8F8', borderRadius: 15, padding: 20, marginBottom: 40, borderWidth: 1, borderColor: '#E0E0E0' },
+  infoRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
+  label: { color: '#6B6B6B', fontSize: 14 },
+  valor: { color: '#1A1A1A', fontSize: 14, fontWeight: '600' },
+  divider: { height: 1, backgroundColor: '#E0E0E0', marginVertical: 15 },
+  nota: { fontSize: 12, color: '#999', textAlign: 'center' },
+  botonPrincipal: { backgroundColor: '#C9A961', width: '100%', padding: 18, borderRadius: 10, alignItems: 'center', marginBottom: 15 },
+  textoBotonPrincipal: { color: '#FFFFFF', fontSize: 16, fontWeight: 'bold' },
+  botonSecundario: { width: '100%', padding: 10, alignItems: 'center' },
+  textoBotonSecundario: { color: '#C9A961', fontSize: 16, fontWeight: '600' },
 });
 
 export default ReservaExitosaScreen;

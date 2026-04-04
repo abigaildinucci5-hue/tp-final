@@ -4,10 +4,10 @@
 // ============================================
 
 import React, { useEffect, useState } from 'react';
+import { View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
-import * as Linking from 'expo-linking';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 import * as SplashScreen from 'expo-splash-screen';
@@ -25,28 +25,16 @@ import LoginModalContainer from './src/componentes/comun/LoginModalContainer';
 // Componentes
 import { PantallaCarga } from './src/componentes/comun/Loading';
 
+if (typeof document !== 'undefined') {
+  document.body.style.overflow = 'auto';
+  // ← AGREGÁ ESTO justo abajo, dentro del mismo if
+  const style = document.createElement('style');
+  style.textContent = `::-webkit-scrollbar { display: none; } * { scrollbar-width: none; -ms-overflow-style: none; }`;
+  document.head.appendChild(style);
+}
+
 // Prevenir que el splash screen se oculte automáticamente
 SplashScreen.preventAutoHideAsync();
-
-/**
- * ========================================
- * CONFIGURACIÓN DE DEEP LINKING (Expo SDK 54)
- * ========================================
- */
-const prefix = Linking.createURL('/');
-const linking = {
-  prefixes: ['hotelunaserenamobile://', prefix],
-  config: {
-    screens: {
-      // Mapear deep link "hotelunaserenamobile://auth" a la pantalla Login
-      Auth: {
-        screens: {
-          Login: 'auth',
-        },
-      },
-    },
-  },
-};
 
 /**
  * Componente interno que usa el hook de Google Auth
@@ -67,15 +55,14 @@ const AppContent = ({ appIsReady, onLayoutRootView }) => {
           {/* 🆕 NavigationProvider para manejar el modal de login */}
           <NavigationProvider>
             <SafeAreaProvider>
-              <NavigationContainer 
-                linking={linking}
-                onReady={onLayoutRootView}
-              >
+              <View style={{ flex: 1 }}>
+              <NavigationContainer onReady={onLayoutRootView}>
                 <AppNavigator />
                 {/* 🆕 LoginModalContainer DENTRO del NavigationContainer */}
                 <LoginModalContainer />
                 <StatusBar style="auto" />
               </NavigationContainer>
+              </View>
             </SafeAreaProvider>
           </NavigationProvider>
         </AuthProvider>

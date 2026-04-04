@@ -1,98 +1,97 @@
-// frontend/src/pantallas/reservas/MisReservasScreen.js
-
 import React, { useEffect } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { ESTILOS_GLOBALES } from '../../constantes/estilos';
 import { useAuth } from '../../contexto/AuthContext';
 import { useReservas } from '../../hooks/useReservas';
-import { useRequireAuth } from '../../hooks/useRequireAuth';
-import { COLORES } from '../../constantes/colores';
-
-// 🔥 IMPORTANTE: ajustá la ruta si hace falta
 import HistorialReservas from '../../componentes/reservas/HistorialReservas';
+import HeaderApp from '../../componentes/comun/HeaderApp';
+import Loading from '../../componentes/comun/Loading';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import COLORES from '../../constantes/colores';
 
 const MisReservasScreen = ({ navigation }) => {
-  const { isAuthenticated } = useAuth();
-  const { requireAuth } = useRequireAuth();
-  const { reservas, loading, cargarReservas } = useReservas();
+  const { isAuthenticated, usuario } = useAuth();
+  const { historial, loading, cargarHistorial } = useReservas();
 
   useEffect(() => {
-    if (isAuthenticated) {
-      cargarReservas();
+    if (!isAuthenticated) {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Auth', params: { screen: 'Login' } }],
+      });
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, navigation]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      cargarHistorial();
+    }, [cargarHistorial])
+  );
 
   const handleReservaPress = (reserva) => {
-    navigation.navigate('DetalleReserva', { id: reserva.id_reserva || reserva.id });
+    navigation.navigate('DetalleReserva', { id: reserva.id_reserva });
   };
 
-  // 🔐 Si no está logueado
-  if (!isAuthenticated) {
-    return (
-      <View
-        style={[
-          ESTILOS_GLOBALES.container,
-          { justifyContent: 'center', alignItems: 'center' },
-        ]}
-      >
-        <Text
-          style={{
-            fontSize: 18,
-            fontWeight: '600',
-            color: COLORES.NEGRO,
-            marginBottom: 20,
-            textAlign: 'center',
-          }}
-        >
-          Mis Reservas
-        </Text>
+  // Con el slice normalizado, historial ya tiene la forma correcta
+  const activas   = historial?.activas   || [];
+  const pasadas   = historial?.pasadas   || [];
+  const canceladas = historial?.canceladas || [];
 
-        <Text
-          style={{
-            fontSize: 14,
-            color: COLORES.grisTexto,
-            marginBottom: 30,
-            textAlign: 'center',
-            paddingHorizontal: 20,
-          }}
-        >
-          Inicia sesión para ver tus reservas
-        </Text>
+  // El cliente solo ve activas y pasadas, no las canceladas en la lista
+  const todasLasReservas = [...activas, ...pasadas];
+  const tieneCanceladas  = canceladas.length > 0;
 
-        <TouchableOpacity
-          style={{
-            backgroundColor: COLORES.SECUNDARIO,
-            paddingHorizontal: 30,
-            paddingVertical: 12,
-            borderRadius: 8,
-          }}
-          onPress={requireAuth}
-        >
-          <Text
-            style={{
-              color: COLORES.PRIMARIO,
-              fontWeight: '600',
-              fontSize: 14,
-            }}
-          >
-            Iniciar Sesión
-          </Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
+  if (!isAuthenticated) return <Loading />;
 
-  // 👇 Si está autenticado
   return (
     <View style={ESTILOS_GLOBALES.container}>
+      <HeaderApp title="Mis Reservas" variant="transparent" />
+
+      {/* Banner de reserva cancelada */}
+      {tieneCanceladas && (
+        <View style={estilos.bannerCancelada}>
+          <MaterialCommunityIcons name="alert-circle" size={20} color="#fff" />
+          <Text style={estilos.bannerTexto}>
+            {canceladas.length === 1
+              ? 'Tu reserva fue cancelada. Por favor comunicate con el personal.'
+              : `Tenés ${canceladas.length} reservas canceladas. Por favor comunicate con el personal.`}
+          </Text>
+        </View>
+      )}
+
       <HistorialReservas
-        reservas={reservas || []}
+        reservas={todasLasReservas}
         loading={loading}
         onReservaPress={handleReservaPress}
-        onRefresh={() => cargarReservas()}
+        onRefresh={cargarHistorial}
+        refreshing={loading}
+        userRole={usuario?.rol || 'cliente'}
       />
     </View>
   );
 };
+
+const estilos = StyleSheet.create({
+  bannerCancelada: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E53935',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    gap: 10,
+    marginHorizontal: 16,
+    marginTop: 8,
+    marginBottom: 4,
+    borderRadius: 10,
+  },
+  bannerTexto: {
+    flex: 1,
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '600',
+    lineHeight: 18,
+  },
+});
 
 export default MisReservasScreen;

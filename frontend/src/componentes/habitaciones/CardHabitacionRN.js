@@ -6,12 +6,11 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  FlatList,
+  Platform,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import COLORES from '../../constantes/colores';
-import { TIPOGRAFIA, DIMENSIONES } from '../../constantes/estilos';
-import { obtenerImagenHabitacion } from '../../constantes/imagenes';
+import { TIPOGRAFIA } from '../../constantes/estilos';
 
 const CardHabitacionRN = ({
   habitacion,
@@ -22,7 +21,6 @@ const CardHabitacionRN = ({
   const [isFav, setIsFav] = useState(esFavorito);
 
   const {
-    id_habitacion,
     numero_habitacion,
     tipo_habitacion,
     precio_base,
@@ -37,23 +35,23 @@ const CardHabitacionRN = ({
     onFavorito?.(habitacion);
   };
 
+  const imagenUrl =
+    imagen_principal ||
+    'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400&h=300&fit=crop';
+
   return (
     <TouchableOpacity
       style={estilos.card}
       onPress={() => onPress?.()}
       activeOpacity={0.85}
     >
-      {/* Imagen */}
       <View style={estilos.imageContainer}>
         <Image
-          source={{
-            uri: obtenerImagenHabitacion(imagen_principal) || 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400&h=300&fit=crop',
-          }}
+          source={{ uri: imagenUrl }}
           style={estilos.image}
           resizeMode="cover"
         />
 
-        {/* Badge de estado */}
         <View
           style={[
             estilos.stateBadge,
@@ -62,17 +60,10 @@ const CardHabitacionRN = ({
             estado === 'reservada' && { backgroundColor: '#F39C12' },
           ]}
         >
-          <Text style={estilos.stateBadgeText}>
-            {estado?.charAt(0).toUpperCase() + estado?.slice(1).toLowerCase()}
-          </Text>
+          <Text style={estilos.stateBadgeText}>{estado?.toUpperCase()}</Text>
         </View>
 
-        {/* Botón Favorito */}
-        <TouchableOpacity
-          style={estilos.favoriteButton}
-          onPress={handleFavorito}
-          activeOpacity={0.7}
-        >
+        <TouchableOpacity style={estilos.favoriteButton} onPress={handleFavorito}>
           <MaterialCommunityIcons
             name={isFav ? 'heart' : 'heart-outline'}
             size={24}
@@ -81,30 +72,31 @@ const CardHabitacionRN = ({
         </TouchableOpacity>
       </View>
 
-      {/* Contenido */}
       <View style={estilos.content}>
-        {/* Tipo y número */}
         <View style={estilos.header}>
-          <View style={estilos.titleSection}>
-            <Text style={estilos.roomType}>{tipo_habitacion}</Text>
-            <Text style={estilos.roomNumber}>Habitación {numero_habitacion}</Text>
+          {/* ✅ flex:1 con minWidth:0 para que el texto no desborde */}
+          <View style={estilos.infoLeft}>
+            <Text style={estilos.roomType} numberOfLines={1}>
+              {tipo_habitacion}
+            </Text>
+            <Text style={estilos.roomNumber} numberOfLines={1}>
+              Habitación {numero_habitacion}
+            </Text>
           </View>
+
           <View style={estilos.priceSection}>
             <Text style={estilos.priceLabel}>Desde</Text>
-            <Text style={estilos.price}>${precio_base}</Text>
+            <Text style={estilos.price}>
+              ${Number(precio_base ?? 0).toFixed(2)}
+            </Text>
             <Text style={estilos.priceUnit}>/noche</Text>
           </View>
         </View>
 
-        {/* Descripción */}
-        <Text
-          style={estilos.description}
-          numberOfLines={2}
-        >
+        <Text style={estilos.description} numberOfLines={2}>
           {descripcion || 'Habitación confortable con todas las comodidades'}
         </Text>
 
-        {/* Capacidad */}
         <View style={estilos.footer}>
           <View style={estilos.capacityBadge}>
             <MaterialCommunityIcons
@@ -113,7 +105,8 @@ const CardHabitacionRN = ({
               color={COLORES.dorado}
             />
             <Text style={estilos.capacityText}>
-              {capacidad_personas} {capacidad_personas === 1 ? 'persona' : 'personas'}
+              {capacidad_personas}{' '}
+              {capacidad_personas === 1 ? 'persona' : 'personas'}
             </Text>
           </View>
         </View>
@@ -126,49 +119,47 @@ const estilos = StyleSheet.create({
   card: {
     backgroundColor: COLORES.blanco,
     borderRadius: 12,
-    marginBottom: 16,
-    marginHorizontal: 0,
-    overflow: 'hidden',
-    elevation: 4,
+    marginBottom: 20,
+    // ✅ width: '100%' en lugar de SCREEN_WIDTH - 32
+    // El contenedor padre (ListaHabitaciones) ya maneja el ancho
     width: '100%',
+    overflow: 'hidden',
+    ...Platform.select({
+      web: {
+        boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
+      },
+      default: {
+        elevation: 3,
+      },
+    }),
   },
   imageContainer: {
-    position: 'relative',
     width: '100%',
-    height: 200,
+    height: 220,
+    position: 'relative',
     backgroundColor: '#F5F5F5',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   image: {
     width: '100%',
     height: '100%',
-    backgroundColor: '#e0e0e0',
   },
   stateBadge: {
     position: 'absolute',
     top: 12,
     left: 12,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-    backgroundColor: COLORES.dorado,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 6,
   },
   stateBadgeText: {
     color: COLORES.blanco,
-    fontSize: TIPOGRAFIA.fontSizeSmall,
-    fontWeight: '600',
+    fontSize: 10,
+    fontWeight: 'bold',
   },
   favoriteButton: {
     position: 'absolute',
     top: 12,
     right: 12,
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   content: {
     padding: 16,
@@ -177,45 +168,47 @@ const estilos = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 12,
+    marginBottom: 8,
   },
-  titleSection: {
+  // ✅ minWidth: 0 es clave para evitar que el texto empuje al precio fuera de pantalla
+  infoLeft: {
     flex: 1,
+    minWidth: 0,
+    marginRight: 12,
   },
   roomType: {
-    fontSize: TIPOGRAFIA.fontSizeSmall,
-    color: COLORES.dorado,
-    fontWeight: '600',
+    fontSize: 12,
+    color: COLORES.textoMedio,
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 4,
   },
   roomNumber: {
-    fontSize: 16,
-    color: COLORES.textoOscuro,
-    fontWeight: '700',
-  },
-  priceSection: {
-    alignItems: 'flex-end',
-  },
-  priceLabel: {
-    fontSize: TIPOGRAFIA.fontSizeSmall,
-    color: COLORES.textoMedio,
-    marginBottom: 2,
-  },
-  price: {
     fontSize: 18,
     color: COLORES.textoOscuro,
     fontWeight: '700',
+    marginTop: 2,
+  },
+  priceSection: {
+    alignItems: 'flex-end',
+    flexShrink: 0,
+  },
+  priceLabel: {
+    fontSize: 10,
+    color: COLORES.textoMedio,
+  },
+  price: {
+    fontSize: 22,
+    color: COLORES.textoOscuro,
+    fontWeight: '700',
+    lineHeight: 30,
   },
   priceUnit: {
-    fontSize: TIPOGRAFIA.fontSizeSmall,
+    fontSize: 12,
     color: COLORES.textoMedio,
   },
   description: {
-    fontSize: TIPOGRAFIA.fontSizeRegular,
+    fontSize: 14,
     color: COLORES.textoMedio,
-    lineHeight: 18,
+    lineHeight: 20,
     marginBottom: 12,
   },
   footer: {
@@ -232,7 +225,7 @@ const estilos = StyleSheet.create({
     borderRadius: 8,
   },
   capacityText: {
-    fontSize: TIPOGRAFIA.fontSizeSmall,
+    fontSize: 12,
     color: COLORES.dorado,
     fontWeight: '600',
   },

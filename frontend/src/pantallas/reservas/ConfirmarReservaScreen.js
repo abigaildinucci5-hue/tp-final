@@ -12,63 +12,66 @@ import Boton from '../../componentes/comun/Boton';
 import ErrorMensaje from '../../componentes/comun/ErrorMensaje';
 
 const ConfirmarReservaScreen = ({ navigation, route }) => {
-  const { habitacion, fechaInicio, fechaFin, cantidadPersonas, precioTotal } = route.params || {};
-  const { crearReserva } = useReservas();
+  const { habitacion, fechaInicio, fechaFin, cantidadPersonas, precioTotal } = route.params;
+  const { crearReserva, loading } = useReservas();
   
   const [metodoPago, setMetodoPago] = useState(null);
   const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
 
-  const handleConfirmar = async () => {
-    console.log('🎬 BOTÓN PRESIONADO');
-    
+ const handleConfirmar = async () => {
+    // 1. Validación inicial
     if (!metodoPago) {
       setError('Por favor selecciona un método de pago');
       return;
     }
 
-    if (!habitacion || (!habitacion.id && !habitacion.id_habitacion)) {
-      setError('Error: Habitación no válida');
-      return;
+    // 2. Preparamos los datos EXACTAMENTE como los pide el controlador del backend
+    const reservaData = {
+      idHabitacion: habitacion.id_habitacion || habitacion.id,
+      fechaEntrada: fechaInicio,
+      fechaSalida: fechaFin,
+      numeroHuespedes: cantidadPersonas,
+      notasEspeciales: '' // El backend lo desestructura pero no lo valida como requerido
+    };
+
+    console.log("Enviando al backend:", reservaData);
+
+    try {
+      const result = await crearReserva(reservaData);
+      
+      if (result && result.success) {
+        // El backend devuelve { exito: true, data: { id_reserva: ... } }
+        const reservaFinal = result.data;
+        navigation.navigate('ReservaExitosa', { reserva: reservaFinal });
+      } else {
+        // Si el backend responde 400 o 500
+        const msgError = result.error?.mensaje || result.error || 'Error en la reserva';
+        setError(msgError);
+      }
+    } catch (err) {
+      console.error("Error crítico:", err);
+      setError("Error de conexión con el servidor");
     }
 
     try {
-      setLoading(true);
-      setError(null);
-
-      const reservaData = {
-        idHabitacion: habitacion.id || habitacion.id_habitacion,
-        fechaEntrada: fechaInicio,
-        fechaSalida: fechaFin,
-        numeroHuespedes: cantidadPersonas,
-        metodoPago: metodoPago,
-      };
-
-      console.log('📤 Enviando:', reservaData);
+      // 3. Llamada al servicio
       const result = await crearReserva(reservaData);
-      console.log('📥 Respuesta:', result);
+      
+      console.log("Respuesta recibida del server:", result);
 
-      if (result?.success) {
-        // Mostrar toast de éxito
-        if (window && window.toast) {
-          window.toast('Reserva creada correctamente', { type: 'success' });
-        }
-        // Redirigir a MisReservas
-        navigation.navigate('MisReservas');
+      if (result && result.success) {
+        // Extraemos la data según el formato de tu backend
+        const reservaFinal = result.data?.data || result.data;
+        navigation.navigate('ReservaExitosa', { reserva: reservaFinal });
       } else {
-        if (window && window.toast) {
-          window.toast('Error al crear la reserva', { type: 'error' });
-        }
-        setError('Error al crear la reserva');
+        // Manejo de error cuando el backend responde pero algo salió mal
+        const msgError = result.error?.mensaje || result.error || 'Error en la reserva';
+        setError(msgError);
       }
     } catch (err) {
-      console.error('💥 Error:', err);
-      if (window && window.toast) {
-        window.toast('Error al crear la reserva', { type: 'error' });
-      }
-      setError(err.message || 'Error al crear la reserva');
-    } finally {
-      setLoading(false);
+      // Manejo de error cuando el servidor no responde o hay crash
+      console.error("Error crítico en la comunicación:", err);
+      setError("No se pudo conectar con el servidor. Revisa tu conexión.");
     }
   };
 
@@ -92,7 +95,7 @@ const ConfirmarReservaScreen = ({ navigation, route }) => {
 
         <View style={estilos.metodoPagoContainer}>
           <Text style={estilos.titulo}>Método de Pago</Text>
-          {METODOS_PAGO && METODOS_PAGO.map((metodo) => (
+          {METODOS_PAGO.map((metodo) => (
             <TouchableOpacity
               key={metodo.id}
               style={[
@@ -122,12 +125,7 @@ const ConfirmarReservaScreen = ({ navigation, route }) => {
       </ScrollView>
 
       <View style={estilos.footer}>
-        <Boton 
-          onPress={handleConfirmar} 
-          loading={loading} 
-          fullWidth
-          disabled={loading}
-        >
+        <Boton onPress={handleConfirmar} loading={loading} fullWidth>
           Confirmar y Pagar
         </Boton>
       </View>

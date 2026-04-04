@@ -44,7 +44,6 @@ const allowedOrigins = [
   'http://localhost:8081',
   'http://localhost:3000',
   'http://localhost:19006',
-  'https://tp-final-production-a1f6.up.railway.app'
 ];
 
 app.use(cors({

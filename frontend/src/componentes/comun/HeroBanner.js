@@ -101,7 +101,7 @@ const estilos = StyleSheet.create({
     marginBottom: 24,
   },
   backgroundImage: {
-    // resizeMode is now a prop
+    // resizeMode moved to ImageBackground prop
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,

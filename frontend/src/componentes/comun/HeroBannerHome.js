@@ -77,13 +77,13 @@ const HeroBannerHome = ({
 const estilos = StyleSheet.create({
   banner: {
     width: '100%',
-    height: Platform.OS === 'web' ? 500 : 480,
+    height: Platform.OS === 'web' ? 580 : 540, // Increased height
     justifyContent: 'flex-end',
     paddingBottom: 40,
     marginBottom: 24,
   },
   backgroundImage: {
-    // resizeMode is now a prop
+    // resizeMode moved to ImageBackground prop
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,

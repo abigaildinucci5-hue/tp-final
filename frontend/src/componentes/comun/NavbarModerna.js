@@ -17,6 +17,7 @@ import {
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { CommonActions } from '@react-navigation/native';
 import { COLORES } from '../../constantes/colores';
 
 const NavbarModerna = ({ 
@@ -38,16 +39,58 @@ const NavbarModerna = ({
     }
   }, [route?.name]);
 
+  // Navegación usando la estructura de MainNavigator
   const navigateTo = (screen) => {
-  const pantallasPrivadas = ['Reservas'];
 
-  if (!isAuthenticated && pantallasPrivadas.includes(screen)) {
-    openAuthModal();
-    setMostrarMenuNav(false);
-    return;
+  let action;
+
+  switch (screen) {
+
+    case 'Home':
+      action = CommonActions.navigate({
+        name: 'Home',
+        params: { screen: 'HomeMain' },
+      });
+      break;
+
+    case 'ListaHabitaciones':
+      action = CommonActions.navigate({
+        name: 'Habitaciones',
+        params: { screen: 'ListaHabitaciones' },
+      });
+      break;
+
+    case 'Reservas':
+      if (!isAuthenticated) {
+        action = CommonActions.navigate({ name: 'Auth' });
+      } else {
+        action = CommonActions.navigate({
+          name: 'Reservas',
+          params: { screen: 'MisReservas' },
+        });
+      }
+      break;
+
+    case 'PerfilMain':
+      if (!isAuthenticated) {
+        action = CommonActions.navigate({ name: 'Auth' });
+      } else {
+        action = CommonActions.navigate({
+          name: 'Perfil',
+          params: { screen: 'PerfilMain' },
+        });
+      }
+      break;
+
+    case 'Contacto':
+      action = CommonActions.navigate({ name: 'Contacto' });
+      break;
   }
 
-  navigation.navigate(screen);
+  if (action) {
+    navigation.dispatch(action);
+  }
+
   setMostrarMenuNav(false);
 };
 
@@ -57,13 +100,7 @@ const NavbarModerna = ({
   };
 
   const openAuthModal = () => {
-  let parent = navigation;
-
-  while (parent.getParent()) {
-    parent = parent.getParent();
-  }
-
-  parent.navigate('AuthModal');
+  navigation.getParent()?.navigate('Auth');
 };
 
   return (
@@ -77,7 +114,7 @@ const NavbarModerna = ({
             style={styles.hamburgerButton}
             onPress={() => setMostrarMenuNav(true)}
           >
-            <MaterialCommunityIcons name="menu" size={32} color={COLORES.SECUNDARIO} />
+            <MaterialCommunityIcons name="menu" size={32} color={COLORES.blanco} />
           </TouchableOpacity>
         ) : (
           <View style={styles.seccionIzquierda} />
@@ -94,7 +131,7 @@ const NavbarModerna = ({
             <NavLink
               label="Habitaciones"
               activo={activeRoute === 'Habitaciones'}
-              onPress={() => navigateTo('Habitaciones')}
+              onPress={() => navigateTo('ListaHabitaciones')}
             />
             <NavLink
               label="Reservas"
@@ -112,7 +149,7 @@ const NavbarModerna = ({
             <MaterialCommunityIcons 
               name="moon-waning-crescent" 
               size={20} 
-              color={COLORES.SECUNDARIO} 
+              color={COLORES.blanco} 
             />
             <Text style={styles.hotelNombreMobile}>Hotel Luna Serena</Text>
           </View>
@@ -142,67 +179,73 @@ const NavbarModerna = ({
               <MaterialCommunityIcons
                 name={mostrarMenuUsuario ? 'chevron-up' : 'chevron-down'}
                 size={20}
-                color={COLORES.SECUNDARIO}
+                color={COLORES.blanco}
               />
             </TouchableOpacity>
           ) : (
             <TouchableOpacity
-              style={styles.botonLogin}
-              onPress={() => {
-                setMostrarMenuUsuario(false);
-                openAuthModal();
-              }}
+              style={styles.botonUsuario}
+              onPress={() => setMostrarMenuUsuario(!mostrarMenuUsuario)}
             >
               <MaterialCommunityIcons 
                 name="account-circle-outline" 
                 size={28} 
-                color={COLORES.SECUNDARIO} 
+                color={COLORES.blanco} 
               />
               {windowWidth > 480 && (
-                <Text style={styles.textoLogin}>Iniciar Sesión</Text>
+                <View style={styles.datosUsuario}>
+                  <Text style={styles.nombreUsuario}>Modo Invitado</Text>
+                  <Text style={styles.rolUsuario}>Usuario Anónimo</Text>
+                </View>
               )}
+              <MaterialCommunityIcons
+                name={mostrarMenuUsuario ? 'chevron-up' : 'chevron-down'}
+                size={20}
+                color={COLORES.blanco}
+              />
             </TouchableOpacity>
           )}
         </View>
       </View>
 
       {/* MENÚ LATERAL HAMBURGUESA (pantallas chicas) - Panel lateral transparente */}
-      {mostrarMenuNav && (
-        <View style={styles.sidebarContainer}>
-          {/* Overlay semi-transparente */}
-          <TouchableOpacity
-            style={styles.sidebarOverlay}
-            onPress={() => setMostrarMenuNav(false)}
-            activeOpacity={1}
-          />
-          
-          {/* Panel lateral del lado izquierdo */}
-          <View style={styles.sidebarPanel}>
-            <ScrollView style={styles.menuItems}>
-              <MenuItem
-                icono="home-outline"
-                label="Home"
-                onPress={() => { setMostrarMenuNav(false); navigateTo('Home'); }}
-              />
-              <MenuItem
-                icono="bed-outline"
-                label="Habitaciones"
-                onPress={() => { setMostrarMenuNav(false); navigateTo('Habitaciones'); }}
-              />
-              <MenuItem
-                icono="calendar-outline"
-                label="Reservas"
-                onPress={() => { setMostrarMenuNav(false); navigateTo('Reservas'); }}
-              />
-              <MenuItem
-                icono="phone-outline"
-                label="Contacto"
-                onPress={() => { setMostrarMenuNav(false); navigateTo('Contacto'); }}
-              />
-            </ScrollView>
-          </View>
-        </View>
-      )}
+        <Modal
+  visible={mostrarMenuNav}
+  transparent={true}
+  animationType="fade"
+  onRequestClose={() => setMostrarMenuNav(false)}
+>
+  <View style={styles.sidebarContainer}>
+
+    {/* Panel lateral */}
+    <View style={styles.sidebarPanel}>
+      <ScrollView style={styles.menuItems}>
+        <MenuItem
+          icono="home-outline"
+          label="Home"
+          onPress={() => { setMostrarMenuNav(false); navigateTo('Home'); }}
+        />
+        <MenuItem
+          icono="bed-outline"
+          label="Habitaciones"
+          onPress={() => { setMostrarMenuNav(false); navigateTo('ListaHabitaciones'); }}
+        />
+        <MenuItem
+          icono="calendar-outline"
+          label="Reservas"
+          onPress={() => { setMostrarMenuNav(false); navigateTo('Reservas'); }}
+        />
+      </ScrollView>
+    </View>
+
+    {/* Overlay */}
+    <TouchableOpacity
+      style={styles.sidebarOverlay}
+      onPress={() => setMostrarMenuNav(false)}
+      activeOpacity={1}
+    />
+  </View>
+</Modal>
 
       {/* MENÚ DESPLEGABLE */}
       {mostrarMenuUsuario && (
@@ -211,7 +254,7 @@ const NavbarModerna = ({
           onPress={() => setMostrarMenuUsuario(false)}
           activeOpacity={1}
         >
-          <View style={styles.menuDropdownAbsolute} pointerEvents="auto">
+          <View style={[{ pointerEvents: 'auto' }, styles.menuDropdownAbsolute]}> 
             {isAuthenticated && usuario ? (
               <>
                 {/* Header menú - Usuario autenticado */}
@@ -232,7 +275,7 @@ const NavbarModerna = ({
                     label="Mi Perfil"
                     onPress={() => {
                       setMostrarMenuUsuario(false);
-                      navigateTo('Perfil');
+                      navigateTo('PerfilMain');
                     }}
                   />
                   <MenuItem
@@ -240,7 +283,7 @@ const NavbarModerna = ({
                     label="Mis Reservas"
                     onPress={() => {
                       setMostrarMenuUsuario(false);
-                      navigateTo('Reservas');
+                      navigateTo('MisReservas');
                     }}
                   />
                   <MenuItem
@@ -286,7 +329,7 @@ const NavbarModerna = ({
                   <MaterialCommunityIcons
                     name="account-outline"
                     size={40}
-                    color={COLORES.SECUNDARIO}
+                    color={COLORES.blanco}
                   />
                   <Text style={styles.menuNombre}>Modo Invitado</Text>
                 </View>
@@ -305,7 +348,7 @@ const NavbarModerna = ({
                     label="Ver Habitaciones"
                     onPress={() => {
                       setMostrarMenuUsuario(false);
-                      navigateTo('Habitaciones');
+                      navigateTo('ListaHabitaciones');
                     }}
                   />
                   <MenuItem
@@ -316,22 +359,17 @@ const NavbarModerna = ({
                       navigateTo('Contacto');
                     }}
                   />
-
                   <View style={styles.menuDivisor} />
 
                   <TouchableOpacity
                     style={styles.menuItemLogin}
                     onPress={() => {
                       setMostrarMenuUsuario(false);
-                      try {
-                        navigation.navigate('AuthModal');
-                      } catch {
-                        navigation.navigate('Auth');
-                      }
+                      navigation.getParent()?.navigate('Auth');
                     }}
                   >
                     <MaterialCommunityIcons
-                      name="login"
+                      name="account-circle-outline"
                       size={20}
                       color={COLORES.PRIMARIO}
                     />
@@ -352,14 +390,20 @@ const NavbarModerna = ({
 /**
  * Componente NavLink - Item de navegación sin iconos para mejor legibilidad en móvil
  */
+import { Animated } from 'react-native';
 const NavLink = ({ label, activo, onPress }) => (
   <TouchableOpacity 
-    style={[styles.navLink, activo && styles.navLinkActivo]} 
+    style={[styles.navLink]}
     onPress={onPress}
   >
-    <Text style={[styles.navLinkText, activo && styles.navLinkTextActivo]}>
-      {label}
-    </Text>
+    <View style={{ alignItems: 'center' }}>
+      <Text style={[styles.navLinkText, activo && styles.navLinkTextActivo]}>
+        {label}
+      </Text>
+      {activo && (
+        <Animated.View style={styles.activeUnderline} />
+      )}
+    </View>
   </TouchableOpacity>
 );
 
@@ -373,24 +417,33 @@ const MenuItem = ({ icono, label, subtext, isRojo, onPress }) => (
   >
     <MaterialCommunityIcons
       name={icono}
-      size={20}
-      color={isRojo ? COLORES.ERROR : COLORES.SECUNDARIO}
+      size={24}
+      color={isRojo ? '#ff6b6b' : COLORES.dorado}
+      style={{ opacity: 1 }}
     />
     <View style={styles.menuItemTexto}>
-      <Text style={[styles.menuItemLabel, isRojo && styles.menuItemLabelRojo]}>
+      <Text style={[styles.menuItemLabel, { color: isRojo ? '#ff6b6b' : COLORES.blanco }]}> 
         {label}
       </Text>
-      {subtext && <Text style={styles.menuItemSubtext}>{subtext}</Text>}
+      {subtext && <Text style={[styles.menuItemSubtext, { color: COLORES.blanco }]}>{subtext}</Text>}
     </View>
     <MaterialCommunityIcons 
       name="chevron-right" 
-      size={20} 
-      color={COLORES.grisTexto} 
+      size={24} 
+      color={isRojo ? '#ff6b6b' : COLORES.dorado}
+      style={{ opacity: 1 }}
     />
   </TouchableOpacity>
 );
 
 const styles = StyleSheet.create({
+  activeUnderline: {
+    height: 3,
+    width: '100%',
+    backgroundColor: COLORES.blanco,
+    borderRadius: 2,
+    marginTop: 2,
+  },
     hamburgerButton: {
       paddingHorizontal: 10,
       paddingVertical: 8,
@@ -400,7 +453,7 @@ const styles = StyleSheet.create({
   // ===== NAVBAR PRINCIPAL =====
   navbar: {
     height: 70,
-    backgroundColor: COLORES.PRIMARIO,
+    backgroundColor: COLORES.negroElegante, // Fondo negro elegante
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -409,7 +462,7 @@ const styles = StyleSheet.create({
       ios: {
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.25,
+        shadowOpacity: 0.10,
         shadowRadius: 4,
       },
       android: {
@@ -438,7 +491,7 @@ const styles = StyleSheet.create({
   hotelNombre: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORES.SECUNDARIO,
+    color: COLORES.blanco, // Texto blanco
   },
 
   hotelSubtitulo: {
@@ -467,7 +520,7 @@ const styles = StyleSheet.create({
   hotelNombreMobile: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORES.SECUNDARIO,
+    color: COLORES.blanco, // Texto blanco
   },
 
   seccionDerecha: {
@@ -495,12 +548,12 @@ const styles = StyleSheet.create({
 
   navLinkText: {
     fontSize: 13,
-    color: COLORES.ACENTO,
+    color: COLORES.blanco, // Texto blanco
     fontWeight: '500',
   },
 
   navLinkTextActivo: {
-    color: COLORES.SECUNDARIO,
+    color: COLORES.dorado, // Gold accent for active
     fontWeight: '600',
   },
 
@@ -511,8 +564,10 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingHorizontal: 12,
     paddingVertical: 6,
-    backgroundColor: 'rgba(201, 169, 97, 0.12)',
+    backgroundColor: 'rgba(201, 169, 97, 0.25)',
     borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: 'rgba(201, 169, 97, 0.4)',
   },
 
   fotoPerfil: {
@@ -530,15 +585,16 @@ const styles = StyleSheet.create({
 
   nombreUsuario: {
     fontSize: 13,
-    color: COLORES.ACENTO,
+    color: COLORES.blanco,
     fontWeight: '600',
   },
 
   rolUsuario: {
-    fontSize: 10,
-    color: COLORES.SECUNDARIO,
+    fontSize: 11,
+    color: COLORES.dorado,
     fontStyle: 'italic',
     marginTop: 2,
+    fontWeight: '700',
   },
 
   // BOTÓN LOGIN
@@ -552,35 +608,36 @@ const styles = StyleSheet.create({
 
   textoLogin: {
     fontSize: 13,
-    color: COLORES.SECUNDARIO,
+    color: COLORES.negroElegante,
     fontWeight: '600',
   },
 
   // ===== MENÚ DESPLEGABLE =====
   sidebarContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    flexDirection: 'row-reverse',
-    zIndex: 1000,
-    pointerEvents: 'box-none',
-  },
+  flex: 1,
+  flexDirection: 'row',
+},
 
   sidebarOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    zIndex: 9998,
   },
 
   sidebarPanel: {
     width: '70%',
     maxWidth: 280,
     height: '100%',
-    backgroundColor: 'rgba(20, 20, 20, 0.95)',
+    backgroundColor: 'rgba(20,20,20,0.99)', // negro sólido para mejor visibilidad
     paddingTop: 60,
     borderLeftWidth: 1,
-    borderLeftColor: 'rgba(255, 255, 255, 0.1)',
+    borderLeftColor: 'rgba(255,255,255,0.1)',
+    zIndex: 10000,
+    shadowColor: '#000',
+    shadowOffset: { width: 2, height: 0 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 10000,
   },
 
   overlay: {
@@ -590,7 +647,7 @@ const styles = StyleSheet.create({
   },
 
   menuDropdown: {
-    backgroundColor: COLORES.BLANCO,
+    backgroundColor: COLORES.negroElegante,
     borderRadius: 12,
     marginTop: 70,
     marginRight: 16,
@@ -618,7 +675,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: COLORES.grisClaro,
+    borderBottomColor: 'rgba(255, 255, 255, 0.15)',
+    backgroundColor: COLORES.negroElegante,
   },
 
   menuAvatar: {
@@ -636,17 +694,18 @@ const styles = StyleSheet.create({
   menuNombre: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORES.NEGRO,
+    color: COLORES.blanco,
   },
 
   menuEmail: {
     fontSize: 12,
-    color: COLORES.grisTexto,
+    color: 'rgba(255, 255, 255, 0.6)',
     marginTop: 3,
   },
 
   menuItems: {
     paddingVertical: 6,
+    flex: 1,
   },
 
   menuItem: {
@@ -662,13 +721,14 @@ const styles = StyleSheet.create({
   },
 
   menuItemLabel: {
-    fontSize: 14,
-    color: COLORES.NEGRO,
-    fontWeight: '500',
+    fontSize: 15,
+    fontWeight: '700',
+    color: COLORES.blanco,
+    letterSpacing: 0.3,
   },
 
   menuItemRojo: {
-    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+    backgroundColor: 'rgba(239, 68, 68, 0.2)',
   },
 
   menuItemLabelRojo: {
@@ -677,13 +737,13 @@ const styles = StyleSheet.create({
 
   menuItemSubtext: {
     fontSize: 11,
-    color: COLORES.grisTexto,
     marginTop: 3,
+    color: 'rgba(255, 255, 255, 0.6)',
   },
 
   menuDivisor: {
     height: 1,
-    backgroundColor: COLORES.grisClaro,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     marginVertical: 8,
   },
 
@@ -693,7 +753,7 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingHorizontal: 16,
     paddingVertical: 13,
-    backgroundColor: 'rgba(79, 70, 229, 0.1)',
+    backgroundColor: 'rgba(79, 70, 229, 0.2)',
     marginHorizontal: 8,
     marginVertical: 8,
     borderRadius: 8,
@@ -713,21 +773,23 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 70,
     right: 16,
-    backgroundColor: COLORES.BLANCO,
+    backgroundColor: COLORES.negroElegante,
     borderRadius: 12,
     width: '88%',
-    maxWidth: 300,
-    maxHeight: '70%',
+    maxWidth: 320,
+    maxHeight: 500,
     zIndex: 1001,
+    opacity: 1,
+    overflow: 'hidden',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.2,
+        shadowOpacity: 0.3,
         shadowRadius: 8,
       },
       android: {
-        elevation: 8,
+        elevation: 10,
       },
     }),
   },

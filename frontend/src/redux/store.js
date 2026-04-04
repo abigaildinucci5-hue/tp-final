@@ -5,6 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { combineReducers } from 'redux';
 
 // Importar slices
+import authReducer from './slices/authSlice';
 import habitacionesReducer from './slices/habitacionesSlice';
 import reservasReducer from './slices/reservasSlice';
 import uiReducer from './slices/uiSlice';
@@ -13,12 +14,13 @@ import uiReducer from './slices/uiSlice';
 const persistConfig = {
   key: 'root',
   storage: AsyncStorage,
-  whitelist: [], // No persistir nada de Redux (AuthContext maneja autenticación)
-  blacklist: [], // No ignorar nada específicamente
+  whitelist: ['auth'], // Solo persistir auth
+  blacklist: ['ui'], // No persistir UI
 };
 
 // Combinar reducers
 const rootReducer = combineReducers({
+  auth: authReducer,
   habitaciones: habitacionesReducer,
   reservas: reservasReducer,
   ui: uiReducer,
@@ -33,16 +35,7 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
-        // Ignorar tanto las acciones de persistencia como los thunks que pueden tener Promises
-        ignoredActions: [
-          'persist/PERSIST',
-          'persist/REHYDRATE',
-          // Ignorar todos los thunks pending/rejected (que contienen Promises)
-          /.*\/pending$/,
-          /.*\/rejected$/,
-        ],
-        // Ignorar path 'auth' que contiene Promises temporales
-        ignoredPaths: ['auth'],
+        ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE'],
       },
     }),
 });

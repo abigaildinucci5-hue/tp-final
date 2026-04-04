@@ -3,7 +3,7 @@
     // frontend/src/pantallas/auth/LoginScreen.js
     // ============================================
 
-    import React, { useState, useEffect } from 'react';
+    import React, { useState } from 'react';
     import {
       View,
       Text,
@@ -16,190 +16,135 @@
     } from 'react-native';
     import { MaterialCommunityIcons } from '@expo/vector-icons';
     import { useAuth } from '../../contexto/AuthContext';
-    import { useMobileAuthCallback } from '../../hooks/useMobileAuthCallback';
-    import NavbarModerna from '../../componentes/comun/NavbarModerna';
     import Input from '../../componentes/comun/Input';
     import Boton from '../../componentes/comun/Boton';
     import SocialButtons from '../../componentes/auth/SocialButtons';
     import { COLORES } from '../../constantes/colores';
+    import NavbarModerna from '../../componentes/comun/NavbarModerna';
 
-    const LoginScreen = ({ navigation }) => {
-      // 📱 Capturar OAuth tokens desde deep link (mobile)
-      useMobileAuthCallback();
+const LoginScreen = ({ navigation }) => {
+  const { login } = useAuth();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-      const { login, loginConGoogle, loginConGitHub, isAuthenticated, usuario } = useAuth();
-      const [email, setEmail] = useState('');
-      const [password, setPassword] = useState('');
-      const [loading, setLoading] = useState(false);
-      const [error, setError] = useState('');
+  const handleLogin = async () => {
+    setError('');
+    if (!email.trim()) {
+      setError('Por favor ingresa tu email');
+      return;
+    }
+    if (!password) {
+      setError('Por favor ingresa tu contraseña');
+      return;
+    }
+    setLoading(true);
+    try {
+      const result = await login(email, password);
+      if (!result.exito) {
+        setError(result.mensaje || 'Error al iniciar sesión');
+      }
+    } catch (err) {
+      setError('No se pudo conectar con el servidor');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      // ✅ Navegar al home cuando el usuario se autentica
-      useEffect(() => {
-        if (isAuthenticated && usuario) {
-          console.log('✅ Usuario autenticado:', usuario.nombre);
-          // Mostrar bienvenida
-          Alert.alert(
-            `¡Bienvenido, ${usuario.nombre}!`,
-            'Tu sesión se ha iniciado correctamente.',
-            [{ text: 'OK', onPress: () => {
-              // Cerrar el modal de login
-              // El AppNavigator detectará isAuthenticated=true y mostrará Home
-              navigation.goBack();
-            }}]
-          );
-        }
-      }, [isAuthenticated, usuario, navigation]);
+  const handleOAuthSuccess = (provider) => {
+    console.log(`✅ Autenticado con ${provider}`);
+  };
+  const handleOAuthError = (provider, mensaje) => {
+    Alert.alert('Error', `No se pudo iniciar sesión con ${provider}`);
+  };
 
-      const handleLogin = async () => {
-        setError('');
-
-        if (!email.trim()) {
-          setError('Por favor ingresa tu email');
-          return;
-        }
-
-        if (!password) {
-          setError('Por favor ingresa tu contraseña');
-          return;
-        }
-
-        setLoading(true);
-        try {
-          const result = await login(email, password);
-          if (!result.exito) {
-            setError(result.mensaje || 'Error al iniciar sesión');
-          }
-          // Si result.exito es true, el useEffect de arriba se encargará de la navegación
-        } catch (err) {
-          setError('No se pudo conectar con el servidor');
-        } finally {
-          setLoading(false);
-        }
-      };
-
-      const handleOAuthSuccess = async (provider, tokenOrCode) => {
-        console.log(`✅ Token recibido de ${provider}:`, tokenOrCode?.substring(0, 20) + '...');
-        
-        try {
-          setLoading(true);
-          
-          let result;
-          if (provider === 'google') {
-            // Google en móvil retorna access_token
-            result = await loginConGoogle(tokenOrCode);
-          } else if (provider === 'github') {
-            // GitHub en móvil puede retornar token o código
-            result = await loginConGitHub(tokenOrCode);
-          }
-          
-          if (result.exito) {
-            console.log(`✅ Autenticación con ${provider} exitosa`);
-            // AuthContext se actualiza automáticamente y el useEffect navega
-          } else {
-            Alert.alert('Error', result.mensaje || `Error al autenticar con ${provider}`);
-          }
-        } catch (error) {
-          console.error(`❌ Error en OAuth ${provider}:`, error);
-          Alert.alert('Error', `No se pudo procesar la autenticación con ${provider}`);
-        } finally {
-          setLoading(false);
-        }
-      };
-
-      const handleOAuthError = (provider, mensaje) => {
-        console.error(`❌ Error en ${provider}:`, mensaje);
-        Alert.alert('Error', `No se pudo iniciar sesión con ${provider}`);
-      };
-
-      return (
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.container}
+  return (
+    <View style={{ flex: 1, backgroundColor: COLORES.fondoClaro }}>
+      {/* NavbarModerna visible en Auth */}
+      <NavbarModerna isAuthenticated={false} />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
-          {/* Navbar moderna - igual que en el Home */}
-          <NavbarModerna 
-            usuario={null}
-            isAuthenticated={false}
-            onLogout={null}
-          />
+          {/* Header con logo */}
+          <View style={styles.header}>
+            <View style={styles.logoContainer}>
+              <MaterialCommunityIcons
+                name="bed-outline"
+                size={50}
+                color={COLORES.dorado}
+              />
+            </View>
+            <Text style={styles.title}>Hotel Luna Serena</Text>
+            <Text style={styles.subtitle}>Bienvenido de nuevo</Text>
+          </View>
 
-          <ScrollView
-            contentContainerStyle={styles.scrollContent}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-          >
-            {/* Header con logo */}
-            <View style={styles.header}>
-              <View style={styles.logoContainer}>
-                <MaterialCommunityIcons
-                  name="office-building"
-                  size={50}
-                  color={COLORES.dorado}
+          {/* Formulario */}
+              <View style={styles.form}>
+                {/* Botones OAuth */}
+                <SocialButtons
+                  onSuccess={handleOAuthSuccess}
+                  onError={handleOAuthError}
                 />
+
+                {/* Divider */}
+                <View style={styles.divider}>
+                  <View style={styles.dividerLine} />
+                  <Text style={styles.dividerText}>o continúa con email</Text>
+                  <View style={styles.dividerLine} />
+                </View>
+
+                {/* Email */}
+                <Input
+                  label="Email"
+                  value={email}
+                  onChangeText={setEmail}
+                  placeholder="tu@email.com"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  icono="email-outline"
+                  error={error && !password ? error : ''}
+                />
+
+                {/* Password */}
+                <Input
+                  label="Contraseña"
+                  value={password}
+                  onChangeText={setPassword}
+                  placeholder="Ingresa tu contraseña"
+                  secureTextEntry
+                  icono="lock-outline"
+                  error={error && password ? error : ''}
+                />
+
+                {/* Botón Login */}
+                <Boton
+                  onPress={handleLogin}
+                  loading={loading}
+                  disabled={loading}
+                  fullWidth
+                  style={styles.loginButton}
+                >
+                  Iniciar Sesión
+                </Boton>
+
+                {/* Link a Registro */}
+                <View style={styles.registerContainer}>
+                  <Text style={styles.registerText}>¿No tienes cuenta? </Text>
+                  <TouchableOpacity onPress={() => navigation.navigate('Registro')}>
+                    <Text style={styles.registerLink}>Regístrate aquí</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
-              <Text style={styles.title}>Hotel Luna Serena</Text>
-              <Text style={styles.subtitle}>Bienvenido de nuevo</Text>
-            </View>
-
-            {/* Formulario */}
-            <View style={styles.form}>
-              {/* Botones OAuth */}
-              <SocialButtons
-                onSuccess={handleOAuthSuccess}
-                onError={handleOAuthError}
-              />
-
-              {/* Divider */}
-              <View style={styles.divider}>
-                <View style={styles.dividerLine} />
-                <Text style={styles.dividerText}>o continúa con email</Text>
-                <View style={styles.dividerLine} />
-              </View>
-
-              {/* Email */}
-              <Input
-                label="Email"
-                value={email}
-                onChangeText={setEmail}
-                placeholder="tu@email.com"
-                keyboardType="email-address"
-                autoCapitalize="none"
-                icono="email-outline"
-                error={error && !password ? error : ''}
-              />
-
-              {/* Password */}
-              <Input
-                label="Contraseña"
-                value={password}
-                onChangeText={setPassword}
-                placeholder="Ingresa tu contraseña"
-                secureTextEntry
-                icono="lock-outline"
-                error={error && password ? error : ''}
-              />
-
-              {/* Botón Login */}
-              <Boton
-                onPress={handleLogin}
-                loading={loading}
-                disabled={loading}
-                fullWidth
-                style={styles.loginButton}
-              >
-                Iniciar Sesión
-              </Boton>
-
-              {/* Link a Registro */}
-              <View style={styles.registerContainer}>
-                <Text style={styles.registerText}>¿No tienes cuenta? </Text>
-                <TouchableOpacity onPress={() => navigation.navigate('Registro')}>
-                  <Text style={styles.registerLink}>Regístrate aquí</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
+            </ScrollView>
+          </KeyboardAvoidingView>
+        </View>
       );
     };
 
@@ -212,6 +157,7 @@
         flexGrow: 1,
         justifyContent: 'center',
         alignItems: 'center',
+        minHeight: '100%',
         padding: 20,
       },
       header: {
@@ -243,8 +189,6 @@
         color: COLORES.grisTexto,
       },
       form: {
-        width: '100%',
-        maxWidth: 500,
         backgroundColor: COLORES.blanco,
         borderRadius: 20,
         padding: 24,
@@ -253,6 +197,9 @@
         shadowOpacity: 0.1,
         shadowRadius: 8,
         elevation: 5,
+        minWidth: 320,
+        maxWidth: 400,
+        alignSelf: 'center',
       },
       divider: {
         flexDirection: 'row',

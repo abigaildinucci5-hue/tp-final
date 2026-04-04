@@ -29,6 +29,21 @@ router.post('/', verificarAutenticacion, verificarCliente, controladorReservas.c
 
 
 // --- 2. RUTAS CON PARÁMETROS DINÁMICOS (/:idReserva) ---
+// ⚠️ IMPORTANTE: Las rutas ESPECÍFICAS deben ir ANTES de /:idReserva
+
+/**
+ * @route   PUT /api/reservas/:idReserva/confirmar
+ * @desc    Confirmar reserva (solo empleado/admin)
+ * @access  Privado (Empleado/Admin)
+ */
+router.put('/:idReserva/confirmar', verificarAutenticacion, verificarEmpleado, controladorReservas.confirmarReserva);
+
+/**
+ * @route   PUT /api/reservas/:idReserva/completar
+ * @desc    Marcar reserva como completada
+ * @access  Privado (Empleado/Admin)
+ */
+router.put('/:idReserva/completar', verificarAutenticacion, verificarEmpleado, controladorReservas.completarReserva);
 
 /**
  * @route   GET /api/reservas/:idReserva
@@ -50,12 +65,5 @@ router.put('/:idReserva', verificarAutenticacion, controladorReservas.modificarR
  * @access  Privado
  */
 router.delete('/:idReserva', verificarAutenticacion, controladorReservas.cancelarReserva);
-
-/**
- * @route   PUT /api/reservas/:idReserva/confirmar
- * @desc    Confirmar reserva (solo empleado/admin)
- * @access  Privado (Empleado/Admin)
- */
-router.put('/:idReserva/confirmar', verificarAutenticacion, verificarEmpleado, controladorReservas.confirmarReserva);
 
 module.exports = router;

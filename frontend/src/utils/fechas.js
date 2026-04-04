@@ -8,11 +8,17 @@
  * @returns {string} Fecha formateada
  */
 export const formatearFecha = (fecha) => {
-  const date = new Date(fecha);
-  const dia = String(date.getDate()).padStart(2, '0');
-  const mes = String(date.getMonth() + 1).padStart(2, '0');
-  const anio = date.getFullYear();
-  return `${dia}/${mes}/${anio}`;
+  if (!fecha) return 'N/A';
+  try {
+    const date = new Date(fecha);
+    if (isNaN(date.getTime())) return 'N/A';
+    const dia = String(date.getDate()).padStart(2, '0');
+    const mes = String(date.getMonth() + 1).padStart(2, '0');
+    const anio = date.getFullYear();
+    return `${dia}/${mes}/${anio}`;
+  } catch (error) {
+    return 'N/A';
+  }
 };
 
 /**
@@ -182,4 +188,23 @@ export const formatearRelativo = (fecha) => {
 export const esDateValida = (fecha) => {
   const date = new Date(fecha);
   return date instanceof Date && !isNaN(date);
+};
+
+/**
+ * Calcula la cantidad de noches entre dos fechas
+ * @param {Date|string} fechaEntrada - Fecha de entrada
+ * @param {Date|string} fechaSalida - Fecha de salida
+ * @returns {string} Cantidad de noches formateado (ej: "2 noches")
+ */
+export const formatearNoches = (fechaEntrada, fechaSalida) => {
+  try {
+    if (!fechaEntrada || !fechaSalida) return '0 noches';
+    const dias = diferenciaEnDias(fechaEntrada, fechaSalida);
+    if (dias <= 0) return '0 noches';
+    if (dias === 1) return '1 noche';
+    return `${dias} noches`;
+  } catch (error) {
+    console.error('Error calculando noches:', error);
+    return '0 noches';
+  }
 };

@@ -1,6 +1,55 @@
+Backend:
+
+# File Tree: backend
+
+**Generated:** 3/23/2026, 7:41:58 PM
+**Root Path:** `d:\TP-final\backend`
+
+```
+├── src
+│   ├── config
+│   │   ├── baseDatos.js
+│   │   ├── jwt.js
+│   │   └── oauth.js
+│   ├── controladores
+│   │   ├── controladorAuth.js
+│   │   ├── controladorComentarios.js
+│   │   ├── controladorEmpleado.js
+│   │   ├── controladorHabitaciones.js
+│   │   ├── controladorPuntos.js
+│   │   ├── controladorReservas.js
+│   │   └── controladorUsuarios.js
+│   ├── middlewares
+│   │   ├── manejadorErrores.js
+│   │   ├── middlewareAuth.js
+│   │   └── middlewareVerificarRol.js
+│   ├── modelos
+│   │   └── modeloUsuario.js
+│   ├── rutas
+│   │   ├── rutasAuth.js
+│   │   ├── rutasComentarios.js
+│   │   ├── rutasEmpleado.js
+│   │   ├── rutasHabitaciones.js
+│   │   ├── rutasPuntos.js
+│   │   ├── rutasReservas.js
+│   │   └── rutasUsuarios.js
+│   ├── servicios
+│   │   └── servicioUpload.js
+│   └── utils
+│       ├── constantes.js
+│       ├── helpers.js
+│       └── validadores.js
+├── hash.js
+├── package-lock.json
+├── package.json
+├── roles.js
+├── server.js
+└── test-habitaciones.js
+```
+
 # File Tree: frontend
 
-**Generated:** 3/3/2026, 12:34:03 PM
+**Generated:** 4/1/2026, 2:48:26 PM
 **Root Path:** `d:\TP-final\frontend`
 
 ```
@@ -28,6 +77,8 @@
 │   │       ├── splash-icon.png
 │   │       └── splash.png
 │   ├── componentes
+│   │   ├── admin
+│   │   │   └── AdminDropdownMenu.js
 │   │   ├── auth
 │   │   │   ├── GitHubButton.js
 │   │   │   ├── GoogleButton.js
@@ -51,12 +102,13 @@
 │   │   │   ├── LoginModal.js
 │   │   │   ├── LoginModalContainer.js
 │   │   │   ├── Modal.js
+│   │   │   ├── ModalConfirmacion.js
 │   │   │   ├── ModernSearchBar.js
 │   │   │   ├── NavbarModerna.js
 │   │   │   ├── ProtectedScreen.js
-│   │   │   ├── QuickAccessSection.js
-│   │   │   ├── TabBar.js
 │   │   │   └── WithProtection.js
+│   │   ├── empleado
+│   │   │   └── NavbarEmpleado.js
 │   │   ├── habitaciones
 │   │   │   ├── AutoScrollCarousel.js
 │   │   │   ├── BotonFavorito.js
@@ -67,8 +119,7 @@
 │   │   │   ├── FiltrosHabitaciones.js
 │   │   │   ├── FiltrosRapidos.js
 │   │   │   ├── GaleriaImagenes.js
-│   │   │   ├── ListaHabitaciones.js
-│   │   │   └── ModernRoomsCarousel.js
+│   │   │   └── ListaHabitaciones.js
 │   │   ├── perfil
 │   │   │   ├── EditarPerfil.js
 │   │   │   ├── FotoPerfil.js
@@ -104,12 +155,17 @@
 │   │   ├── AdminNavigator.js
 │   │   ├── AppNavigator.js
 │   │   ├── AuthNavigator.js
+│   │   ├── EmpleadoNavigator.js
 │   │   ├── EmployeeNavigator.js
 │   │   ├── MainNavigator.js
 │   │   └── NavigationRef.js
 │   ├── pantallas
 │   │   ├── admin
+│   │   │   ├── CrearHabitacionScreen.js
 │   │   │   ├── DashboardScreen.js
+│   │   │   ├── DetalleReservaAdminScreen.js
+│   │   │   ├── DetalleUsuarioScreen.js
+│   │   │   ├── EditarHabitacionScreen.js
 │   │   │   ├── EstadisticasScreen.js
 │   │   │   ├── GestionHabitacionesScreen.js
 │   │   │   ├── GestionReservasScreen.js
@@ -117,16 +173,24 @@
 │   │   ├── auth
 │   │   │   ├── LoginScreen.js
 │   │   │   └── RegistroScreen.js
+│   │   ├── contacto
+│   │   │   └── ContactoMainScreen.js
 │   │   ├── empleado
-│   │   │   └── PanelRecepcionistaScreen.js
+│   │   │   ├── CheckInOutScreen.js
+│   │   │   ├── ClientesScreen.js
+│   │   │   ├── CrearReservaEmpleadoScreen.js
+│   │   │   ├── DashboardEmpleadoScreen.js
+│   │   │   ├── DetalleReservaEmpleadoScreen.js
+│   │   │   ├── GestionHabitacionesEmpleadoScreen.js
+│   │   │   ├── GestionReservasEmpleadoScreen.js
+│   │   │   ├── PanelRecepcionistaScreen.js
+│   │   │   └── PerfilEmpleadoScreen.js
 │   │   ├── habitaciones
 │   │   │   ├── DetalleHabitacionScreen.js
 │   │   │   ├── FavoritosScreen.js
 │   │   │   └── ListaHabitacionesScreen.js
 │   │   ├── home
-│   │   │   ├── BuscarScreen.js
-│   │   │   ├── HomeScreen.js
-│   │   │   └── SplashScreen.js
+│   │   │   └── HomeScreen.js
 │   │   ├── otros
 │   │   │   ├── AcercaDeScreen.js
 │   │   │   ├── ContactoScreen.js
@@ -159,6 +223,7 @@
 │   │   ├── reservasService.js
 │   │   └── usuariosService.js
 │   └── utils
+│       ├── dateFormatter.js
 │       ├── fechas.js
 │       ├── formatters.js
 │       ├── imageProxy.js
@@ -167,6 +232,7 @@
 │       └── validaciones.js
 ├── .gitignore
 ├── App.js
+├── FRONTEND.md
 ├── README.md
 ├── app.json
 ├── babel.config.js

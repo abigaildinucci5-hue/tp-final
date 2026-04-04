@@ -1,0 +1,273 @@
+Hola chat, como estas? básicamente estamos haciendo algunos cambios en mi app para:
+
+1. Que si esta ocupada la habitacion o en manteniminton no se pueda reservar. 
+2. Que el cliente pueda eliminar su reserva luego de darla de baja no aparece la opcion
+3. Que el admin y el recepcionista puedan borrar la reserva luego de marcar si en un modal de confirmacion
+4. Que el admin pueda modificar alguna habitacion, hasat ahora se puede cambiar su estado si esta ocupada o en mantenimeinto pero no puedo cambiar su prcio y ademas se necesita recargar en este caso para que se actualice
+5. Que el admin pueda crear una nueva habitacion sin prblemas y se almacene en la bd
+6. Que el recepcionista pueda completar una reserva, ya que estuvo fallando eso tambien
+
+Hice algunos cambios en el codigo pero despues de esos cambios se observa que:
+
+No aparece la opcion de borrar reserva en admin ni en recepcionista,
+tampoco en cliente
+
+continuo sin poder crear una nueva habitacion, aparece un modal de error pero no hay logs en railway ni logs en consola del navegador
+
+Si el cliente selecciona una habitacio ocupada, puede hacer la reserva y una vez que la confirma, se le cancela. pero directamente no deberia suceder eso sino que directamente no este disppoinle y debe decir "habitacion no disponible hasta nuevo aviso" en caso de mantenimiento "hababitacion en mantenimiento"
+
+Al modificar una habitacion en modo admin sale mensaje de exito pero no se cambia el precio ni tampoco al recargar
+
+Te paso mi nueva estructura y avisame que vas a necesitar para poder solucionarlo, cómo te digo ya modifiqe el codigo para poder hacer funcional estas cosas apero de momento no fue suficiente al parecer.
+
+Ahora mismo editar una habitacion se edita correctamente su descripcion en la bd pero en el frontend no aparece actualizado su precio ni su descripcion
+
+Ademas no esta el boton eliminar reserva y ya esta agregado supuestamente en mi codigo
+
+Backend:
+
+# File Tree: backend
+
+**Generated:** 3/23/2026, 7:41:58 PM
+**Root Path:** `d:\TP-final\backend`
+
+```
+├── src
+│   ├── config
+│   │   ├── baseDatos.js
+│   │   ├── jwt.js
+│   │   └── oauth.js
+│   ├── controladores
+│   │   ├── controladorAuth.js
+│   │   ├── controladorComentarios.js
+│   │   ├── controladorEmpleado.js
+│   │   ├── controladorHabitaciones.js
+│   │   ├── controladorPuntos.js
+│   │   ├── controladorReservas.js
+│   │   └── controladorUsuarios.js
+│   ├── middlewares
+│   │   ├── manejadorErrores.js
+│   │   ├── middlewareAuth.js
+│   │   └── middlewareVerificarRol.js
+│   ├── modelos
+│   │   └── modeloUsuario.js
+│   ├── rutas
+│   │   ├── rutasAuth.js
+│   │   ├── rutasComentarios.js
+│   │   ├── rutasEmpleado.js
+│   │   ├── rutasHabitaciones.js
+│   │   ├── rutasPuntos.js
+│   │   ├── rutasReservas.js
+│   │   └── rutasUsuarios.js
+│   ├── servicios
+│   │   └── servicioUpload.js
+│   └── utils
+│       ├── constantes.js
+│       ├── helpers.js
+│       └── validadores.js
+├── hash.js
+├── package-lock.json
+├── package.json
+├── roles.js
+├── server.js
+└── test-habitaciones.js
+```
+
+# File Tree: frontend
+
+**Generated:** 4/1/2026, 2:48:26 PM
+**Root Path:** `d:\TP-final\frontend`
+
+```
+├── constants
+│   └── theme.ts
+├── hooks
+│   ├── use-color-scheme.ts
+│   ├── use-color-scheme.web.ts
+│   └── use-theme-color.ts
+├── scripts
+│   └── reset-project.js
+├── src
+│   ├── assets
+│   │   └── images
+│   │       ├── habitaciones
+│   │       ├── banner-hero.jpg
+│   │       ├── icon.png
+│   │       ├── logo-blanco.png
+│   │       ├── logo.png
+│   │       ├── partial-react-logo.png
+│   │       ├── placeholder-habitacion.png
+│   │       ├── react-logo.png
+│   │       ├── react-logo@2x.png
+│   │       ├── react-logo@3x.png
+│   │       ├── splash-icon.png
+│   │       └── splash.png
+│   ├── componentes
+│   │   ├── admin
+│   │   │   └── AdminDropdownMenu.js
+│   │   ├── auth
+│   │   │   ├── GitHubButton.js
+│   │   │   ├── GoogleButton.js
+│   │   │   └── SocialButtons.js
+│   │   ├── comentarios
+│   │   │   ├── CardComentario.js
+│   │   │   ├── EstrellaCalificacion.js
+│   │   │   ├── FormComentario.js
+│   │   │   └── ListaComentarios.js
+│   │   ├── comun
+│   │   │   ├── Boton.js
+│   │   │   ├── Card.js
+│   │   │   ├── ErrorMensaje.js
+│   │   │   ├── Footer.js
+│   │   │   ├── HeaderApp.js
+│   │   │   ├── HeroBanner.js
+│   │   │   ├── HeroBannerHome.js
+│   │   │   ├── HeroCarousel.js
+│   │   │   ├── Input.js
+│   │   │   ├── Loading.js
+│   │   │   ├── LoginModal.js
+│   │   │   ├── LoginModalContainer.js
+│   │   │   ├── Modal.js
+│   │   │   ├── ModalConfirmacion.js
+│   │   │   ├── ModernSearchBar.js
+│   │   │   ├── NavbarModerna.js
+│   │   │   ├── ProtectedScreen.js
+│   │   │   └── WithProtection.js
+│   │   ├── empleado
+│   │   │   └── NavbarEmpleado.js
+│   │   ├── habitaciones
+│   │   │   ├── AutoScrollCarousel.js
+│   │   │   ├── BotonFavorito.js
+│   │   │   ├── CardHabitacionRN.js
+│   │   │   ├── CarruselHabitaciones.js
+│   │   │   ├── DetalleHabitacion.js
+│   │   │   ├── FiltrosAvanzados.js
+│   │   │   ├── FiltrosHabitaciones.js
+│   │   │   ├── FiltrosRapidos.js
+│   │   │   ├── GaleriaImagenes.js
+│   │   │   └── ListaHabitaciones.js
+│   │   ├── perfil
+│   │   │   ├── EditarPerfil.js
+│   │   │   ├── FotoPerfil.js
+│   │   │   └── InfoPerfil.js
+│   │   └── reservas
+│   │       ├── CalendarioReserva.js
+│   │       ├── CardReserva.js
+│   │       ├── FormularioReserva.js
+│   │       ├── HistorialReservas.js
+│   │       └── ResumenReserva.js
+│   ├── constantes
+│   │   ├── colores.js
+│   │   ├── config.js
+│   │   ├── estilos.js
+│   │   ├── imagenes.js
+│   │   └── rutas.js
+│   ├── contexto
+│   │   ├── AuthContext.js
+│   │   ├── NavigationContext.js
+│   │   └── TabNavigationContext.js
+│   ├── hooks
+│   │   ├── useAuth.js
+│   │   ├── useAuthNavigation.js
+│   │   ├── useEmpleado.js
+│   │   ├── useForm.js
+│   │   ├── useGoogleAuthCallback.js
+│   │   ├── useHabitaciones.js
+│   │   ├── useLocation.js
+│   │   ├── useMobileAuthCallback.js
+│   │   ├── useRequireAuth.js
+│   │   └── useReservas.js
+│   ├── navegacion
+│   │   ├── AdminNavigator.js
+│   │   ├── AppNavigator.js
+│   │   ├── AuthNavigator.js
+│   │   ├── EmpleadoNavigator.js
+│   │   ├── EmployeeNavigator.js
+│   │   ├── MainNavigator.js
+│   │   └── NavigationRef.js
+│   ├── pantallas
+│   │   ├── admin
+│   │   │   ├── CrearHabitacionScreen.js
+│   │   │   ├── DashboardScreen.js
+│   │   │   ├── DetalleReservaAdminScreen.js
+│   │   │   ├── DetalleUsuarioScreen.js
+│   │   │   ├── EditarHabitacionScreen.js
+│   │   │   ├── EstadisticasScreen.js
+│   │   │   ├── GestionHabitacionesScreen.js
+│   │   │   ├── GestionReservasScreen.js
+│   │   │   └── GestionUsuariosScreen.js
+│   │   ├── auth
+│   │   │   ├── LoginScreen.js
+│   │   │   └── RegistroScreen.js
+│   │   ├── contacto
+│   │   │   └── ContactoMainScreen.js
+│   │   ├── empleado
+│   │   │   ├── CheckInOutScreen.js
+│   │   │   ├── ClientesScreen.js
+│   │   │   ├── CrearReservaEmpleadoScreen.js
+│   │   │   ├── DashboardEmpleadoScreen.js
+│   │   │   ├── DetalleReservaEmpleadoScreen.js
+│   │   │   ├── GestionHabitacionesEmpleadoScreen.js
+│   │   │   ├── GestionReservasEmpleadoScreen.js
+│   │   │   ├── PanelRecepcionistaScreen.js
+│   │   │   └── PerfilEmpleadoScreen.js
+│   │   ├── habitaciones
+│   │   │   ├── DetalleHabitacionScreen.js
+│   │   │   ├── FavoritosScreen.js
+│   │   │   └── ListaHabitacionesScreen.js
+│   │   ├── home
+│   │   │   └── HomeScreen.js
+│   │   ├── otros
+│   │   │   ├── AcercaDeScreen.js
+│   │   │   ├── ContactoScreen.js
+│   │   │   └── MapaScreen.js
+│   │   ├── perfil
+│   │   │   ├── EditarPerfilScreen.js
+│   │   │   └── PerfilScreen.js
+│   │   └── reservas
+│   │       ├── ConfirmarReservaScreen.js
+│   │       ├── DetalleReservaScreen.js
+│   │       ├── HistorialScreen.js
+│   │       ├── MisReservasScreen.js
+│   │       ├── NuevaReservaScreen.js
+│   │       └── ReservaExitosaScreen.js
+│   ├── redux
+│   │   ├── slices
+│   │   │   ├── authSlice.js
+│   │   │   ├── habitacionesSlice.js
+│   │   │   ├── reservasSlice.js
+│   │   │   └── uiSlice.js
+│   │   ├── thunks
+│   │   │   ├── habitacionesThunks.js
+│   │   │   └── reservasThunks.js
+│   │   └── store.js
+│   ├── servicios
+│   │   ├── api.js
+│   │   ├── authService.js
+│   │   ├── comentariosService.js
+│   │   ├── habitacionesService.js
+│   │   ├── reservasService.js
+│   │   └── usuariosService.js
+│   └── utils
+│       ├── dateFormatter.js
+│       ├── fechas.js
+│       ├── formatters.js
+│       ├── imageProxy.js
+│       ├── permisos.js
+│       ├── storage.js
+│       └── validaciones.js
+├── .gitignore
+├── App.js
+├── FRONTEND.md
+├── README.md
+├── app.json
+├── babel.config.js
+├── eslint.config.js
+├── metro.config.js
+├── package-lock.json
+├── package.json
+└── tsconfig.json
+```
+
+---
+*Generated by FileTree Pro Extension*

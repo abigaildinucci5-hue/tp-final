@@ -1,3 +1,29 @@
+  // Maneja el registro por email
+  const handleRegistro = async () => {
+    setError("");
+    if (!nombre || !apellido || !email || !password || !confirmarPassword) {
+      setError("Completa todos los campos obligatorios.");
+      return;
+    }
+    if (password.length < 6) {
+      setError("La contraseña debe tener al menos 6 caracteres.");
+      return;
+    }
+    if (password !== confirmarPassword) {
+      setError("Las contraseñas no coinciden.");
+      return;
+    }
+    setLoading(true);
+    try {
+      await registro({ nombre, apellido, email, telefono, password });
+      Alert.alert('¡Registro exitoso!', 'Ahora puedes iniciar sesión.');
+      navigation.navigate('Login');
+    } catch (e) {
+      setError(e.message || 'Error al registrar.');
+    } finally {
+      setLoading(false);
+    }
+  };
 // frontend/src/pantallas/auth/RegistroScreen.js
 import React, { useState } from 'react';
 import {
@@ -12,11 +38,12 @@ import {
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '../../contexto/AuthContext';
-import HeaderApp from '../../componentes/comun/HeaderApp';
 import Input from '../../componentes/comun/Input';
 import Boton from '../../componentes/comun/Boton';
 import SocialButtons from '../../componentes/auth/SocialButtons';
 import { COLORES } from '../../constantes/colores';
+import NavbarModerna from '../../componentes/comun/NavbarModerna';
+
 
 const RegistroScreen = ({ navigation }) => {
   const { registro } = useAuth();
@@ -29,254 +56,161 @@ const RegistroScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleRegistro = async () => {
-    setError('');
-
-    // Validaciones
-    if (!nombre.trim()) {
-      setError('Por favor ingresa tu nombre');
-      return;
-    }
-
-    if (!apellido.trim()) {
-      setError('Por favor ingresa tu apellido');
-      return;
-    }
-
-    if (!email.trim()) {
-      setError('Por favor ingresa tu email');
-      return;
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      setError('Por favor ingresa un email válido');
-      return;
-    }
-
-    if (!password) {
-      setError('Por favor ingresa una contraseña');
-      return;
-    }
-
-    if (password.length < 6) {
-      setError('La contraseña debe tener al menos 6 caracteres');
-      return;
-    }
-
-    if (password !== confirmarPassword) {
-      setError('Las contraseñas no coinciden');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const result = await registro(nombre, apellido, email, password, telefono);
-      
-      if (result.exito) {
-        Alert.alert(
-          'Registro Exitoso',
-          '¡Bienvenido a Hotel Luna Serena!',
-          [{ text: 'Continuar' }]
-        );
-      } else {
-        setError(result.mensaje || 'Error al registrarse');
-      }
-    } catch (err) {
-      setError('No se pudo conectar con el servidor');
-    } finally {
-      setLoading(false);
-    }
+  // Soluciona error: handleOAuthSuccess is not defined
+  const handleOAuthSuccess = (provider) => {
+    console.log(`✅ Autenticado con ${provider}`);
   };
-
-  const handleOAuthSuccess = async (provider, tokenOrCode) => {
-    console.log(`✅ Token recibido de ${provider}:`, tokenOrCode?.substring(0, 20) + '...');
-    
-    try {
-      setLoading(true);
-      
-      let result;
-      if (provider === 'google') {
-        // Google en móvil retorna access_token
-        result = await auth.loginConGoogle(tokenOrCode);
-      } else if (provider === 'github') {
-        // GitHub en móvil puede retornar token o código
-        result = await auth.loginConGitHub(tokenOrCode);
-      }
-      
-      if (result.exito) {
-        console.log(`✅ Autenticación con ${provider} exitosa`);
-        // AuthContext se actualiza automáticamente
-      } else {
-        Alert.alert('Error', result.mensaje || `Error al autenticar con ${provider}`);
-      }
-    } catch (error) {
-      console.error(`❌ Error en OAuth ${provider}:`, error);
-      Alert.alert('Error', `No se pudo procesar la autenticación con ${provider}`);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleOAuthError = (provider, mensaje) => {
-    console.error(`❌ Error en ${provider}:`, mensaje);
     Alert.alert('Error', `No se pudo iniciar sesión con ${provider}`);
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
-    >
-      {/* Header con navegación */}
-      <HeaderApp
-        title="Hotel Luna Serena"
-        leftIcon="arrow-left"
-        onLeftPress={() => navigation.goBack()}
-        showNavigation={true}
-        navigation={navigation}
-        activeRoute="Auth"
-      />
-
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
+    <View style={{ flex: 1, backgroundColor: COLORES.fondoClaro }}>
+      {/* NavbarModerna visible en Auth */}
+      <NavbarModerna isAuthenticated={false} />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
       >
-        {/* Header con logo */}
-        <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-          >
-            <MaterialCommunityIcons name="arrow-left" size={24} color={COLORES.dorado} />
-          </TouchableOpacity>
-          
-          <View style={styles.logoContainer}>
-            <MaterialCommunityIcons name="office-building" size={50} color={COLORES.dorado} />
-          </View>
-          <Text style={styles.title}>Hotel Luna Serena</Text>
-          <Text style={styles.subtitle}>Crea tu cuenta</Text>
-        </View>
-
-        {/* Formulario */}
-        <View style={styles.form}>
-          {/* Botones OAuth */}
-          <SocialButtons
-            onSuccess={handleOAuthSuccess}
-            onError={handleOAuthError}
-          />
-
-          {/* Divider */}
-          <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>o regístrate con email</Text>
-            <View style={styles.dividerLine} />
-          </View>
-
-          {/* Nombre */}
-          <Input
-            label="Nombre"
-            value={nombre}
-            onChangeText={setNombre}
-            placeholder="Juan"
-            autoCapitalize="words"
-            icono="account-outline"
-          />
-
-          {/* Apellido */}
-          <Input
-            label="Apellido"
-            value={apellido}
-            onChangeText={setApellido}
-            placeholder="Pérez"
-            autoCapitalize="words"
-            icono="account-outline"
-          />
-
-          {/* Email */}
-          <Input
-            label="Email"
-            value={email}
-            onChangeText={setEmail}
-            placeholder="tu@email.com"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            icono="email-outline"
-          />
-
-          {/* Teléfono (opcional) */}
-          <Input
-            label="Teléfono (opcional)"
-            value={telefono}
-            onChangeText={setTelefono}
-            placeholder="+54 223 123-4567"
-            keyboardType="phone-pad"
-            icono="phone-outline"
-          />
-
-          {/* Password */}
-          <Input
-            label="Contraseña"
-            value={password}
-            onChangeText={setPassword}
-            placeholder="Mínimo 6 caracteres"
-            secureTextEntry
-            icono="lock-outline"
-          />
-
-          {/* Confirmar Password */}
-          <Input
-            label="Confirmar Contraseña"
-            value={confirmarPassword}
-            onChangeText={setConfirmarPassword}
-            placeholder="Repite tu contraseña"
-            secureTextEntry
-            icono="lock-outline"
-          />
-
-          {/* Error */}
-          {error ? (
-            <View style={styles.errorBox}>
-              <MaterialCommunityIcons name="alert-circle" size={20} color={COLORES.error} />
-              <Text style={styles.errorText}>{error}</Text>
-            </View>
-          ) : null}
-
-          {/* Requisitos de contraseña */}
-          <View style={styles.passwordHints}>
-            <Text style={styles.hintTitle}>La contraseña debe tener:</Text>
-            <View style={styles.hintItem}>
-              <MaterialCommunityIcons 
-                name={password.length >= 6 ? "check-circle" : "circle-outline"} 
-                size={16} 
-                color={password.length >= 6 ? COLORES.exito : COLORES.grisTexto} 
-              />
-              <Text style={styles.hintText}>Mínimo 6 caracteres</Text>
-            </View>
-          </View>
-
-          {/* Botón Registro */}
-          <Boton
-            onPress={handleRegistro}
-            loading={loading}
-            disabled={loading}
-            fullWidth
-            style={styles.registerButton}
-          >
-            Crear Cuenta
-          </Boton>
-
-          {/* Link a Login */}
-          <View style={styles.loginContainer}>
-            <Text style={styles.loginText}>¿Ya tienes cuenta? </Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-              <Text style={styles.loginLink}>Inicia sesión aquí</Text>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Header con logo */}
+          <View style={styles.header}>
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => navigation.goBack()}
+            >
+              <MaterialCommunityIcons name="arrow-left" size={24} color={COLORES.dorado} />
             </TouchableOpacity>
+            <View style={styles.logoContainer}>
+              <MaterialCommunityIcons name="home-outline" size={50} color={COLORES.dorado} />
+            </View>
+            <Text style={styles.title}>Hotel Luna Serena</Text>
+            <Text style={styles.subtitle}>Crea tu cuenta</Text>
           </View>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+
+          {/* Formulario */}
+          <View style={styles.form}>
+            {/* Botones OAuth */}
+            <SocialButtons
+              onSuccess={handleOAuthSuccess}
+              onError={handleOAuthError}
+            />
+
+            {/* Divider */}
+            <View style={styles.divider}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>o regístrate con email</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
+            {/* Nombre */}
+            <Input
+              label="Nombre"
+              value={nombre}
+              onChangeText={setNombre}
+              placeholder="Juan"
+              autoCapitalize="words"
+              icono="account-outline"
+            />
+
+            {/* Apellido */}
+            <Input
+              label="Apellido"
+              value={apellido}
+              onChangeText={setApellido}
+              placeholder="Pérez"
+              autoCapitalize="words"
+              icono="account-outline"
+            />
+
+            {/* Email */}
+            <Input
+              label="Email"
+              value={email}
+              onChangeText={setEmail}
+              placeholder="tu@email.com"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              icono="account-outline"
+            />
+
+            {/* Teléfono (opcional) */}
+            <Input
+              label="Teléfono (opcional)"
+              value={telefono}
+              onChangeText={setTelefono}
+              placeholder="+54 223 123-4567"
+              keyboardType="phone-pad"
+              icono="phone-outline"
+            />
+
+            {/* Password */}
+            <Input
+              label="Contraseña"
+              value={password}
+              onChangeText={setPassword}
+              placeholder="Mínimo 6 caracteres"
+              secureTextEntry
+              icono="lock-outline"
+            />
+
+            {/* Confirmar Password */}
+            <Input
+              label="Confirmar Contraseña"
+              value={confirmarPassword}
+              onChangeText={setConfirmarPassword}
+              placeholder="Repite tu contraseña"
+              secureTextEntry
+              icono="lock-outline"
+            />
+
+            {/* Error */}
+            {error ? (
+              <View style={styles.errorBox}>
+                <MaterialCommunityIcons name="alert-circle" size={20} color={COLORES.error} />
+                <Text style={styles.errorText}>{error}</Text>
+              </View>
+            ) : null}
+
+            {/* Requisitos de contraseña */}
+            <View style={styles.passwordHints}>
+              <Text style={styles.hintTitle}>La contraseña debe tener:</Text>
+              <View style={styles.hintItem}>
+                <MaterialCommunityIcons 
+                  name={password.length >= 6 ? "check-circle" : "circle-outline"} 
+                  size={16} 
+                  color={password.length >= 6 ? COLORES.exito : COLORES.grisTexto} 
+                />
+                <Text style={styles.hintText}>Mínimo 6 caracteres</Text>
+              </View>
+            </View>
+
+            {/* Botón Registro */}
+            <Boton
+              onPress={handleRegistro}
+              loading={loading}
+              disabled={loading}
+              fullWidth
+              style={styles.registerButton}
+            >
+              Crear Cuenta
+            </Boton>
+
+            {/* Link a Login */}
+            <View style={styles.loginContainer}>
+              <Text style={styles.loginText}>¿Ya tienes cuenta? </Text>
+              <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+                <Text style={styles.loginLink}>Inicia sesión aquí</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </View>
   );
 };
 
@@ -289,8 +223,8 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 40,
-    paddingHorizontal: 16,
+    minHeight: '100%',
+    padding: 20,
   },
   header: {
     alignItems: 'center',
@@ -329,8 +263,6 @@ const styles = StyleSheet.create({
     color: COLORES.grisTexto,
   },
   form: {
-    width: '100%',
-    maxWidth: 500,
     backgroundColor: COLORES.blanco,
     borderRadius: 20,
     padding: 24,
@@ -339,6 +271,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 5,
+    minWidth: 320,
+    maxWidth: 400,
+    alignSelf: 'center',
   },
   divider: {
     flexDirection: 'row',
