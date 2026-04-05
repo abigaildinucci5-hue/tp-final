@@ -44,6 +44,9 @@ const obtenerHabitacionesPopulares = asyncHandler(async (req, res) => {
       galeria_imagenes = typeof h.galeria_imagenes === 'string' ? JSON.parse(h.galeria_imagenes) : (h.galeria_imagenes || []);
     } catch (e) {}
 
+    // ✅ precio_override tiene prioridad sobre precio_base del tipo
+    const precioFinal = parseFloat(h.precio_override ?? h.precio_base);
+
     return {
       id: h.id_habitacion,
       id_habitacion: h.id_habitacion,
@@ -54,9 +57,9 @@ const obtenerHabitacionesPopulares = asyncHandler(async (req, res) => {
       tipo_habitacion: h.tipo_nombre,
       tipo_nombre: h.tipo_nombre,
       imagen: h.imagen_principal,
-      precio: parseFloat(h.precio_base),
-      precio_base: parseFloat(h.precio_base),
-      precio_noche: parseFloat(h.precio_base),
+      precio: precioFinal,
+      precio_base: precioFinal,
+      precio_noche: precioFinal,
       estado: h.estado,
       capacidad: h.capacidad_personas,
       capacidad_personas: h.capacidad_personas,
@@ -66,7 +69,6 @@ const obtenerHabitacionesPopulares = asyncHandler(async (req, res) => {
     };
   });
 
-  // ✅ res.json DENTRO del asyncHandler
   res.json({ exito: true, data: datosFormateados, total: datosFormateados.length });
 });
 
@@ -100,13 +102,18 @@ const obtenerHabitaciones = asyncHandler(async (req, res) => {
   sql += ` ORDER BY t.precio_base ASC`;
   const habitaciones = await ejecutarConsulta(sql, parametros);
 
-  const datosFormateados = habitaciones.map(h => ({
-    ...h,
-    precio: parseFloat(h.precio_base),
-    precio_noche: parseFloat(h.precio_base),
-    habitacion_numero: h.numero_habitacion,
-    tipo_habitacion: h.tipo_nombre
-  }));
+  const datosFormateados = habitaciones.map(h => {
+    // ✅ precio_override tiene prioridad sobre precio_base del tipo
+    const precioFinal = parseFloat(h.precio_override ?? h.precio_base);
+    return {
+      ...h,
+      precio: precioFinal,
+      precio_base: precioFinal,
+      precio_noche: precioFinal,
+      habitacion_numero: h.numero_habitacion,
+      tipo_habitacion: h.tipo_nombre
+    };
+  });
 
   res.json({ exito: true, data: datosFormateados, total: datosFormateados.length });
 });
@@ -130,8 +137,12 @@ const obtenerHabitacion = asyncHandler(async (req, res) => {
   if (habitaciones.length === 0) throw crearError404('Habitación no encontrada');
 
   const habitacion = habitaciones[0];
-  habitacion.precio = parseFloat(habitacion.precio_base);
-  habitacion.precio_noche = parseFloat(habitacion.precio_base);
+
+  // ✅ precio_override tiene prioridad sobre precio_base del tipo
+  const precioFinal = parseFloat(habitacion.precio_override ?? habitacion.precio_base);
+  habitacion.precio = precioFinal;
+  habitacion.precio_base = precioFinal;
+  habitacion.precio_noche = precioFinal;
   habitacion.habitacion_numero = habitacion.numero_habitacion;
   habitacion.tipo_habitacion = habitacion.tipo_nombre;
 
@@ -170,7 +181,8 @@ const verificarDisponibilidad = asyncHandler(async (req, res) => {
  * Crear habitación (Admin)
  */
 const crearHabitacion = asyncHandler(async (req, res) => {
-  const { numero_habitacion, id_tipo, descripcion_detallada, piso, estado, vista } = req.body;
+  console.log('[crearHabitacion] body completo:', JSON.stringify(req.body));
+  const { numero_habitacion, id_tipo, descripcion_detallada, piso, estado, vista, precio_base } = req.body;
 
   if (!numero_habitacion || !id_tipo) {
     throw crearError400('Número de habitación y tipo son requeridos');
@@ -183,6 +195,8 @@ const crearHabitacion = asyncHandler(async (req, res) => {
     piso: piso || 1,
     estado: estado || 'disponible',
     vista: vista || 'ciudad',
+    // ✅ Si el admin ingresó precio, se guarda independiente del tipo
+    precio_override: precio_base ? parseFloat(precio_base) : null,
     activo: true,
   });
 
@@ -191,50 +205,23 @@ const crearHabitacion = asyncHandler(async (req, res) => {
 
 /**
  * Actualizar habitación (Admin/Empleado)
- * Campos de habitaciones se actualizan en tabla habitaciones.
- * precio_base y precio_empleado se actualizan en tipos_habitacion.
+ * precio_base se guarda como precio_override — independiente del tipo
  */
 const actualizarHabitacion = asyncHandler(async (req, res) => {
   const { precio_base, precio_empleado, ...datosHabitacion } = req.body;
 
-  console.log('[actualizarHabitacion] id:', req.params.idHabitacion);
-  console.log('[DEBUG] precio_base recibido:', precio_base, typeof precio_base);
-  console.log('[DEBUG] datosHabitacion:', datosHabitacion);
+  // ✅ Guardar precio como precio_override en la habitación (no en tipos_habitacion)
+  if (precio_base !== undefined) {
+    datosHabitacion.precio_override = parseFloat(precio_base);
+  }
 
-  // Actualizar campos de la tabla habitaciones
   if (Object.keys(datosHabitacion).length > 0) {
-    const filasHabitacion = await actualizar(
+    await actualizar(
       'habitaciones',
       'id_habitacion',
       req.params.idHabitacion,
       datosHabitacion
     );
-    console.log('[DEBUG] filas habitaciones actualizadas:', filasHabitacion);
-  }
-
-  // Actualizar precio en tipos_habitacion si viene en el body
-  if (precio_base !== undefined || precio_empleado !== undefined) {
-    const rows = await ejecutarConsulta(
-      'SELECT id_tipo FROM habitaciones WHERE id_habitacion = ?',
-      [req.params.idHabitacion]
-    );
-    console.log('[DEBUG] rows habitacion:', rows);
-    console.log('[DEBUG] id_tipo encontrado:', rows[0]?.id_tipo);
-
-    if (rows.length > 0) {
-      const datosTipo = {};
-      if (precio_base !== undefined) datosTipo.precio_base = precio_base;
-      if (precio_empleado !== undefined) datosTipo.precio_empleado = precio_empleado;
-      console.log('[DEBUG] datosTipo a actualizar en tipos_habitacion:', datosTipo);
-
-      const filasTipo = await actualizar(
-        'tipos_habitacion',
-        'id_tipo',
-        rows[0].id_tipo,
-        datosTipo
-      );
-      console.log('[DEBUG] filas tipos_habitacion actualizadas:', filasTipo);
-    }
   }
 
   res.json({ exito: true, mensaje: 'Actualizada' });

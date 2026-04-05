@@ -1,8 +1,3 @@
-// Elimina una imagen de la galería (definición correcta más abajo, duplicados eliminados)
-  // Abre el modal de confirmación para eliminar habitación
-  const handleEliminar = () => {
-    setModalEliminarHab(true);
-  };
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -108,8 +103,7 @@ const EditarHabitacionScreen = ({ navigation, route }) => {
       };
       Object.keys(datosActualizar).forEach((k) => datosActualizar[k] === undefined && delete datosActualizar[k]);
       console.log('🏠 Llamando update con id:', habitacion.id_habitacion);
-console.log('🏠 datosActualizar:', JSON.stringify(datosActualizar));
-await habitacionesService.update(habitacion.id_habitacion, datosActualizar);
+      console.log('🏠 datosActualizar:', JSON.stringify(datosActualizar));
       await habitacionesService.update(habitacion.id_habitacion, datosActualizar);
       setHayCambios(false);
       mostrarFeedback('exito', 'Éxito', 'Habitación actualizada correctamente', () => {
@@ -172,6 +166,10 @@ await habitacionesService.update(habitacion.id_habitacion, datosActualizar);
     } else {
       navigation.goBack();
     }
+  };
+
+  const handleEliminar = () => {
+    setModalEliminarHab(true);
   };
 
   if (loading && !showImageModal) {

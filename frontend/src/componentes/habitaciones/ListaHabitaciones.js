@@ -30,16 +30,28 @@ const ListaHabitaciones = ({
     return <Loading />;
   }
 
-  const renderItem = ({ item }) => (
-    <View style={numColumnas === 1 ? estilos.itemContainerMobile : estilos.itemContainer}>
-      <CardHabitacionRN
-        habitacion={item}
-        onPress={() => onHabitacionPress && onHabitacionPress(item)}
-        onFavorito={onFavoritoPress}
-        esFavorito={favoritos.includes(item.id_habitacion || item.id)}
-      />
-    </View>
-  );
+  const renderItem = ({ item }) => {
+    if (numColumnas === 1) {
+      return (
+        <CardHabitacionRN
+          habitacion={item}
+          onPress={() => onHabitacionPress && onHabitacionPress(item)}
+          onFavorito={onFavoritoPress}
+          esFavorito={favoritos.includes(item.id_habitacion || item.id)}
+        />
+      );
+    }
+    return (
+      <View style={estilos.itemContainer}>
+        <CardHabitacionRN
+          habitacion={item}
+          onPress={() => onHabitacionPress && onHabitacionPress(item)}
+          onFavorito={onFavoritoPress}
+          esFavorito={favoritos.includes(item.id_habitacion || item.id)}
+        />
+      </View>
+    );
+  };
 
   const renderEmpty = () => {
     if (ListEmptyComponent) return ListEmptyComponent;
@@ -83,10 +95,6 @@ const estilos = StyleSheet.create({
   listContent: {
     padding: 16,
     flexGrow: 1,
-    width: '100%',
-  },
-  // ✅ Mobile: ocupa todo el ancho disponible
-  itemContainerMobile: {
     width: '100%',
   },
   // Web: un tercio del ancho
