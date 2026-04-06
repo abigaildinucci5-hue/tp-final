@@ -1,4 +1,5 @@
 // frontend/src/hooks/useReservas.js
+import React, { useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   obtenerReservas,
@@ -23,59 +24,58 @@ export const useReservas = () => {
   } = useSelector((state) => state.reservas);
 
   // Cargar todas las reservas
-  const cargarReservas = async (filtros = {}) => {
+  const cargarReservas = useCallback(async (filtros = {}) => {
     try {
       await dispatch(obtenerReservas(filtros)).unwrap();
       return { success: true };
     } catch (error) {
       return { success: false, error };
     }
-  };
+  }, [dispatch]);
 
   // Cargar reserva por ID
-  const cargarReservaPorId = async (id) => {
+  const cargarReservaPorId = useCallback(async (id) => {
     try {
       await dispatch(obtenerReserva(id)).unwrap();
       return { success: true };
     } catch (error) {
       return { success: false, error };
     }
-  };
+  }, [dispatch]);
 
   // Crear nueva reserva
-  const crearReserva = async (reservaData) => {
+  const crearReserva = useCallback(async (reservaData) => {
     try {
-      // Usamos el nombre correcto que definiste en el Slice
       const result = await dispatch(crearReservaAction(reservaData)).unwrap();
       return { success: true, data: result };
     } catch (error) {
       console.error("Error en Hook crearReserva:", error);
       return { success: false, error };
     }
-  };
+  }, [dispatch]);
 
   // Actualizar/Modificar reserva
-  const actualizarReserva = async (idReserva, datos) => {
+  const actualizarReserva = useCallback(async (idReserva, datos) => {
     try {
       await dispatch(modificarReserva({ idReserva, datos })).unwrap();
       return { success: true };
     } catch (error) {
       return { success: false, error };
     }
-  };
+  }, [dispatch]);
 
   // Cancelar reserva
-  const cancelarReserva = async (idReserva) => {
+  const cancelarReserva = useCallback(async (idReserva) => {
     try {
       await dispatch(cancelarReservaAction(idReserva)).unwrap();
       return { success: true };
     } catch (error) {
       return { success: false, error };
     }
-  };
+  }, [dispatch]);
 
   // Obtener historial
-  const cargarHistorial = async () => {
+  const cargarHistorial = useCallback(async () => {
     try {
       console.log('🔄 Iniciando cargarHistorial...');
       const result = await dispatch(obtenerHistorial()).unwrap();
@@ -85,12 +85,12 @@ export const useReservas = () => {
       console.error('❌ Error cargarHistorial:', error);
       return { success: false, error };
     }
-  };
+  }, [dispatch]);
 
   // Limpiar selección
-  const limpiarSeleccion = () => {
+  const limpiarSeleccion = useCallback(() => {
     dispatch(clearReservaSeleccionada());
-  };
+  }, [dispatch]);
 
   return {
     // Estado

@@ -69,14 +69,6 @@ const ContactoMainScreen = () => {
           </View>
         </View>
 
-        {/* FORMULARIO DE CONTACTO */}
-        <View style={styles.seccion}>
-          <Text style={styles.tituloSeccion}>Envíanos un Mensaje</Text>
-          <TouchableOpacity style={styles.botonMensaje}>
-            <MaterialCommunityIcons name="email-send-outline" size={20} color="#fff" />
-            <Text style={styles.textoBotonMensaje}>Escribir Mensaje</Text>
-          </TouchableOpacity>
-        </View>
       </ScrollView>
     </SafeAreaView>
   );

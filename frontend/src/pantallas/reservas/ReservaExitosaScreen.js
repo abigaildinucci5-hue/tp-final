@@ -25,13 +25,6 @@ const ReservaExitosaScreen = ({ route, navigation }) => {
             <Text style={styles.valor}>#{reserva?.id_reserva || reserva?.idReserva || 'N/A'}</Text>
           </View>
           
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>Estado:</Text>
-            <Text style={[styles.valor, { color: '#10B981' }]}>
-              {reserva?.estado?.toUpperCase() || 'CONFIRMADA'}
-            </Text>
-          </View>
-
           <View style={styles.divider} />
 
           <Text style={styles.nota}>
@@ -41,7 +34,10 @@ const ReservaExitosaScreen = ({ route, navigation }) => {
 
         <TouchableOpacity 
           style={styles.botonPrincipal}
-          onPress={() => navigation.navigate('HomeMain')}
+          onPress={() => navigation.reset({
+            index: 0,
+            routes: [{ name: 'HomeMain' }],
+          })}
         >
           <Text style={styles.textoBotonPrincipal}>Ir al Inicio</Text>
         </TouchableOpacity>

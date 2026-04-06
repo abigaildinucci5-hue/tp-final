@@ -72,14 +72,6 @@ const DashboardEmpleadoScreen = ({ navigation }) => {
       color: COLORES.advertencia,
       descripcion: 'Procesar entrada y salida',
     },
-    {
-      id: 'clientes',
-      titulo: 'Clientes',
-      pantalla: 'Clientes',
-      icon: 'account-multiple',
-      color: COLORES.error,
-      descripcion: 'Ver lista de clientes',
-    },
   ];
 
   return (

@@ -9,6 +9,7 @@ import ResumenReserva from '../../componentes/reservas/ResumenReserva';
 import Boton from '../../componentes/comun/Boton';
 import Loading from '../../componentes/comun/Loading';
 import ModalConfirmacion from '../../componentes/comun/ModalConfirmacion';
+import reservasService from '../../servicios/reservasService';
 
 // Modal de feedback simple (éxito o error)
 const ModalFeedback = ({ visible, tipo, titulo, mensaje, onClose }) => (
@@ -32,6 +33,8 @@ const DetalleReservaScreen = ({ navigation, route }) => {
 
   const [modalCancelar, setModalCancelar] = useState(false);
   const [loadingCancelar, setLoadingCancelar] = useState(false);
+  const [modalEliminar, setModalEliminar] = useState(false);
+  const [loadingEliminar, setLoadingEliminar] = useState(false);
   const [modalFeedback, setModalFeedback] = useState(null);
 
   const mostrarFeedback = (tipo, titulo, mensaje, onClose) => {
@@ -61,9 +64,27 @@ const DetalleReservaScreen = ({ navigation, route }) => {
         mostrarFeedback('error', 'Error', result.error?.message || 'No se pudo cancelar la reserva. Intentá nuevamente.');
       }
     } catch (error) {
+      console.error('Error al cancelar reserva:', error);
       mostrarFeedback('error', 'Error', 'Algo salió mal. Intentá nuevamente.');
     } finally {
       setLoadingCancelar(false);
+    }
+  };
+
+  const procederEliminar = async () => {
+    setModalEliminar(false);
+    try {
+      setLoadingEliminar(true);
+      await reservasService.eliminarReserva(id);
+      mostrarFeedback('exito', 'Reserva Eliminada', 'La reserva fue eliminada correctamente', () => {
+        setModalFeedback(null);
+        navigation.goBack();
+      });
+    } catch (error) {
+      console.error('Error al eliminar reserva:', error);
+      mostrarFeedback('error', 'Error', 'No se pudo eliminar: ' + (error?.response?.data?.mensaje || error?.message || 'Error desconocido'));
+    } finally {
+      setLoadingEliminar(false);
     }
   };
 
@@ -104,6 +125,14 @@ const DetalleReservaScreen = ({ navigation, route }) => {
         </View>
       )}
 
+      {reservaSeleccionada?.estado === 'cancelada' && (
+        <View style={estilos.footer}>
+          <Boton variant="destructive" onPress={() => setModalEliminar(true)} fullWidth loading={loadingEliminar}>
+            Eliminar Reserva
+          </Boton>
+        </View>
+      )}
+
       {/* Modal: confirmación de cancelación */}
       <ModalConfirmacion
         visible={modalCancelar}
@@ -117,6 +146,20 @@ const DetalleReservaScreen = ({ navigation, route }) => {
         loading={loadingCancelar}
         onConfirmar={procederCancelar}
         onCancelar={() => setModalCancelar(false)}
+      />
+
+      <ModalConfirmacion
+        visible={modalEliminar}
+        titulo="Eliminar Reserva"
+        mensaje="¿Estás seguro? Esta acción eliminará la reserva permanentemente."
+        iconName="delete-alert"
+        iconColor={COLORES.error}
+        labelConfirmar="Eliminar"
+        labelCancelar="Cancelar"
+        variant="destructive"
+        loading={loadingEliminar}
+        onConfirmar={procederEliminar}
+        onCancelar={() => setModalEliminar(false)}
       />
 
       {/* Modal: feedback éxito/error */}

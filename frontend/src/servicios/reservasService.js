@@ -105,9 +105,10 @@ export const cambiarEstado = async (idReserva, nuevoEstado) => {
 };
 
 /** Eliminar reserva */
-
 export const eliminarReserva = async (idReserva) => {
-  return await api.delete(`/reservas/${idReserva}/eliminar`);
+  return await api.delete(`/reservas/${idReserva}`, {
+    params: { accion: 'eliminar' }
+  });
 };
 
 // Alias default

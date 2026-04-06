@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { ESTILOS_GLOBALES } from '../../constantes/estilos';
@@ -13,6 +13,8 @@ import COLORES from '../../constantes/colores';
 const MisReservasScreen = ({ navigation }) => {
   const { isAuthenticated, usuario } = useAuth();
   const { historial, loading, cargarHistorial } = useReservas();
+  const [isLoadingHistorial, setIsLoadingHistorial] = useState(false);
+  const isLoadingHistorialRef = useRef(false);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -25,7 +27,14 @@ const MisReservasScreen = ({ navigation }) => {
 
   useFocusEffect(
     React.useCallback(() => {
-      cargarHistorial();
+      if (!isLoadingHistorialRef.current) {
+        isLoadingHistorialRef.current = true;
+        setIsLoadingHistorial(true);
+        cargarHistorial().finally(() => {
+          isLoadingHistorialRef.current = false;
+          setIsLoadingHistorial(false);
+        });
+      }
     }, [cargarHistorial])
   );
 
@@ -62,10 +71,19 @@ const MisReservasScreen = ({ navigation }) => {
 
       <HistorialReservas
         reservas={todasLasReservas}
-        loading={loading}
+        loading={loading || isLoadingHistorial}
         onReservaPress={handleReservaPress}
-        onRefresh={cargarHistorial}
-        refreshing={loading}
+        onRefresh={() => {
+          if (!isLoadingHistorialRef.current) {
+            isLoadingHistorialRef.current = true;
+            setIsLoadingHistorial(true);
+            cargarHistorial().finally(() => {
+              isLoadingHistorialRef.current = false;
+              setIsLoadingHistorial(false);
+            });
+          }
+        }}
+        refreshing={loading || isLoadingHistorial}
         userRole={usuario?.rol || 'cliente'}
       />
     </View>

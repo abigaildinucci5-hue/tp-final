@@ -17,6 +17,7 @@ const GestionHabitacionesEmpleadoScreen = ({ navigation }) => {
   const [filtroEstado, setFiltroEstado] = useState('todas');
   const [modalVisible, setModalVisible] = useState(false);
   const [habitacionSeleccionada, setHabitacionSeleccionada] = useState(null);
+  const [nuevoEstadoSeleccionado, setNuevoEstadoSeleccionado] = useState(null);
   const [actualizando, setActualizando] = useState(false);
 
   // ✅ Estados para ModalConfirmacion (reemplazan Alert)
@@ -57,22 +58,24 @@ const GestionHabitacionesEmpleadoScreen = ({ navigation }) => {
 
   const abrirModalCambioEstado = (habitacion) => {
     setHabitacionSeleccionada(habitacion);
+    setNuevoEstadoSeleccionado(habitacion.estado); // Inicializar con estado actual
     setModalVisible(true);
   };
 
-  const cambiarEstado = async (nuevoEstado) => {
-    if (!habitacionSeleccionada) return;
+  const confirmarCambioEstado = async () => {
+    if (!habitacionSeleccionada || !nuevoEstadoSeleccionado) return;
 
     try {
       setActualizando(true);
-      await habitacionesService.update(habitacionSeleccionada.id_habitacion, { estado: nuevoEstado });
+      await habitacionesService.update(habitacionSeleccionada.id_habitacion, { estado: nuevoEstadoSeleccionado });
       setModalVisible(false);
+      setNuevoEstadoSeleccionado(null);
       cargarHabitaciones();
       // ✅ Reemplaza Alert.alert('Éxito', ...)
       setModalFeedback({
         tipo: 'exito',
         titulo: 'Estado actualizado',
-        mensaje: `La habitación ${habitacionSeleccionada.numero_habitacion} cambió a "${nuevoEstado}"`,
+        mensaje: `La habitación ${habitacionSeleccionada.numero_habitacion} cambió a "${nuevoEstadoSeleccionado}"`,
       });
     } catch (error) {
       setModalVisible(false);
@@ -85,6 +88,11 @@ const GestionHabitacionesEmpleadoScreen = ({ navigation }) => {
     } finally {
       setActualizando(false);
     }
+  };
+
+  const cerrarModalCambioEstado = () => {
+    setModalVisible(false);
+    setNuevoEstadoSeleccionado(null);
   };
 
   // ✅ FIX: usa numero_habitacion (campo real del backend), no habitacion_numero ni numero
@@ -197,24 +205,18 @@ const GestionHabitacionesEmpleadoScreen = ({ navigation }) => {
         />
       </View>
 
-      {/* Modal para cambiar estado — sin cambios */}
+      {/* Modal para cambiar estado - Centrado y con botones claros */}
       <Modal
         visible={modalVisible}
         transparent
-        animationType="slide"
-        onRequestClose={() => setModalVisible(false)}
+        animationType="fade"
+        onRequestClose={cerrarModalCambioEstado}
       >
         <View style={estilosModal.overlay}>
           <View style={estilosModal.container}>
-            <View style={estilosModal.header}>
-              {/* ✅ FIX: usa numero_habitacion */}
-              <Text style={estilosModal.titulo}>
-                Cambiar Estado - Habitación {habitacionSeleccionada?.numero_habitacion}
-              </Text>
-              <TouchableOpacity onPress={() => setModalVisible(false)}>
-                <MaterialCommunityIcons name="close" size={24} color={COLORES.textoOscuro} />
-              </TouchableOpacity>
-            </View>
+            <Text style={estilosModal.titulo}>
+              Cambiar Estado - Habitación {habitacionSeleccionada?.numero_habitacion}
+            </Text>
 
             <ScrollView style={estilosModal.contenido} showsVerticalScrollIndicator={false}>
               <Text style={estilosModal.labelEstado}>Selecciona el nuevo estado:</Text>
@@ -224,9 +226,9 @@ const GestionHabitacionesEmpleadoScreen = ({ navigation }) => {
                   key={estado}
                   style={[
                     estilosModal.estadoOpcion,
-                    habitacionSeleccionada?.estado === estado && estilosModal.estadoOpcionActivo,
+                    nuevoEstadoSeleccionado === estado && estilosModal.estadoOpcionActivo,
                   ]}
-                  onPress={() => cambiarEstado(estado)}
+                  onPress={() => setNuevoEstadoSeleccionado(estado)}
                   disabled={actualizando}
                 >
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 }}>
@@ -241,24 +243,33 @@ const GestionHabitacionesEmpleadoScreen = ({ navigation }) => {
                       {estado.charAt(0).toUpperCase() + estado.slice(1)}
                     </Text>
                   </View>
-                  {habitacionSeleccionada?.estado === estado && !actualizando && (
-                    <MaterialCommunityIcons name="check" size={20} color={COLORES.primario} />
-                  )}
-                  {actualizando && (
-                    <MaterialCommunityIcons name="loading" size={20} color={COLORES.primario} />
+                  {nuevoEstadoSeleccionado === estado && !actualizando && (
+                    <MaterialCommunityIcons name="check-circle" size={24} color={COLORES.primario} />
                   )}
                 </TouchableOpacity>
               ))}
             </ScrollView>
 
             <View style={estilosModal.footer}>
-              <Boton
-                titulo="Cerrar"
-                onPress={() => setModalVisible(false)}
-                tipo="secundario"
-                tamaño="mediano"
-                disabled={actualizando}
-              />
+              <View style={estilosModal.botonesContainer}>
+                <Boton
+                  titulo="Cancelar"
+                  onPress={cerrarModalCambioEstado}
+                  tipo="secundario"
+                  tamaño="mediano"
+                  disabled={actualizando}
+                  fullWidth
+                />
+                <Boton
+                  titulo={actualizando ? "Cambiando..." : "Confirmar"}
+                  onPress={confirmarCambioEstado}
+                  tipo="primario"
+                  tamaño="mediano"
+                  disabled={actualizando}
+                  loading={actualizando}
+                  fullWidth
+                />
+              </View>
             </View>
           </View>
         </View>
@@ -286,33 +297,33 @@ const estilosModal = StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   container: {
     backgroundColor: COLORES.fondoBlanco,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderRadius: 16,
     maxHeight: '80%',
-    paddingBottom: 20,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: DIMENSIONES.padding,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORES.borde,
+    width: '88%',
+    maxWidth: 420,
+    paddingVertical: 24,
+    paddingHorizontal: 20,
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
   },
   titulo: {
-    fontSize: TIPOGRAFIA.fontSizeBase,
+    fontSize: TIPOGRAFIA.fontSizeMedium,
     fontWeight: TIPOGRAFIA.fontWeightBold,
     color: COLORES.textoOscuro,
-    flex: 1,
+    textAlign: 'center',
+    marginBottom: 20,
   },
   contenido: {
-    paddingHorizontal: DIMENSIONES.padding,
-    paddingVertical: 16,
+    maxHeight: 300,
+    marginBottom: 16,
   },
   labelEstado: {
     fontSize: TIPOGRAFIA.fontSizeBase,
@@ -324,17 +335,17 @@ const estilosModal = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    borderWidth: 1,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    borderWidth: 2,
     borderColor: COLORES.borde,
-    marginBottom: 8,
+    marginBottom: 10,
     backgroundColor: COLORES.fondoBlanco,
   },
   estadoOpcionActivo: {
     borderColor: COLORES.primario,
-    backgroundColor: COLORES.primario + '10',
+    backgroundColor: COLORES.primario + '12',
   },
   estadoIcono: {
     width: 40,
@@ -349,10 +360,12 @@ const estilosModal = StyleSheet.create({
     color: COLORES.textoOscuro,
   },
   footer: {
-    paddingHorizontal: DIMENSIONES.padding,
-    paddingTop: 12,
     borderTopWidth: 1,
     borderTopColor: COLORES.borde,
+    paddingTop: 16,
+  },
+  botonesContainer: {
+    gap: 12,
   },
 });
 

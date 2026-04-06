@@ -72,6 +72,7 @@ const habitacionesService = {
   obtenerCategorias,
   create,
   update,
+  deleteHabitacion,
   delete: deleteHabitacion, // ✅ alias para habitacionesService.delete(id)
 };
 

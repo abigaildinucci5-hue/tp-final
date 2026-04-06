@@ -169,11 +169,13 @@ const verificarDisponibilidad = asyncHandler(async (req, res) => {
   const sqlReservas = `
     SELECT id_reserva FROM reservas
     WHERE id_habitacion = ? AND estado IN ('pendiente', 'confirmada')
-    AND ((fecha_entrada <= ? AND fecha_salida > ?) OR (fecha_entrada < ? AND fecha_salida >= ?))
+    AND NOT (
+      fecha_salida <= ? OR fecha_entrada >= ?
+    )
     LIMIT 1
   `;
 
-  const conflicto = await ejecutarConsulta(sqlReservas, [idHabitacion, fechaEntrada, fechaEntrada, fechaSalida, fechaSalida]);
+  const conflicto = await ejecutarConsulta(sqlReservas, [idHabitacion, fechaEntrada, fechaSalida]);
   res.json({ exito: true, data: { disponible: conflicto.length === 0 } });
 });
 

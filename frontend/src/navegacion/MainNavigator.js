@@ -58,7 +58,6 @@ const PerfilStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="PerfilMain" component={PerfilScreen} />
     <Stack.Screen name="EditarPerfil" component={EditarPerfilScreen} />
-    <Stack.Screen name="Notificaciones" component={NotificacionesScreen} />
     <Stack.Screen name="Favoritos" component={FavoritosScreen} />
   </Stack.Navigator>
 );

@@ -32,6 +32,7 @@ console.log("DEBUG - Objeto habitación completo:", habitacion);
   const [numHuespedes, setNumHuespedes] = useState(2);
   const [numNiños, setNumNiños] = useState(0);
   const [horaLlegada, setHoraLlegada] = useState('14:00');
+  const [customHora, setCustomHora] = useState('18:00');
   const [turno, setTurno] = useState('completo');
   const [solicitudes, setSolicitudes] = useState('');
   const [metodoPago, setMetodoPago] = useState(null);
@@ -75,7 +76,8 @@ console.log("DEBUG - Objeto habitación completo:", habitacion);
         fechaEntrada: fechaCheckIn,           // ✅ Correcto
         fechaSalida: fechaCheckOut,           // ✅ Correcto
         numeroHuespedes: numHuespedes,        // ✅ CORREGIDO: era "huespedes"
-        notasEspeciales: solicitudes          // ✅ CORREGIDO: era "solicitudesEspeciales"
+        notasEspeciales: solicitudes,         // ✅ CORREGIDO: era "solicitudesEspeciales"
+        horaLlegada: horaLlegada === '18:00+' ? customHora : horaLlegada              // ✅ Agregado
       };
 
       const result = await crearReserva(reservaData);
@@ -83,9 +85,9 @@ console.log("DEBUG - Objeto habitación completo:", habitacion);
       console.log("3. Respuesta del servidor:", result);
 
       if (result && result.success) {
-        navigation.navigate('ReservaExitosa', { reserva: result.data });
+        navigation.navigate('ReservaExitosa', { reserva: result.data.data });
       } else {
-        const msgError = result?.error?.mensaje || 'Error desconocido al reservar';
+        const msgError = result?.error?.mensaje || result?.data?.mensaje || 'Error desconocido al reservar';
         Alert.alert('Atención', msgError);
       }
     } catch (err) {
@@ -223,7 +225,12 @@ console.log("DEBUG - Objeto habitación completo:", habitacion);
         <View style={styles.pickerContainer}>
           <Picker
             selectedValue={horaLlegada}
-            onValueChange={setHoraLlegada}
+            onValueChange={(value) => {
+              setHoraLlegada(value);
+              if (value !== '18:00+') {
+                setCustomHora('18:00');
+              }
+            }}
             style={{ color: '#1A1A1A' }}
           >
             <Picker.Item label="14:00 - 15:00" value="14:00" />
@@ -233,6 +240,17 @@ console.log("DEBUG - Objeto habitación completo:", habitacion);
             <Picker.Item label="Después de las 18:00" value="18:00+" />
           </Picker>
         </View>
+        {horaLlegada === '18:00+' && (
+          <TextInput
+            style={styles.textInput}
+            placeholder="Ingresa la hora (ej: 20:30)"
+            value={customHora}
+            onChangeText={setCustomHora}
+            keyboardType="numeric"
+            maxLength={5}
+            placeholderTextColor="#9CA3AF"
+          />
+        )}
       </View>
 
       {/* Solicitudes especiales */}

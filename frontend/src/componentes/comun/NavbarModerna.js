@@ -71,6 +71,17 @@ const NavbarModerna = ({
       }
       break;
 
+    case 'MisReservas':
+      if (!isAuthenticated) {
+        action = CommonActions.navigate({ name: 'Auth' });
+      } else {
+        action = CommonActions.navigate({
+          name: 'Reservas',
+          params: { screen: 'MisReservas' },
+        });
+      }
+      break;
+
     case 'PerfilMain':
       if (!isAuthenticated) {
         action = CommonActions.navigate({ name: 'Auth' });
@@ -84,6 +95,17 @@ const NavbarModerna = ({
 
     case 'Contacto':
       action = CommonActions.navigate({ name: 'Contacto' });
+      break;
+
+    case 'Favoritos':
+      if (!isAuthenticated) {
+        action = CommonActions.navigate({ name: 'Auth' });
+      } else {
+        action = CommonActions.navigate({
+          name: 'Perfil',
+          params: { screen: 'Favoritos' },
+        });
+      }
       break;
   }
 
@@ -235,6 +257,11 @@ const NavbarModerna = ({
           label="Reservas"
           onPress={() => { setMostrarMenuNav(false); navigateTo('Reservas'); }}
         />
+        <MenuItem
+          icono="phone-outline"
+          label="Contacto"
+          onPress={() => { setMostrarMenuNav(false); navigateTo('Contacto'); }}
+        />
       </ScrollView>
     </View>
 
@@ -291,24 +318,7 @@ const NavbarModerna = ({
                     label="Favoritos"
                     onPress={() => {
                       setMostrarMenuUsuario(false);
-                      // Navegar a favoritos
-                    }}
-                  />
-                  <MenuItem
-                    icono="star-outline"
-                    label="Mis Puntos"
-                    subtext={`${usuario?.puntos || 0} pts`}
-                    onPress={() => {
-                      setMostrarMenuUsuario(false);
-                      // Navegar a puntos
-                    }}
-                  />
-                  <MenuItem
-                    icono="cog-outline"
-                    label="Configuración"
-                    onPress={() => {
-                      setMostrarMenuUsuario(false);
-                      // Navegar a configuración
+                      navigateTo('Favoritos');
                     }}
                   />
 

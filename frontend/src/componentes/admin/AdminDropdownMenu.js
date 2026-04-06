@@ -12,15 +12,20 @@ import {
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import COLORES from '../../constantes/colores';
 import { TIPOGRAFIA, DIMENSIONES } from '../../constantes/estilos';
+import ModalConfirmacion from '../comun/ModalConfirmacion';
 
 const AdminDropdownMenu = ({ usuario, onLogout, navigation }) => {
   const [mostrarMenu, setMostrarMenu] = useState(false);
+  const [confirmarLogout, setConfirmarLogout] = useState(false);
 
-  // AHORA: El menú solo cierra el dropdown y dispara la prop onLogout.
-  // La pantalla (el padre) será la encargada de mostrar el cartel lindo.
   const handleLogoutPress = () => {
     setMostrarMenu(false);
-    if (onLogout) onLogout(); 
+    setConfirmarLogout(true);
+  };
+
+  const procederLogout = () => {
+    setConfirmarLogout(false);
+    if (onLogout) onLogout();
   };
 
   const MenuItem = ({ icono, label, onPress, isRojo = false }) => (
@@ -140,6 +145,23 @@ const AdminDropdownMenu = ({ usuario, onLogout, navigation }) => {
           </TouchableOpacity>
         </Modal>
       )}
+
+      <ModalConfirmacion
+        visible={confirmarLogout}
+        titulo="Cerrar sesión"
+        mensaje="¿Querés cerrar sesión realmente?"
+        iconName="logout"
+        iconColor={COLORES.error}
+        labelConfirmar="Salir"
+        labelCancelar="Cancelar"
+        variant="destructive"
+        compact
+        confirmButtonStyle={{ backgroundColor: COLORES.error }}
+        cancelButtonStyle={{ backgroundColor: COLORES.blanco, borderColor: COLORES.borde }}
+        cancelTextStyle={{ color: COLORES.textoOscuro }}
+        onConfirmar={procederLogout}
+        onCancelar={() => setConfirmarLogout(false)}
+      />
     </View>
   );
 };

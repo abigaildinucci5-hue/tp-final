@@ -35,6 +35,7 @@ const Boton = ({
         styles.push(estilos.botonText);
         break;
       case 'danger':
+      case 'destructive':
         styles.push(estilos.botonDanger);
         break;
     }
@@ -84,6 +85,7 @@ const Boton = ({
         styles.push(estilos.textoText);
         break;
       case 'danger':
+      case 'destructive':
         styles.push(estilos.textoDanger);
         break;
     }

@@ -99,7 +99,6 @@ const EditarHabitacionScreen = ({ navigation, route }) => {
         descripcion_detallada: datos.descripcion_detallada ?? '',
         piso: datos.piso !== undefined && datos.piso !== '' ? parseInt(datos.piso) : undefined,
         galeria_imagenes: imagenesGaleria,
-        amenidades: Array.isArray(datos.amenidades) ? datos.amenidades : (typeof datos.amenidades === 'string' ? JSON.parse(datos.amenidades || '[]') : []),
       };
       Object.keys(datosActualizar).forEach((k) => datosActualizar[k] === undefined && delete datosActualizar[k]);
       console.log('🏠 Llamando update con id:', habitacion.id_habitacion);
@@ -147,16 +146,21 @@ const EditarHabitacionScreen = ({ navigation, route }) => {
   };
 
   const procederEliminar = async () => {
+    console.log('[EditarHabitacion] procederEliminar inicio', { id: habitacion?.id_habitacion });
     setModalEliminarHab(false);
     try {
       setLoading(true);
-      await habitacionesService.deleteHabitacion(habitacion.id_habitacion);
+      const respuesta = await habitacionesService.deleteHabitacion(habitacion.id_habitacion);
+      console.log('[EditarHabitacion] deleteHabitacion respuesta:', respuesta);
       mostrarFeedback('exito', 'Eliminada', 'Habitación eliminada correctamente', () => {
         setModalFeedback(null);
         navigation.goBack();
       });
     } catch (error) {
-      mostrarFeedback('error', 'Error', 'No se pudo eliminar: ' + error.message);
+      console.error('[EditarHabitacion] error al eliminar habitación:', error);
+      mostrarFeedback('error', 'Error', 'No se pudo eliminar: ' + (error?.message || 'Error desconocido'));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -297,54 +301,6 @@ const EditarHabitacionScreen = ({ navigation, route }) => {
           </View>
         </View>
 
-        {/* Amenidades (editable, UX mejorada) */}
-        <View style={estilos.section}>
-          <Text style={estilos.sectionTitle}>Amenidades</Text>
-          <View style={estilos.amenidadesList}>
-            {(Array.isArray(datos.amenidades) ? datos.amenidades : (typeof datos.amenidades === 'string' ? JSON.parse(datos.amenidades || '[]') : [])).map((amenidad, index) => (
-              <View key={index} style={estilos.amenidadTag}>
-                <Text style={estilos.amenidadTexto}>{amenidad}</Text>
-                <TouchableOpacity onPress={() => {
-                  const nuevas = [...(datos.amenidades || [])];
-                  nuevas.splice(index, 1);
-                  setDatos({ ...datos, amenidades: nuevas });
-                }}>
-                  <MaterialCommunityIcons name="close" size={18} color={COLORES.error} />
-                </TouchableOpacity>
-              </View>
-            ))}
-            {/* Botón + para agregar nueva etiqueta */}
-            <View style={[estilos.amenidadTag, { backgroundColor: COLORES.primario + '15', minWidth: 80 }]}> 
-              <TextInput
-                style={[estilos.amenidadTexto, { flex: 1, minWidth: 40 }]}
-                value={datos.nuevaAmenidad || ''}
-                onChangeText={text => setDatos({ ...datos, nuevaAmenidad: text })}
-                placeholder="Nueva"
-                onSubmitEditing={() => {
-                  if (datos.nuevaAmenidad && datos.nuevaAmenidad.trim() !== '') {
-                    const nuevas = [...(datos.amenidades || [])];
-                    nuevas.push(datos.nuevaAmenidad.trim());
-                    setDatos({ ...datos, amenidades: nuevas, nuevaAmenidad: '' });
-                  }
-                }}
-                returnKeyType="done"
-              />
-              <TouchableOpacity
-                style={{ marginLeft: 4, backgroundColor: COLORES.primario, borderRadius: 6, padding: 4 }}
-                onPress={() => {
-                  if (datos.nuevaAmenidad && datos.nuevaAmenidad.trim() !== '') {
-                    const nuevas = [...(datos.amenidades || [])];
-                    nuevas.push(datos.nuevaAmenidad.trim());
-                    setDatos({ ...datos, amenidades: nuevas, nuevaAmenidad: '' });
-                  }
-                }}
-              >
-                <MaterialCommunityIcons name="plus" size={18} color={COLORES.blanco} />
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-
         {/* Botones */}
         <View style={estilos.section}>
           <Boton
@@ -360,7 +316,7 @@ const EditarHabitacionScreen = ({ navigation, route }) => {
             </Text>
           </Boton>
 
-          <Boton onPress={handleEliminar} fullWidth style={estilos.btnEliminar} variant="destructive">
+          <Boton onPress={handleEliminar} fullWidth style={estilos.btnEliminar} variant="danger">
             <MaterialCommunityIcons name="delete" size={20} color={COLORES.textoBlanco} />
             <Text style={estilos.btnTexto}>Eliminar Habitación</Text>
           </Boton>

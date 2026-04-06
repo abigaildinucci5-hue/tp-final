@@ -5,7 +5,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import COLORES from '../../constantes/colores';
 import { TIPOGRAFIA, ESTILOS_GLOBALES } from '../../constantes/estilos';
 import { useAuth } from '../../contexto/AuthContext';
-import { obtenerFavoritos } from '../../utils/storage';
+import { obtenerFavoritos } from '../../servicios/habitacionesService';
 import ListaHabitaciones from '../../componentes/habitaciones/ListaHabitaciones';
 import HeaderApp from '../../componentes/comun/HeaderApp';
 import Loading from '../../componentes/comun/Loading';
@@ -31,13 +31,27 @@ const FavoritosScreen = ({ navigation }) => {
 
   const cargarFavoritos = async () => {
     setLoading(true);
-    const favs = await obtenerFavoritos();
-    setFavoritos([]);
-    setLoading(false);
+    try {
+      const respuesta = await obtenerFavoritos();
+      const lista = Array.isArray(respuesta)
+        ? respuesta
+        : Array.isArray(respuesta?.data)
+          ? respuesta.data
+          : [];
+      setFavoritos(lista);
+    } catch (error) {
+      console.error('Error cargando favoritos:', error);
+      setFavoritos([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleHabitacionPress = (habitacion) => {
-    navigation.navigate('DetalleHabitacion', { habitacionId: habitacion.id_habitacion || habitacion.id });
+    navigation.getParent()?.navigate('Habitaciones', {
+      screen: 'DetalleHabitacion',
+      params: { habitacionId: habitacion.id_habitacion || habitacion.id },
+    });
   };
 
   const renderEmpty = () => (

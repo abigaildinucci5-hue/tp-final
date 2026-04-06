@@ -41,6 +41,7 @@ const DetalleReservaAdminScreen = ({ navigation, route }) => {
   const [modalConfirmar, setModalConfirmar] = useState(false);
   const [modalCompletar, setModalCompletar] = useState(false);
   const [modalBaja, setModalBaja] = useState(false);
+  const [modalEliminar, setModalEliminar] = useState(false);
 
   // Modal de feedback
   const [modalFeedback, setModalFeedback] = useState(null);
@@ -98,6 +99,22 @@ const DetalleReservaAdminScreen = ({ navigation, route }) => {
       });
     } catch (error) {
       mostrarFeedback('error', 'Error', 'No se pudo dar de baja: ' + (error.message || 'Error desconocido'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const procederEliminar = async () => {
+    setModalEliminar(false);
+    try {
+      setLoading(true);
+      await reservasService.eliminarReserva(reserva.id_reserva);
+      mostrarFeedback('exito', 'Reserva Eliminada', 'La reserva fue eliminada correctamente', () => {
+        setModalFeedback(null);
+        navigation.goBack();
+      });
+    } catch (error) {
+      mostrarFeedback('error', 'Error', 'No se pudo eliminar: ' + (error.message || 'Error desconocido'));
     } finally {
       setLoading(false);
     }
@@ -250,6 +267,11 @@ const DetalleReservaAdminScreen = ({ navigation, route }) => {
                 Dar de Baja
               </Boton>
             )}
+            {reserva?.estado === 'cancelada' && (
+              <Boton onPress={() => setModalEliminar(true)} loading={loading} fullWidth variant="destructive">
+                Eliminar Reserva
+              </Boton>
+            )}
           </View>
         </ScrollView>
       )}
@@ -295,6 +317,20 @@ const DetalleReservaAdminScreen = ({ navigation, route }) => {
         loading={loading}
         onConfirmar={procederDarDeBaja}
         onCancelar={() => setModalBaja(false)}
+      />
+
+      <ModalConfirmacion
+        visible={modalEliminar}
+        titulo="Eliminar Reserva"
+        mensaje="¿Estás seguro? Esta acción eliminará la reserva permanentemente."
+        iconName="delete-alert"
+        iconColor={COLORES.error}
+        labelConfirmar="Eliminar"
+        labelCancelar="Cancelar"
+        variant="destructive"
+        loading={loading}
+        onConfirmar={procederEliminar}
+        onCancelar={() => setModalEliminar(false)}
       />
 
       {/* Modal: feedback éxito/error */}

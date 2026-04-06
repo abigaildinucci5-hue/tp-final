@@ -1,8 +1,5 @@
 // frontend/src/pantallas/habitaciones/DetalleHabitacionScreen.js
-import React, { useState, useRef, useEffect
-
-  
-} from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -457,25 +454,40 @@ const DetalleHabitacionScreen = ({ route, navigation }) => {
         <View style={{ height: 120 }} />
       </ScrollView>
 
-      {/* BOTÓN FLOTANTE DE RESERVAR */}
-      <View style={styles.reserveButtonContainer}>
-        <TouchableOpacity
-          style={styles.reserveButton}
-          onPress={() => {
-            console.log("BOTON RESERVAR PRESIONADO", habitacion);
-
-            navigation.navigate('NuevaReserva', { habitacion });
-}}
-          activeOpacity={0.85}
-        >
-          <Text style={styles.reserveButtonText}>Reservar Ahora</Text>
-          <MaterialCommunityIcons
-            name="arrow-right"
-            size={20}
-            color={COLORES.blanco}
-          />
-        </TouchableOpacity>
-      </View>
+      {/* BOTÓN FLOTANTE DE RESERVAR O AVISO DE NO DISPONIBLE */}
+      {habitacion.estado === 'disponible' ? (
+        <View style={styles.reserveButtonContainer}>
+          <TouchableOpacity
+            style={styles.reserveButton}
+            onPress={() => {
+              navigation.navigate('NuevaReserva', { habitacion });
+            }}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.reserveButtonText}>Reservar Ahora</Text>
+            <MaterialCommunityIcons
+              name="arrow-right"
+              size={20}
+              color={COLORES.blanco}
+            />
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <View style={styles.reserveNotificationContainer}>
+          <View style={styles.reserveNotificationBox}>
+            <MaterialCommunityIcons
+              name="alert-circle-outline"
+              size={28}
+              color={COLORES.advertencia}
+              style={{ marginBottom: 8 }}
+            />
+            <Text style={styles.reserveNotificationTitle}>No disponible</Text>
+            <Text style={styles.reserveNotificationText}>
+              Esta habitación no puede reservarse hasta nuevo aviso.
+            </Text>
+          </View>
+        </View>
+      )}
     </View>
   );
 };
@@ -883,6 +895,36 @@ const styles = {
     color: COLORES.blanco,
     letterSpacing: 0.5,
     fontWeight: '600',
+  },
+  reserveNotificationContainer: {
+    position: 'absolute',
+    bottom: 80,
+    left: 20,
+    right: 20,
+    alignItems: 'center',
+  },
+  reserveNotificationBox: {
+    width: '100%',
+    backgroundColor: '#FFF4E5',
+    borderRadius: 12,
+    padding: 18,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORES.advertencia + '40',
+  },
+  reserveNotificationTitle: {
+    fontFamily: 'montserrat_700bold',
+    fontSize: 16,
+    color: COLORES.textoOscuro,
+    marginBottom: 8,
+    fontWeight: '700',
+  },
+  reserveNotificationText: {
+    fontFamily: 'montserrat_400regular',
+    fontSize: 14,
+    color: COLORES.textoMedio,
+    textAlign: 'center',
+    lineHeight: 20,
   },
 };
 

@@ -153,7 +153,8 @@ const crearReserva = asyncHandler(async (req, res) => {
     fechaEntrada,
     fechaSalida,
     numeroHuespedes,
-    notasEspeciales
+    notasEspeciales,
+    horaLlegada
   } = req.body;
 
   const { id_usuario, rol } = req.usuario;
@@ -223,19 +224,16 @@ const crearReserva = asyncHandler(async (req, res) => {
     SELECT id_reserva FROM reservas
     WHERE id_habitacion = ?
     AND estado IN ('pendiente', 'confirmada')
-    AND (
-      (fecha_entrada <= ? AND fecha_salida > ?)
-      OR (fecha_entrada < ? AND fecha_salida >= ?)
-      OR (fecha_entrada >= ? AND fecha_salida <= ?)
+    AND NOT (
+      fecha_salida <= ? OR fecha_entrada >= ?
     )
     LIMIT 1
   `;
 
   const conflictos = await ejecutarConsulta(sqlDisponibilidad, [
     idHabitacion,
-    fechaEntrada, fechaEntrada,
-    fechaSalida, fechaSalida,
-    fechaEntrada, fechaSalida
+    fechaEntrada,
+    fechaSalida,
   ]);
 
   if (conflictos.length > 0) {
@@ -258,6 +256,7 @@ const crearReserva = asyncHandler(async (req, res) => {
     id_habitacion: idHabitacion,
     fecha_entrada: fechaEntrada,
     fecha_salida: fechaSalida,
+    hora_entrada: horaLlegada || '14:00', // Default si no se proporciona
     numero_huespedes: numeroHuespedes,
     precio_total: precioTotal,
     descuento_aplicado: descuento,
@@ -461,6 +460,48 @@ const cancelarReserva = asyncHandler(async (req, res) => {
 });
 
 /**
+ * Eliminar reserva
+ * DELETE /api/reservas/:idReserva/eliminar
+ */
+const eliminarReserva = asyncHandler(async (req, res) => {
+  const { idReserva } = req.params;
+  const { rol, id_usuario } = req.usuario;
+
+  // Obtener reserva
+  const reservas = await ejecutarConsulta(
+    'SELECT * FROM reservas WHERE id_reserva = ? LIMIT 1',
+    [idReserva]
+  );
+
+  if (reservas.length === 0) {
+    throw crearError404('Reserva no encontrada');
+  }
+
+  const reserva = reservas[0];
+
+  // Verificar permisos
+  // - Admin puede eliminar cualquier reserva
+  // - Empleado (recepcionista) puede eliminar cualquier reserva
+  // - Cliente solo puede eliminar si es suya
+  if (rol === 'cliente') {
+    if (reserva.id_usuario !== id_usuario) {
+      throw crearError403('No tienes permiso para eliminar esta reserva');
+    }
+  }
+
+  // Eliminar de la base de datos
+  await ejecutarConsulta('DELETE FROM reservas WHERE id_reserva = ?', [idReserva]);
+
+  res.json({ 
+    exito: true, 
+    mensaje: 'Reserva eliminada correctamente',
+    data: {
+      id_reserva: idReserva
+    }
+  });
+});
+
+/**
  * Confirmar reserva (Empleado/Admin)
  * PUT /api/reservas/:idReserva/confirmar
  */
@@ -488,25 +529,6 @@ const confirmarReserva = asyncHandler(async (req, res) => {
     exito: true,
     mensaje: 'Reserva confirmada exitosamente'
   });
-});
-
-const completarReserva = asyncHandler(async (req, res) => {
-  const { idReserva } = req.params;
-
-  const reservas = await ejecutarConsulta(
-    `SELECT estado FROM reservas WHERE id_reserva = ? LIMIT 1`,
-    [idReserva]
-  );
-
-  if (reservas.length === 0) throw crearError404('Reserva no encontrada');
-
-  if (reservas[0].estado !== 'confirmada') {
-    throw crearError400('Solo se pueden completar reservas confirmadas');
-  }
-
-  await actualizar('reservas', 'id_reserva', idReserva, { estado: 'completada' });
-
-  res.json({ exito: true, mensaje: 'Reserva completada exitosamente' });
 });
 
 /**
@@ -988,9 +1010,9 @@ module.exports = {
   obtenerReservas,
   obtenerReserva,
   crearReserva,
-  completarReserva,
   modificarReserva,
   cancelarReserva,
+  eliminarReserva,
   confirmarReserva,
   obtenerHistorial,
   crearReservaConPuntos,

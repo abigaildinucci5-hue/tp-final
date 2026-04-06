@@ -63,9 +63,9 @@ router.put('/:idHabitacion', verificarAutenticacion, verificarEmpleado, controla
 /**
  * @route   DELETE /api/habitaciones/:idHabitacion
  * @desc    Eliminar habitación
- * @access  Privado (Admin)
+ * @access  Privado (Admin o Empleado)
  */
-router.delete('/:idHabitacion', verificarAutenticacion, verificarAdmin, controladorHabitaciones.eliminarHabitacion);
+router.delete('/:idHabitacion', verificarAutenticacion, verificarEmpleado, controladorHabitaciones.eliminarHabitacion);
 
 /**
  * @route   POST /api/habitaciones/:idHabitacion/favorito

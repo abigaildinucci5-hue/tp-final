@@ -9,18 +9,22 @@ import {
   Platform,
   Alert,
 } from 'react-native';
+import ModalConfirmacion from '../comun/ModalConfirmacion';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import COLORES from '../../constantes/colores';
 import { TIPOGRAFIA, DIMENSIONES } from '../../constantes/estilos';
 
 const NavbarEmpleado = ({ usuario, onLogout, navigation }) => {
   const [mostrarMenu, setMostrarMenu] = useState(false);
+  const [confirmarLogout, setConfirmarLogout] = useState(false);
 
-  const handleLogoutPress = async () => {
-    // Cerramos el menú primero para evitar conflictos visuales
+  const handleLogoutPress = () => {
     setMostrarMenu(false);
+    setConfirmarLogout(true);
+  };
 
-    // Cerramos sesión directamente
+  const procederLogout = async () => {
+    setConfirmarLogout(false);
     if (onLogout) {
       try {
         await onLogout();
@@ -133,11 +137,6 @@ const NavbarEmpleado = ({ usuario, onLogout, navigation }) => {
                 onPress={() => { setMostrarMenu(false); navigation?.navigate('CheckInOut'); }}
               />
               <MenuItem
-                icono="account-multiple-outline"
-                label="Clientes"
-                onPress={() => { setMostrarMenu(false); navigation?.navigate('Clientes'); }}
-              />
-              <MenuItem
                 icono="account-outline"
                 label="Mi Perfil"
                 onPress={() => { setMostrarMenu(false); navigation?.navigate('PerfilEmpleado'); }}
@@ -155,6 +154,23 @@ const NavbarEmpleado = ({ usuario, onLogout, navigation }) => {
           </View>
         </>
       )}
+
+      <ModalConfirmacion
+        visible={confirmarLogout}
+        titulo="Cerrar sesión"
+        mensaje="¿Querés cerrar sesión realmente?"
+        iconName="logout"
+        iconColor={COLORES.error}
+        labelConfirmar="Salir"
+        labelCancelar="Cancelar"
+        variant="destructive"
+        compact
+        confirmButtonStyle={{ backgroundColor: COLORES.error }}
+        cancelButtonStyle={{ backgroundColor: COLORES.blanco, borderColor: COLORES.borde }}
+        cancelTextStyle={{ color: COLORES.textoOscuro }}
+        onConfirmar={procederLogout}
+        onCancelar={() => setConfirmarLogout(false)}
+      />
     </View>
   );
 };

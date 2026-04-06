@@ -11,10 +11,12 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '../../contexto/AuthContext';
 import { formatearFecha } from '../../utils/dateFormatter';
 import ModalConfirmacion from '../../componentes/comun/ModalConfirmacion';
+import Boton from '../../componentes/comun/Boton';
 import {
   confirmarReserva,
   completarReserva,
   cancelarReservaEmpleado,
+  eliminarReserva,
   obtenerReserva,
 } from '../../servicios/reservasService';
 
@@ -28,6 +30,7 @@ const DetalleReservaEmpleadoScreen = ({ navigation, route }) => {
 
   const [modalVisible, setModalVisible] = useState(false);
   const [accionPendiente, setAccionPendiente] = useState(null);
+  const [modalEliminar, setModalEliminar] = useState(false);
 
   const cargarReserva = useCallback(async () => {
     if (!initialReserva?.id_reserva) return;
@@ -99,6 +102,21 @@ const DetalleReservaEmpleadoScreen = ({ navigation, route }) => {
 
     setAccionPendiente(config[nuevoEstado]);
     setModalVisible(true);
+  };
+
+  const procederEliminar = async () => {
+    setModalEliminar(false);
+    setCargando(true);
+    try {
+      await eliminarReserva(reserva.id_reserva);
+      navigation.goBack();
+    } catch (error) {
+      const msgError = error?.response?.data?.mensaje || error?.message || 'No se pudo eliminar la reserva.';
+      setAccionPendiente({ esError: true, titulo: 'Error', mensaje: msgError });
+      setModalVisible(true);
+    } finally {
+      setCargando(false);
+    }
   };
 
   const getEstadoColor = (est) => {
@@ -198,6 +216,12 @@ const DetalleReservaEmpleadoScreen = ({ navigation, route }) => {
             </View>
           )}
 
+          {estado === 'cancelada' && (
+            <Boton onPress={() => setModalEliminar(true)} loading={cargando} fullWidth variant="destructive">
+              Eliminar Reserva
+            </Boton>
+          )}
+
           {/* Mensaje cuando no hay acciones disponibles */}
           {accionesValidas.length === 0 && (
             <View style={estilos.sinAcciones}>
@@ -209,6 +233,20 @@ const DetalleReservaEmpleadoScreen = ({ navigation, route }) => {
           )}
         </View>
       </ScrollView>
+
+      <ModalConfirmacion
+        visible={modalEliminar}
+        titulo="Eliminar Reserva"
+        mensaje="¿Estás seguro? Esta acción eliminará la reserva permanentemente."
+        iconName="delete-alert"
+        iconColor={COLORES.error}
+        labelConfirmar="Eliminar"
+        labelCancelar="Cancelar"
+        variant="destructive"
+        loading={cargando}
+        onConfirmar={procederEliminar}
+        onCancelar={() => setModalEliminar(false)}
+      />
 
       {/* Modal de confirmación / error — sin cambios */}
       {accionPendiente && (

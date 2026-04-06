@@ -32,8 +32,6 @@ const PerfilScreen = ({ navigation }) => {
     { id: 'password', titulo: 'Cambiar Contraseña', icono: 'lock-outline', pantalla: 'CambiarPassword' },
     { id: 'reservas', titulo: 'Mis Reservas', icono: 'calendar-outline', pantalla: 'MisReservas' },
     { id: 'favoritos', titulo: 'Favoritos', icono: 'heart-outline', pantalla: 'Favoritos' },
-    { id: 'notificaciones', titulo: 'Notificaciones', icono: 'bell-outline', pantalla: 'Notificaciones' },
-    { id: 'configuracion', titulo: 'Configuración', icono: 'cog-outline', pantalla: 'Configuracion' },
   ];
 
   const handleLogout = async () => {

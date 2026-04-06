@@ -22,6 +22,10 @@ const ModalConfirmacion = ({
   labelCancelar = 'Cancelar',
   variant = 'default', // 'default' o 'destructive'
   loading = false,
+  compact = false,
+  confirmButtonStyle = {},
+  cancelButtonStyle = {},
+  cancelTextStyle = {},
   onConfirmar = () => {},
   onCancelar = () => {},
 }) => {
@@ -33,12 +37,12 @@ const ModalConfirmacion = ({
       onRequestClose={onCancelar}
     >
       <View style={estilos.modalOverlay}>
-        <View style={estilos.modalContainer}>
+        <View style={[estilos.modalContainer, compact && estilos.modalContainerCompact]}>
           {/* Header con ícono */}
           <View style={estilos.headerContainer}>
             <MaterialCommunityIcons
               name={iconName}
-              size={48}
+              size={44}
               color={iconColor}
             />
           </View>
@@ -49,20 +53,25 @@ const ModalConfirmacion = ({
 
           {/* Botones */}
           <View style={estilos.botonesContainer}>
-            <Boton
-              variant="outline"
-              onPress={onCancelar}
-              disabled={loading}
-              fullWidth
-            >
-              {labelCancelar}
-            </Boton>
+            {labelCancelar && (
+              <Boton
+                variant="outline"
+                onPress={onCancelar}
+                disabled={loading}
+                fullWidth
+                style={[estilos.cancelButton, cancelButtonStyle]}
+                textStyle={[estilos.cancelButtonText, cancelTextStyle]}
+              >
+                {labelCancelar}
+              </Boton>
+            )}
             <Boton
               variant={variant === 'destructive' ? 'danger' : 'primary'}
               onPress={onConfirmar}
               loading={loading}
               disabled={loading}
               fullWidth
+              style={confirmButtonStyle}
             >
               {!loading && labelConfirmar}
             </Boton>
@@ -109,6 +118,18 @@ const estilos = StyleSheet.create({
   botonesContainer: {
     width: '100%',
     gap: 12,
+  },
+  modalContainerCompact: {
+    width: '82%',
+    paddingVertical: DIMENSIONES.padding,
+    paddingHorizontal: DIMENSIONES.padding,
+  },
+  cancelButton: {
+    backgroundColor: COLORES.blanco,
+    borderColor: COLORES.borde,
+  },
+  cancelButtonText: {
+    color: COLORES.textoOscuro,
   },
 });
 

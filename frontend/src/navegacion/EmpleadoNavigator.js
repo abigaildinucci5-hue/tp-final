@@ -5,7 +5,6 @@ import DashboardEmpleadoScreen from '../pantallas/empleado/DashboardEmpleadoScre
 import GestionReservasEmpleadoScreen from '../pantallas/empleado/GestionReservasEmpleadoScreen';
 import GestionHabitacionesEmpleadoScreen from '../pantallas/empleado/GestionHabitacionesEmpleadoScreen';
 import CheckInOutScreen from '../pantallas/empleado/CheckInOutScreen';
-import ClientesScreen from '../pantallas/empleado/ClientesScreen';
 import DetalleReservaEmpleadoScreen from '../pantallas/empleado/DetalleReservaEmpleadoScreen';
 import CrearReservaEmpleadoScreen from '../pantallas/empleado/CrearReservaEmpleadoScreen';
 import PerfilEmpleadoScreen from '../pantallas/empleado/PerfilEmpleadoScreen';
@@ -23,7 +22,6 @@ const EmpleadoNavigator = () => {
       <Stack.Screen name="GestionReservasEmpleado" component={GestionReservasEmpleadoScreen} />
       <Stack.Screen name="GestionHabitacionesEmpleado" component={GestionHabitacionesEmpleadoScreen} />
       <Stack.Screen name="CheckInOut" component={CheckInOutScreen} />
-      <Stack.Screen name="Clientes" component={ClientesScreen} />
       <Stack.Screen name="DetalleReservaEmpleado" component={DetalleReservaEmpleadoScreen} />
       <Stack.Screen name="CrearReservaEmpleado" component={CrearReservaEmpleadoScreen} />
       <Stack.Screen name="PerfilEmpleado" component={PerfilEmpleadoScreen} />
