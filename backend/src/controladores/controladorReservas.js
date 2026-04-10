@@ -225,7 +225,7 @@ const crearReserva = asyncHandler(async (req, res) => {
     WHERE id_habitacion = ?
     AND estado IN ('pendiente', 'confirmada')
     AND NOT (
-      fecha_salida <= ? OR fecha_entrada >= ?
+      fecha_salida < ? OR fecha_entrada > ?
     )
     LIMIT 1
   `;
@@ -339,10 +339,8 @@ const modificarReserva = asyncHandler(async (req, res) => {
       WHERE id_habitacion = ?
       AND id_reserva != ?
       AND estado IN ('pendiente', 'confirmada')
-      AND (
-        (fecha_entrada <= ? AND fecha_salida > ?)
-        OR (fecha_entrada < ? AND fecha_salida >= ?)
-        OR (fecha_entrada >= ? AND fecha_salida <= ?)
+      AND NOT (
+        fecha_salida < ? OR fecha_entrada > ?
       )
       LIMIT 1
     `;
@@ -350,9 +348,8 @@ const modificarReserva = asyncHandler(async (req, res) => {
     const conflictos = await ejecutarConsulta(sqlDisponibilidad, [
       reserva.id_habitacion,
       idReserva,
-      nuevaEntrada, nuevaEntrada,
-      nuevaSalida, nuevaSalida,
-      nuevaEntrada, nuevaSalida
+      nuevaEntrada,
+      nuevaSalida
     ]);
 
     if (conflictos.length > 0) {
