@@ -117,7 +117,7 @@ const uploadPerfil = multer({
  * Obtener URL pública de un archivo
  */
 const obtenerUrlPublica = (nombreArchivo, carpeta) => {
-  callbackURL: process.env.GITHUB_CALLBACK_URL || 'https://tp-final-production-9e41.up.railway.app/api/auth/github/callback';
+  callbackURL: process.env.GITHUB_CALLBACK_URL || 'https://tp-final-production-2d4c.up.railway.app/api/auth/github/callback';
   return `${baseUrl}/uploads/${carpeta}/${nombreArchivo}`;
 };
 

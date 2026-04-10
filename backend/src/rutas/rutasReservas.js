@@ -90,7 +90,7 @@ router.delete('/:idReserva', verificarAutenticacion, asyncHandler(async (req, re
     }
 
     if (accionEliminar) {
-      // 🗑️ ELIMINAR PERMANENTEMENTE
+      // 🗑️ ELIMINAR PERMANENTEMENTE - SIN IMPORTAR EL ESTADO
       console.log(`✅ Eliminando reserva ${idReserva} permanentemente`);
       await ejecutarConsulta('DELETE FROM reservas WHERE id_reserva = ?', [idReserva]);
       
@@ -101,9 +101,9 @@ router.delete('/:idReserva', verificarAutenticacion, asyncHandler(async (req, re
       });
     }
 
-    // ❌ CANCELAR RESERVA (cambiar estado)
+    // ❌ CANCELAR RESERVA (cambiar estado) - SOLO SI ES PENDIENTE O CONFIRMADA
     if (!['pendiente', 'confirmada'].includes(reserva.estado)) {
-      throw crearError400('Esta reserva no se puede cancelar. Estado actual: ' + reserva.estado);
+      throw crearError400('Esta reserva solo se puede eliminar permanentemente. Estado actual: ' + reserva.estado);
     }
 
     // Calcular si aplica reembolso (48 horas antes)

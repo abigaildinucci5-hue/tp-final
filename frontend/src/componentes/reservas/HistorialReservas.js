@@ -16,6 +16,7 @@ const HistorialReservas = ({
   ListHeaderComponent,
   ListFooterComponent,
   userRole = 'cliente',
+  onEliminarReserva = null,
 }) => {
   if (loading && reservas.length === 0) {
     return <Loading />;
@@ -26,6 +27,7 @@ const HistorialReservas = ({
       reserva={item}
       onPress={() => onReservaPress && onReservaPress(item)}
       userRole={userRole}
+      onEliminar={onEliminarReserva}
     />
   );
 

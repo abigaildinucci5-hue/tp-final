@@ -202,13 +202,13 @@ export const OAUTH_CONFIG = {
     ? 'TU_GOOGLE_CLIENT_ID_PROD'
     : 'TU_GOOGLE_CLIENT_ID_LOCAL',
   GOOGLE_REDIRECT_URI: process.env.NODE_ENV === 'production'
-    ? 'https://tp-final-production-2d4c.up.railway.app/auth/google/callback'
+    ? 'https://tp-final-production-2d4c.up.railway.app/api/auth/google/callback'
     : 'http://localhost:3000/auth/google/callback',
   GITHUB_CLIENT_ID: process.env.NODE_ENV === 'production'
     ? 'TU_GITHUB_CLIENT_ID_PROD'
     : 'TU_GITHUB_CLIENT_ID_LOCAL',
   GITHUB_REDIRECT_URI: process.env.NODE_ENV === 'production'
-    ? 'https://tp-final-production-2d4c.up.railway.app/auth/github/callback'
+    ? 'https://tp-final-production-2d4c.up.railway.app/api/auth/github/callback'
     : 'http://localhost:3000/auth/github/callback',
 };
 export const DEV_CONFIG = {

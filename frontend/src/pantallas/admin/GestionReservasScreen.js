@@ -47,6 +47,13 @@ const GestionReservasScreen = ({ navigation }) => {
     navigation.navigate('DetalleReservaAdmin', { reserva });
   };
 
+  const handleEliminarReserva = async (idReserva) => {
+    // Eliminar la reserva del estado local
+    setReservasFiltradas((prev) => 
+      prev.filter((r) => r.id_reserva !== idReserva)
+    );
+  };
+
   const estados = [
     { id: 'todas', label: 'Todas', color: COLORES.textoMedio },
     { id: 'pendiente', label: 'Pendientes', color: COLORES.advertencia },
@@ -67,6 +74,7 @@ const GestionReservasScreen = ({ navigation }) => {
           onRefresh={cargarTodasReservas}
           refreshing={loading}
           userRole={usuario?.rol || 'empleado'}
+          onEliminarReserva={handleEliminarReserva}
           ListHeaderComponent={
           <>
             {/* Hero Section dentro del FlatList */}
